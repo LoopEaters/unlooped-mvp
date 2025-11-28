@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import QueryProvider from './providers/QueryProvider'
+import { AuthProvider } from './providers/AuthProvider'
+import LoginModal from './components/auth/LoginModal'
 
 export const metadata: Metadata = {
   title: 'Unlooped MVP',
@@ -15,7 +17,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <QueryProvider>{children}</QueryProvider>
+        <AuthProvider>
+          <QueryProvider>
+            {children}
+            <LoginModal />
+          </QueryProvider>
+        </AuthProvider>
       </body>
     </html>
   )

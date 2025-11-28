@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from './supabase';
+import { supabase } from '@/app/lib/supabase/client';
 
 // 예시: 사용자 정보 가져오기
 export function useUser() {

@@ -89,3 +89,61 @@ supabase/
 
 이러한 원칙들을 바탕으로 **유지보수 가능하고, 확장 가능하며, 성능이 우수한** 코드베이스를 구축합니다.
 
+## 주요 명령어 및 작업 가이드
+
+### Supabase 관련
+
+#### 타입 파일 생성/업데이트
+데이터베이스 스키마가 변경될 때마다 타입 파일을 업데이트해야 합니다:
+
+```bash
+npx supabase gen types typescript --project-id xlovwwdppjfsbuzibctk > types/supabase.ts
+```
+
+#### 타입 사용 예시
+```typescript
+import { Database } from '@/types/supabase'
+
+// 테이블 Row 타입
+type Entity = Database['public']['Tables']['entity']['Row']
+
+// Insert 타입 (생성 시 사용)
+type EntityInsert = Database['public']['Tables']['entity']['Insert']
+
+// Update 타입 (수정 시 사용)
+type EntityUpdate = Database['public']['Tables']['entity']['Update']
+```
+
+#### 데이터베이스 스키마 추가 정보
+
+**Auth 관련 제약 조건:**
+- `public.users.id`는 `auth.users.id`를 참조하는 FK (ON DELETE CASCADE)
+- 이 제약은 DB에 실제로 존재하지만, 타입 파일(`types/supabase.ts`)에는 표시되지 않음
+  - 이유: `supabase gen types`는 `public` 스키마 내의 FK만 타입에 포함
+  - `auth` 스키마를 참조하는 FK는 자동 생성되지 않음
+- Supabase Auth 사용자 삭제 시 `public.users` 레코드도 자동 삭제됨
+
+### 환경 변수
+
+현재 설정된 Supabase 환경 변수:
+- `NEXT_PUBLIC_SUPABASE_URL`: https://xlovwwdppjfsbuzibctk.supabase.co
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: (`.env.local` 파일에서 관리)
+
+### 개발 워크플로우
+
+1. **DB 스키마 변경 시**:
+   - Supabase Dashboard에서 스키마 수정
+   - 타입 파일 업데이트: `npx supabase gen types typescript --project-id xlovwwdppjfsbuzibctk > types/supabase.ts`
+   - 관련 코드의 타입 에러 확인 및 수정
+
+2. **새 기능 개발 시**:
+   - `app/components/`에 컴포넌트 추가
+   - 데이터 페칭이 필요하면 `app/lib/queries.ts`에 React Query 훅 추가
+   - Supabase 클라이언트는 `app/lib/supabase.ts` 사용
+
+3. **코드 포맷팅**:
+   ```bash
+   npm run format  # Prettier 실행
+   npm run lint    # ESLint 실행
+   ```
+

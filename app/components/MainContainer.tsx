@@ -15,11 +15,15 @@ export default function MainContainer() {
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-y-auto p-6"
+      className="flex-1 overflow-y-auto p-6 bg-bg-primary"
     >
       {/* Record cards will be rendered here via React Query */}
       <div className="space-y-4">
         {/* Placeholder for records */}
+        <div className="text-center text-gray-400 mt-20">
+          <p className="text-lg">No records yet</p>
+          <p className="text-sm mt-2">Start by creating your first record below</p>
+        </div>
       </div>
     </div>
   )

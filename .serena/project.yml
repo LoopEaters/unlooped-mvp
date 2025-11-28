@@ -78,7 +78,11 @@ excluded_tools: []
 
 # initial prompt for the project. It will always be given to the LLM upon activating the project
 # (contrary to the memories, which are loaded on demand).
-initial_prompt: ""
+initial_prompt: |
+  When working on this project, actively utilize Serena Memory:
+  - Before starting work, check stored memories using list_memories.
+  - If relevant information exists, read it using read_memory and reference it.
+  - Store important project information, architectural decisions, and development principles using write_memory.
 
 project_name: "unlooped-mvp"
 included_optional_tools: []

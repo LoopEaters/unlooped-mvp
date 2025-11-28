@@ -15,11 +15,12 @@ export default function RightSidebar() {
   return (
     <div
       ref={sidebarRef}
-      className="w-64 border-l border-border-main overflow-y-auto p-4"
+      className="w-80 border-l border-border-main overflow-y-auto p-6 bg-bg-primary"
     >
       {/* Timeline dates will be rendered here */}
       <div className="space-y-4">
         {/* Placeholder for timeline */}
+        <div className="text-gray-400 text-sm">Timeline will appear here</div>
       </div>
     </div>
   )

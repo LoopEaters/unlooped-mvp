@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Bold, Italic, List } from 'lucide-react'
 
 export default function InputArea() {
   const [content, setContent] = useState('')
@@ -16,27 +17,25 @@ export default function InputArea() {
         {/* Text input area with @mention support */}
         <div
           contentEditable
-          className="min-h-[80px] text-white outline-none mb-3"
+          className="min-h-[80px] text-white outline-none mb-3 relative"
           onInput={(e) => setContent(e.currentTarget.textContent || '')}
           data-placeholder="Start typing... Use @ to mention entities"
         />
 
         {/* Toolbar and Save button */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {/* Bold */}
-            <button className="p-2 text-gray-400 hover:text-white transition-colors">
-              <span className="font-bold">B</span>
+            <button className="p-2 text-gray-400 hover:text-white transition-colors rounded hover:bg-bg-secondary">
+              <Bold className="w-4 h-4" />
             </button>
             {/* Italic */}
-            <button className="p-2 text-gray-400 hover:text-white transition-colors">
-              <span className="italic">I</span>
+            <button className="p-2 text-gray-400 hover:text-white transition-colors rounded hover:bg-bg-secondary">
+              <Italic className="w-4 h-4" />
             </button>
             {/* List */}
-            <button className="p-2 text-gray-400 hover:text-white transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+            <button className="p-2 text-gray-400 hover:text-white transition-colors rounded hover:bg-bg-secondary">
+              <List className="w-4 h-4" />
             </button>
           </div>
 
