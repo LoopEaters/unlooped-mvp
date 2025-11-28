@@ -41,11 +41,10 @@ export default function Header() {
     setIsLoggingOut(true)
     try {
       await signOut()
-      // signOut 성공 시 AuthProvider에서 자동으로 로그인 모달 표시
+      // signOut 성공 시 router.push('/') 로 홈으로 이동하고 router.refresh()로 서버 컴포넌트 새로고침
     } catch (error) {
       console.error('Logout error:', error)
       alert('로그아웃 중 오류가 발생했습니다. 다시 시도해주세요.')
-    } finally {
       setIsLoggingOut(false)
     }
   }
@@ -153,7 +152,7 @@ export default function Header() {
                 <Avatar.Root className="w-9 h-9 rounded-full bg-orange-400 flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-orange-500 transition-all">
                   <Avatar.Image
                     src={userProfile?.profile?.avatar_url || undefined}
-                    alt={getDisplayName()}
+                    alt={getDisplayName()} //todo: 이거 로직 많이 수정해야함. 사용성이 별로임. 
                     className="w-full h-full object-cover"
                   />
                   <Avatar.Fallback className="w-full h-full flex items-center justify-center bg-orange-400 text-white font-medium">

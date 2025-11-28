@@ -13,12 +13,13 @@ export async function signOutAction() {
   const { error } = await supabase.auth.signOut()
 
   if (error) {
+    console.error('Sign out error:', error)
     return { error: error.message }
   }
 
-  // 캐시 무효화 및 페이지 리프레시
+  // 캐시 무효화
   revalidatePath('/', 'layout')
-
+  
   return { success: true }
 }
 
