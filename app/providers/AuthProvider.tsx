@@ -1,9 +1,11 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/app/lib/supabase/client';
 import { Tables } from '@/types/supabase';
+import { signOutAction } from '@/app/lib/actions/auth';
 
 // Supabase Auth User + users 테이블 정보 합친 타입
 export type UserProfile = User & {
@@ -27,6 +29,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -208,11 +211,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      throw error;
+    // Server Action으로 서버 쿠키 삭제 + 캐시 무효화
+    const result = await signOutAction();
+    
+    if (result.error) {
+      throw new Error(result.error);
     }
+
+    // 클라이언트 signOut으로 onAuthStateChange 트리거 (UI 상태 업데이트)
+    await supabase.auth.signOut();
+
+    // 홈으로 이동 (revalidatePath로 캐시가 무효화되어 최신 서버 데이터 자동 fetch)
+    router.push('/');
   };
 
   const value = {
