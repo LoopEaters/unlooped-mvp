@@ -25,4 +25,8 @@
 
 - **Project ID**: `xlovwwdppjfsbuzibctk`
 - **Project URL**: `https://xlovwwdppjfsbuzibctk.supabase.co`
-- **Type Generation Command**: `npx supabase gen types typescript --project-id xlovwwdppjfsbuzibctk > types/supabase.ts`
+- **Type Generation Command**: 
+  - npm script: `npm run gen:types` (권장)
+  - 직접 실행: `npx supabase gen types typescript --project-id xlovwwdppjfsbuzibctk > types/supabase.ts`
+  
+**중요**: 데이터베이스 스키마가 변경될 때마다 타입 파일을 업데이트해야 합니다. `npm run gen:types` 명령어를 실행하면 `types/supabase.ts` 파일이 자동으로 업데이트됩니다.

@@ -97,6 +97,10 @@ supabase/
 데이터베이스 스키마가 변경될 때마다 타입 파일을 업데이트해야 합니다:
 
 ```bash
+# npm script 사용 (권장)
+npm run gen:types
+
+# 또는 직접 실행
 npx supabase gen types typescript --project-id xlovwwdppjfsbuzibctk > types/supabase.ts
 ```
 
@@ -133,7 +137,7 @@ type EntityUpdate = Database['public']['Tables']['entity']['Update']
 
 1. **DB 스키마 변경 시**:
    - Supabase Dashboard에서 스키마 수정
-   - 타입 파일 업데이트: `npx supabase gen types typescript --project-id xlovwwdppjfsbuzibctk > types/supabase.ts`
+   - 타입 파일 업데이트: `npm run gen:types` 실행
    - 관련 코드의 타입 에러 확인 및 수정
 
 2. **새 기능 개발 시**:
