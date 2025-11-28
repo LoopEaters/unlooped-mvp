@@ -41,7 +41,7 @@ export default function Header() {
     setIsLoggingOut(true)
     try {
       await signOut()
-      // signOut 성공 시 AuthProvider의 onAuthStateChange가 자동으로 처리
+      // signOut 성공 시 AuthProvider에서 자동으로 로그인 모달 표시
     } catch (error) {
       console.error('Logout error:', error)
       alert('로그아웃 중 오류가 발생했습니다. 다시 시도해주세요.')

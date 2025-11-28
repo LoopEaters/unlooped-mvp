@@ -213,6 +213,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       throw error;
     }
+
+    // 로그아웃 성공 시 로그인 모달 표시
+    // onAuthStateChange에서도 처리하지만, 명시적으로 여기서도 처리하여 확실하게 동작하도록 함
+    setShowLoginModal(true);
   };
 
   const value = {
