@@ -11,7 +11,7 @@
         "--context",
         "ide-assistant",
         "--project",
-        "C:\\Users\\wondo\\dev\\unlooped-mvp",
+        ".",
         "--enable-web-dashboard",
         "False"
       ],
