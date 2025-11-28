@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/app/lib/supabase/client';
 import { Tables } from '@/types/supabase';
+import { signOutAction } from '@/app/lib/actions/auth';
 
 // Supabase Auth User + users 테이블 정보 합친 타입
 export type UserProfile = User & {
@@ -208,11 +209,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
+    // Server Action을 통해 서버에서 쿠키를 제대로 삭제합니다
+    const result = await signOutAction();
 
-    if (error) {
-      throw error;
+    if (result.error) {
+      throw new Error(result.error);
     }
+
+    // 클라이언트 측에서도 signOut을 호출하여 상태를 즉시 업데이트합니다
+    await supabase.auth.signOut();
 
     // 로그아웃 성공 시 로그인 모달 표시
     // onAuthStateChange에서도 처리하지만, 명시적으로 여기서도 처리하여 확실하게 동작하도록 함
