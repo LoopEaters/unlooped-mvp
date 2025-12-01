@@ -1,12 +1,13 @@
 {
+  "permissions": {
+    "allow": [
+      "mcp__serena__list_dir",
+      "Bash(npm run build:*)"
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "serena",
     "context7"
-  ],
-  "permissions": {
-    "allow": [
-      "mcp__serena__list_dir"
-    ]
-  }
+  ]
 }

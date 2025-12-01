@@ -234,7 +234,7 @@ export function useMemos(userId?: string) {
         .from('memo')
         .select('*')
         .eq('user_id', currentUserId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true }); // 오래된 것부터 (최신이 아래)
 
       if (error) throw error;
       return data || [];
@@ -400,15 +400,29 @@ export function useMemosByEntities(entityIds: string[]) {
   return useQuery<Memo[]>({
     queryKey: ['memos', 'byEntities', entityIds],
     queryFn: async () => {
-      if (!entityIds || entityIds.length === 0) return [];
+      console.log('🔎 [useMemosByEntities] 쿼리 시작', { entityIds });
+
+      if (!entityIds || entityIds.length === 0) {
+        console.log('→ entityIds 비어있음, 빈 배열 반환');
+        return [];
+      }
 
       const { data, error } = await supabase
         .from('memo')
         .select('*, memo_entity!inner(entity_id)')
         .in('memo_entity.entity_id', entityIds)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true }); // 오래된 것부터 (최신이 아래)
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [useMemosByEntities] 쿼리 에러:', error);
+        throw error;
+      }
+
+      console.log('✅ [useMemosByEntities] 쿼리 성공:', {
+        count: data?.length,
+        memos: data,
+      });
+
       return data || [];
     },
     enabled: entityIds.length > 0,

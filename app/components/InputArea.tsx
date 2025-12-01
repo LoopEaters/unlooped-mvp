@@ -25,35 +25,69 @@ export default function InputArea() {
   // 현재 멘션된 entity를 추출하여 필터 Context에 설정
   useEffect(() => {
     const updateFilteredEntities = async () => {
-      if (!content || !user?.id) {
+      console.log('🔍 [updateFilteredEntities] 시작', { content, userId: user?.id })
+
+      if (!user?.id) {
+        console.log('→ user.id 없음, 필터 초기화')
         setFilteredEntityIds([])
         return
       }
 
-      // 정규표현식으로 @entity 패턴 추출
-      const entityPattern = /@([가-힣a-zA-Z0-9]+)/g
+      // content가 비어있으면 필터를 유지 (초기화하지 않음)
+      if (!content) {
+        console.log('→ content 비어있음, 기존 필터 유지')
+        return
+      }
+
+      // 드롭다운이 열려있으면 실행하지 않음 (타이핑 중)
+      if (isDropdownOpen) {
+        console.log('→ 드롭다운 열림 (타이핑 중), 스킵')
+        return
+      }
+
+      // 정규표현식으로 확정된 @entity 패턴만 추출 (스페이스가 뒤따라야 함)
+      const entityPattern = /@([가-힣a-zA-Z0-9]+)\s/g
       const matches = [...content.matchAll(entityPattern)]
       const entityNames = matches.map((match) => match[1])
 
+      console.log('→ 추출된 entity 이름들 (스페이스 있는 것만):', entityNames)
+
+      // entity가 없으면 아무것도 하지 않음 (기존 필터 유지)
       if (entityNames.length === 0) {
-        setFilteredEntityIds([])
+        console.log('→ entity 없음, 기존 필터 유지')
         return
       }
 
-      // 각 entity 이름으로 ID 조회
-      const entityIds: string[] = []
+      // 캐시된 entities에서 먼저 찾기 (DB 조회 최소화)
+      const newEntityIds: string[] = []
       for (const name of entityNames) {
-        const entity = await getEntityByName(name, user.id)
-        if (entity) {
-          entityIds.push(entity.id)
+        const cachedEntity = Array.isArray(entities) ? entities.find((e) => e.name === name) : undefined
+        if (cachedEntity) {
+          console.log(`  ✅ 캐시에서 찾음: ${cachedEntity.name} (${cachedEntity.id})`)
+          newEntityIds.push(cachedEntity.id)
+        } else {
+          console.log(`  🔎 DB 조회: ${name}`)
+          try {
+            const entity = await getEntityByName(name, user.id)
+            if (entity) {
+              console.log(`  ✅ DB에서 찾음: ${entity.name} (${entity.id})`)
+              newEntityIds.push(entity.id)
+            } else {
+              console.log(`  ❌ 못찾음: ${name}`)
+            }
+          } catch (error) {
+            console.error(`  ❌ 에러: ${name}`, error)
+          }
         }
       }
 
-      setFilteredEntityIds(entityIds)
+      console.log('→ 새 entityIds:', newEntityIds)
+      setFilteredEntityIds(newEntityIds)
     }
 
     updateFilteredEntities()
-  }, [content, user?.id, setFilteredEntityIds])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, user?.id]) // setFilteredEntityIds, isDropdownOpen, entities는 안정적이거나 불필요
 
   // @ 감지 및 드롭다운 표시
   useEffect(() => {
@@ -87,18 +121,19 @@ export default function InputArea() {
       entitySearch,
     })
 
-    // @ 바로 뒤에 스페이스가 없고, 유효한 문자만 있으면 드롭다운 표시
-    if (entitySearch && /^[가-힣a-zA-Z0-9]*$/.test(entitySearch)) {
+    // 중요: 스페이스가 있으면 무조건 드롭다운 닫기 (우선순위 높음)
+    if (spaceIndex !== -1) {
+      console.log('→ 스페이스 발견, 드롭다운 닫기')
+      setIsDropdownOpen(false)
+      setCurrentEntitySearch('')
+    } else if (entitySearch && /^[가-힣a-zA-Z0-9]*$/.test(entitySearch)) {
+      // 스페이스가 없고, 유효한 entity 검색어가 있으면 드롭다운 열기
       console.log('✅ 드롭다운 열기:', entitySearch)
       setCurrentEntitySearch(entitySearch)
       setIsDropdownOpen(true)
       setSelectedIndex(0)
-    } else if (spaceIndex !== -1) {
-      console.log('→ 스페이스 발견, 드롭다운 닫기')
-      setIsDropdownOpen(false)
-      setCurrentEntitySearch('')
     }
-  }, [content, setFilteredEntityIds, user?.id])
+  }, [content, user?.id]) // setState 함수들은 안정적이므로 dependency에서 제거
 
   // 키보드 이벤트 처리
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -159,87 +194,176 @@ export default function InputArea() {
       }
     } else {
       console.log('📋 드롭다운 닫힘 상태')
-      // 드롭다운이 닫혔을 때 Tab/Enter로 메모 저장
-      if ((e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey)) && content.trim()) {
-        console.log('✅ Tab/Enter 감지 → 메모 저장')
-        e.preventDefault()
-        handleSubmit()
-      }
+      // 드롭다운이 닫혔을 때는 일반 입력
+      // Enter는 줄바꿈, Shift+Enter도 줄바꿈
+      // Ctrl+Enter만 저장 (위에서 처리됨)
     }
   }
 
   // Entity 선택 처리
   const handleEntitySelect = (entity: Pick<Entity, 'id' | 'name'> | null) => {
-    console.log('🎯 [handleEntitySelect]', {
+    console.log('🎯 [handleEntitySelect] 시작', {
       entity: entity?.name,
       currentEntitySearch,
-      content,
     })
 
-    const lastAtIndex = content.lastIndexOf('@')
+    if (!inputRef.current) {
+      console.log('❌ inputRef 없음')
+      return
+    }
+
+    // 현재 DOM의 실제 content 사용 (innerText로 줄바꿈 포함)
+    const currentContent = inputRef.current.innerText || ''
+    const lastAtIndex = currentContent.lastIndexOf('@')
+
     if (lastAtIndex === -1) {
       console.log('❌ @ 없음, 중단')
       return
     }
 
-    const beforeAt = content.slice(0, lastAtIndex + 1)
-    const afterAt = content.slice(lastAtIndex + 1)
+    // @ 이전 텍스트
+    const beforeAt = currentContent.slice(0, lastAtIndex)
+
+    // @ 이후 텍스트에서 현재 entity 검색어 부분을 찾음
+    const afterAt = currentContent.slice(lastAtIndex + 1)
     const spaceIndex = afterAt.indexOf(' ')
-    // 스페이스 이후의 실제 텍스트만 가져오기 (앞의 스페이스 제거)
-    const afterEntity = spaceIndex === -1 ? '' : afterAt.slice(spaceIndex + 1).trimStart()
 
-    // entity 이름으로 교체 (기존 entity 또는 입력한 텍스트)
+    // @ 이후의 실제 텍스트 (entity 이후)
+    const afterEntity = spaceIndex === -1 ? '' : afterAt.slice(spaceIndex).trimStart()
+
+    // entity 이름으로 교체 (선택된 entity 또는 입력한 텍스트)
     const entityName = entity ? entity.name : currentEntitySearch
-    const newContent = beforeAt + entityName + ' ' + afterEntity
 
-    console.log('✏️ Content 업데이트:', {
-      before: content,
-      after: newContent,
+    // 새 content: before + @ + entityName + space + after
+    const newContent = beforeAt + '@' + entityName + ' ' + afterEntity
+
+    console.log('✏️ Content 계산:', {
+      currentContent,
+      beforeAt,
       entityName,
+      afterEntity,
+      newContent,
     })
 
-    setContent(newContent)
-    setIsDropdownOpen(false)
-    setCurrentEntitySearch('')
+    // 1. DOM 먼저 업데이트 (innerText로)
+    inputRef.current.innerText = newContent
 
-    // Input에 포커스 유지 및 커서 위치 설정
-    if (inputRef.current) {
-      inputRef.current.textContent = newContent
-      // 커서를 entity 뒤로 이동
-      const range = document.createRange()
+    // 2. 커서 위치 설정 (텍스트 전체 오프셋 기반)
+    const cursorPos = beforeAt.length + 1 + entityName.length + 1 // before + @ + name + space
+
+    console.log('📍 커서 설정 시도:', { cursorPos, newContentLength: newContent.length })
+
+    // 모든 텍스트 노드를 순회하면서 정확한 위치 찾기
+    const setCursorPosition = (element: HTMLElement, position: number) => {
       const selection = window.getSelection()
-      const textNode = inputRef.current.firstChild
-      if (textNode) {
-        const cursorPos = beforeAt.length + entityName.length + 1
-        console.log('📍 커서 위치:', cursorPos)
-        range.setStart(textNode, Math.min(cursorPos, textNode.textContent?.length || 0))
-        range.collapse(true)
+      const range = document.createRange()
+
+      let currentPos = 0
+      let found = false
+
+      // 모든 자식 노드를 순회
+      const walk = (node: Node) => {
+        if (found) return
+
+        if (node.nodeType === Node.TEXT_NODE) {
+          const textLength = node.textContent?.length || 0
+
+          if (currentPos + textLength >= position) {
+            // 이 노드에 커서가 위치해야 함
+            const offset = position - currentPos
+            try {
+              range.setStart(node, offset)
+              range.collapse(true)
+              selection?.removeAllRanges()
+              selection?.addRange(range)
+              found = true
+              console.log('✅ 커서 설정 성공:', { node: node.textContent, offset })
+            } catch (e) {
+              console.error('❌ 커서 설정 실패:', e)
+            }
+            return
+          }
+
+          currentPos += textLength
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          // <br> 태그는 줄바꿈으로 카운트
+          if (node.nodeName === 'BR') {
+            currentPos += 1
+            if (currentPos > position && !found) {
+              // BR 직전에 위치
+              try {
+                range.setStartBefore(node)
+                range.collapse(true)
+                selection?.removeAllRanges()
+                selection?.addRange(range)
+                found = true
+                console.log('✅ 커서 설정 성공 (BR 앞)')
+              } catch (e) {
+                console.error('❌ 커서 설정 실패:', e)
+              }
+              return
+            }
+          }
+
+          // 자식 노드들을 순회
+          node.childNodes.forEach(walk)
+        }
+      }
+
+      walk(element)
+
+      // 위치를 못 찾았으면 맨 끝에 배치
+      if (!found) {
+        console.log('⚠️ 위치 못 찾음, 맨 끝으로 이동')
+        range.selectNodeContents(element)
+        range.collapse(false)
         selection?.removeAllRanges()
         selection?.addRange(range)
       }
     }
+
+    setCursorPosition(inputRef.current, cursorPos)
+
+    // 3. state 업데이트 (비동기) - DOM과 동기화
+    setContent(newContent)
+
+    // 4. 드롭다운 상태 초기화
+    setIsDropdownOpen(false)
+    setCurrentEntitySearch('')
 
     console.log('✅ Entity 선택 완료')
   }
 
   // 메모 제출
   const handleSubmit = () => {
-    if (!content.trim()) return
+    console.log('💾 [handleSubmit] 시작', { content })
 
-    // 정규표현식으로 @entity 패턴 추출
+    if (!content.trim()) {
+      console.log('❌ content 비어있음, 중단')
+      return
+    }
+
+    // 정규표현식으로 @entity 패턴 추출 (모든 @entity, 스페이스 여부 무관)
     const entityPattern = /@([가-힣a-zA-Z0-9]+)/g
     const matches = [...content.matchAll(entityPattern)]
     const entityNames = matches.map((match) => match[1])
+
+    console.log('→ 추출된 entityNames:', entityNames)
+    console.log('→ createMemo.mutate 호출')
 
     createMemo.mutate(
       { content, entityNames },
       {
         onSuccess: () => {
+          console.log('✅ 메모 저장 성공')
           // Input 초기화
           setContent('')
           if (inputRef.current) {
-            inputRef.current.textContent = ''
+            inputRef.current.innerText = ''
           }
+        },
+        onError: (error) => {
+          console.error('❌ 메모 저장 실패:', error)
         },
       }
     )
@@ -284,7 +408,11 @@ export default function InputArea() {
             ref={inputRef}
             contentEditable
             className="relative min-h-[80px] text-white outline-none bg-transparent"
-            onInput={(e) => setContent(e.currentTarget.textContent || '')}
+            onInput={(e) => {
+              // innerText를 사용하여 줄바꿈을 \n으로 정확하게 가져옴
+              const text = e.currentTarget.innerText || ''
+              setContent(text)
+            }}
             onKeyDown={handleKeyDown}
             data-placeholder="메모를 작성하세요... (@로 엔티티 추가)"
             suppressContentEditableWarning
@@ -294,7 +422,7 @@ export default function InputArea() {
         {/* Submit button */}
         <div className="flex items-center justify-between">
           <div className="text-xs text-text-muted">
-            Ctrl+Enter 또는 Tab으로 저장
+            Ctrl+Enter로 저장
           </div>
           <button
             onClick={handleSubmit}
