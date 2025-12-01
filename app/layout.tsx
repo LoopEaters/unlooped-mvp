@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import QueryProvider from './providers/QueryProvider'
 import { AuthProvider } from './providers/AuthProvider'
+import { ToastProvider } from './providers/ToastProvider'
 import LoginModal from './components/auth/LoginModal'
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <QueryProvider>
+            <ToastProvider />
             {children}
             <LoginModal />
           </QueryProvider>
