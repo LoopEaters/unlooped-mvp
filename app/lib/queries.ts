@@ -137,7 +137,7 @@ export function useEntities(userId?: string) {
 
       const { data, error } = await supabase
         .from('entity')
-        .select('id, name')
+        .select('*')
         .eq('user_id', currentUserId)
         .order('name', { ascending: true });
 
