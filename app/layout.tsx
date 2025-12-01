@@ -3,6 +3,7 @@ import './globals.css'
 import QueryProvider from './providers/QueryProvider'
 import { AuthProvider } from './providers/AuthProvider'
 import { ToastProvider } from './providers/ToastProvider'
+import { EntityFilterProvider } from './providers/EntityFilterProvider'
 import LoginModal from './components/auth/LoginModal'
 
 export const metadata: Metadata = {
@@ -20,9 +21,11 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <QueryProvider>
-            <ToastProvider />
-            {children}
-            <LoginModal />
+            <EntityFilterProvider>
+              <ToastProvider />
+              {children}
+              <LoginModal />
+            </EntityFilterProvider>
           </QueryProvider>
         </AuthProvider>
       </body>
