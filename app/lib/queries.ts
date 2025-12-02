@@ -146,6 +146,8 @@ export function useEntities(userId?: string) {
     },
     staleTime: 3 * 60 * 1000, // 3분
     enabled: !!userId,
+    refetchOnMount: false, // 마운트 시 재조회 방지
+    refetchOnWindowFocus: false, // 창 포커스 시 재조회 방지
   });
 }
 
@@ -292,8 +294,6 @@ export function useMemos(userId?: string) {
         currentUserId = user.id;
       }
 
-      console.log('currentUserId', currentUserId);
-
       const { data, error } = await supabase
         .from('memo')
         .select('*')
@@ -305,6 +305,8 @@ export function useMemos(userId?: string) {
     },
     staleTime: 1 * 60 * 1000, // 1분
     enabled: !!userId,
+    refetchOnMount: false, // 마운트 시 재조회 방지
+    refetchOnWindowFocus: false, // 창 포커스 시 재조회 방지
   });
 }
 
@@ -312,25 +314,30 @@ export function useMemos(userId?: string) {
  * Entity 생성 (헬퍼 함수 - mutation 내부에서 사용)
  */
 export async function createEntityDirect(
-  name: string, 
+  name: string,
   userId: string,
   preClassifiedType?: string  // 미리 분류된 type (optional)
 ): Promise<Entity> {
-  console.log(`      ➕ [createEntityDirect] 시작: ${name}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`      ➕ [createEntityDirect] 시작: ${name}`);
+  }
 
   // 이름 유효성 검사
   const regex = /^[가-힣a-zA-Z0-9]{1,20}$/;
   if (!regex.test(name)) {
-    console.error(`      ❌ [createEntityDirect] 유효성 검사 실패: ${name}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`      ❌ [createEntityDirect] 유효성 검사 실패: ${name}`);
+    }
     throw new Error('Entity 이름은 한글, 영문, 숫자만 가능하며 1-20자여야 합니다.');
   }
-  console.log(`      ✅ [createEntityDirect] 유효성 검사 통과: ${name}`);
 
   // AI 타입 분류 (미리 분류된 type이 없을 때만)
   let entityType = preClassifiedType || 'unknown';
   if (!preClassifiedType) {
     try {
-      console.log(`      🤖 [AI] 타입 분류 API 호출: ${name}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`      🤖 [AI] 타입 분류 API 호출: ${name}`);
+      }
       const response = await fetch('/api/entity/classify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -340,19 +347,29 @@ export async function createEntityDirect(
       if (response.ok) {
         const result = await response.json();
         entityType = result.type;
-        console.log(`      ✅ [AI] 타입 분류 완료: ${name} → ${result.type}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`      ✅ [AI] 타입 분류 완료: ${name} → ${result.type}`);
+        }
       } else {
-        console.error(`      ⚠️ [AI] API 응답 실패: ${response.status}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`      ⚠️ [AI] API 응답 실패: ${response.status}`);
+        }
       }
     } catch (error) {
-      console.error(`      ⚠️ [AI] 타입 분류 실패 (fallback to unknown): ${name}`, error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`      ⚠️ [AI] 타입 분류 실패 (fallback to unknown): ${name}`, error);
+      }
     }
   } else {
-    console.log(`      ℹ️ [AI] 미리 분류된 type 사용: ${name} → ${entityType}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`      ℹ️ [AI] 미리 분류된 type 사용: ${name} → ${entityType}`);
+    }
   }
 
   // 📤 Entity 생성 (type 포함)
-  console.log(`      📤 [createEntityDirect] DB INSERT 시작: ${name} (type: ${entityType})`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`      📤 [createEntityDirect] DB INSERT 시작: ${name} (type: ${entityType})`);
+  }
   const { data, error } = await supabase
     .from('entity')
     .insert({ name, user_id: userId, type: entityType })
@@ -360,7 +377,9 @@ export async function createEntityDirect(
     .single();
 
   if (error) {
-    console.error(`      ❌ [createEntityDirect] DB INSERT 실패: ${name}`, error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`      ❌ [createEntityDirect] DB INSERT 실패: ${name}`, error);
+    }
     // 중복된 이름 처리
     if (error.code === '23505') {
       throw new Error('이미 존재하는 Entity 이름입니다.');
@@ -368,7 +387,9 @@ export async function createEntityDirect(
     throw error;
   }
 
-  console.log(`      ✅ [createEntityDirect] DB INSERT 성공: ${name}`, data.id);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`      ✅ [createEntityDirect] DB INSERT 성공: ${name}`, data.id);
+  }
   return data;
 }
 
@@ -381,21 +402,21 @@ export function useCreateMemo(userId: string) {
   return useMutation<
     { memo: Memo; entities: Entity[] },
     Error,
-    { 
-      content: string; 
-      entityNames: string[]; 
+    {
+      content: string;
+      entityNames: string[];
       pendingEntityTypes?: Record<string, string>;  // 미리 분류된 types
-      onAIUpdateStart?: (entityIds: string[]) => void 
+      onAIUpdateStart?: (entityIds: string[]) => void
     }
   >({
     mutationFn: async ({ content, entityNames, pendingEntityTypes = {} }) => {
-      console.log('🚀 [useCreateMemo] 시작', { content, entityNames, pendingEntityTypes, userId });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🚀 [useCreateMemo] 시작', { content, entityNames, pendingEntityTypes, userId });
+      }
 
       if (!userId) throw new Error('User not authenticated');
-      console.log('✅ [useCreateMemo] 사용자 인증 확인', userId);
 
       // 1. Memo 생성
-      console.log('📝 [useCreateMemo] 메모 생성 시작');
       const { data: memo, error: memoError } = await supabase
         .from('memo')
         .insert({ content, user_id: userId })
@@ -406,37 +427,27 @@ export function useCreateMemo(userId: string) {
         console.error('❌ [useCreateMemo] 메모 생성 실패', memoError);
         throw memoError;
       }
-      console.log('✅ [useCreateMemo] 메모 생성 성공', memo.id);
 
       // 2. Entity 처리 및 연결
-      console.log('🏷️ [useCreateMemo] Entity 처리 시작', { count: entityNames.length });
       const entities = await Promise.all(
         entityNames.map(async (name) => {
-          console.log(`  🔍 [Entity: ${name}] 조회 시작`);
-
           // 기존 entity 조회
           let entity = await getEntityByName(name, userId);
 
           // 없으면 생성 (미리 분류된 type 사용)
           if (!entity) {
-            console.log(`  ➕ [Entity: ${name}] 새로 생성`);
             const preClassifiedType = pendingEntityTypes[name];
             entity = await createEntityDirect(name, userId, preClassifiedType);
-            console.log(`  ✅ [Entity: ${name}] 생성 완료 (type: ${entity.type})`, entity.id);
             // Toast 피드백
             toast.success(`✨ 새 엔티티 '${name}'이(가) 생성되었습니다`);
-          } else {
-            console.log(`  ✅ [Entity: ${name}] 기존 Entity 사용`, entity.id);
           }
 
           return entity;
         })
       );
-      console.log('✅ [useCreateMemo] Entity 처리 완료', entities.length);
 
       // 3. memo_entity 관계 생성
       if (entities.length > 0) {
-        console.log('🔗 [useCreateMemo] memo_entity 관계 생성 시작');
         const memoEntityInserts: MemoEntityInsert[] = entities.map((entity) => ({
           memo_id: memo.id,
           entity_id: entity.id,
@@ -450,21 +461,19 @@ export function useCreateMemo(userId: string) {
           console.error('❌ [useCreateMemo] memo_entity 생성 실패', linkError);
           throw linkError;
         }
-        console.log('✅ [useCreateMemo] memo_entity 관계 생성 완료');
       }
 
-      console.log('🎉 [useCreateMemo] 모든 작업 완료');
       return { memo, entities };
     },
     onSuccess: async (result, variables) => {
-      console.log('♻️ [useCreateMemo] 캐시 무효화 시작');
-      
+
       const { memo, entities } = result;
-      
-      // 모든 메모 관련 쿼리 무효화
-      queryClient.invalidateQueries({ queryKey: ['memos'] });
-      queryClient.invalidateQueries({ queryKey: ['entities'] });
-      
+
+      // 정확한 쿼리만 무효화 (prefix matching 방지)
+      queryClient.invalidateQueries({ queryKey: ['memos', userId], exact: true });
+      queryClient.invalidateQueries({ queryKey: ['memos', 'byEntity'] }); // byEntity는 prefix로
+      queryClient.invalidateQueries({ queryKey: ['entities', userId], exact: true });
+
       toast.success('메모가 저장되었습니다.');
 
       // AI 업데이트 시작 알림 (콜백이 있으면)
@@ -477,8 +486,8 @@ export function useCreateMemo(userId: string) {
           entityIds.map(async (entityId: string) => {
             try {
               await updateEntityDescription(entityId);
-              // 업데이트 완료 후 엔티티 캐시 무효화
-              queryClient.invalidateQueries({ queryKey: ['entities'] });
+              // 업데이트 완료 후 엔티티 캐시 무효화 (exact로)
+              queryClient.invalidateQueries({ queryKey: ['entities', userId], exact: true });
             } catch (error) {
               console.error('AI 업데이트 실패 (조용히 무시)', error);
             }
@@ -486,7 +495,6 @@ export function useCreateMemo(userId: string) {
         );
       }
 
-      console.log('✅ [useCreateMemo] 완전히 종료');
     },
     onError: (error) => {
       console.error('❌ [useCreateMemo] 에러 발생', error);
@@ -499,39 +507,86 @@ export function useCreateMemo(userId: string) {
  * Entity별 Memo 조회 (단일 entity)
  */
 export function useMemosByEntity(entityId: string | null) {
-  return useQuery<Memo[]>({
+  // 🔧 디버그: React Query 상태 확인
+  const query = useQuery<Memo[]>({
     queryKey: ['memos', 'byEntity', entityId],
     queryFn: async () => {
-      console.log('🔎 [useMemosByEntity] 쿼리 시작', { entityId });
+      console.log('🔎🔎🔎 [useMemosByEntity] FETCH 시작!!!', {
+        entityId,
+        timestamp: new Date().toISOString(),
+        isWindowFocused: typeof window !== 'undefined' && document.hasFocus()
+      });
 
       if (!entityId) {
-        console.log('→ entityId 없음, 빈 배열 반환');
+        console.log('⏭️ [useMemosByEntity] entityId 없음, 빈 배열 반환');
         return [];
       }
 
-      console.log('📤 [useMemosByEntity] Supabase 쿼리 실행');
-      const { data, error } = await supabase
-        .from('memo')
-        .select('*, memo_entity!inner(entity_id)')
-        .eq('memo_entity.entity_id', entityId)
-        .order('created_at', { ascending: false });
+      try {
+        console.log('🔄 [useMemosByEntity] 쿼리 시작', { entityId });
 
-      if (error) {
-        console.error('❌ [useMemosByEntity] 쿼리 에러:', error);
+        // 🔧 FIX: join 문법 변경 - memo_entity 테이블을 명시적으로 조인
+        // 기존: memo_entity!inner(entity_id) - 이게 문제일 수 있음
+        // 새로운: memo_entity(entity_id) - inner는 filter에서 처리
+        console.log('🔧 [useMemosByEntity] 쿼리 빌드 중...');
+
+        const query = supabase
+          .from('memo')
+          .select(`
+            *,
+            memo_entity(entity_id)
+          `)
+          .eq('memo_entity.entity_id', entityId)
+          .order('created_at', { ascending: false });
+
+        console.log('📡 [useMemosByEntity] 쿼리 실행 중...');
+        const { data, error } = await query;
+
+        console.log('📥 [useMemosByEntity] 응답 받음', { hasData: !!data, hasError: !!error });
+
+        if (error) {
+          console.error('❌ [useMemosByEntity] 쿼리 에러:', error);
+          throw error;
+        }
+
+        // 중복 제거 + null 필터링
+        const uniqueMemos = data
+          ? Array.from(
+              new Map(
+                data
+                  .filter((memo: any) => memo.memo_entity && memo.memo_entity.length > 0) // memo_entity가 있는 것만
+                  .map((memo: any) => [memo.id, memo])
+              ).values()
+            )
+          : [];
+
+        console.log('✅ [useMemosByEntity] 성공:', { count: uniqueMemos.length });
+        return uniqueMemos;
+      } catch (error: any) {
+        console.error('💥 [useMemosByEntity] 실패:', error);
         throw error;
       }
-
-      console.log('✅ [useMemosByEntity] 쿼리 성공:', {
-        entityId,
-        count: data?.length,
-        memos: data,
-      });
-
-      return data || [];
     },
     enabled: !!entityId,
-    staleTime: 1 * 60 * 1000, // 1분
+    staleTime: 0, // 🔧 FIX: staleTime 0으로 설정하여 항상 최신 데이터
+    gcTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    refetchOnMount: true, // 마운트 시 refetch
+    refetchOnWindowFocus: true, // 🔧 FIX: 포커스 돌아올 때 refetch (중요!)
+    retry: 2, // 2번 재시도
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000), // 1초, 2초, 3초
   });
+
+  // 🔧 디버그: React Query 상태 로깅
+  console.log('📊 [useMemosByEntity] React Query 상태:', {
+    entityId,
+    status: query.status,
+    fetchStatus: query.fetchStatus,
+    isFetching: query.isFetching,
+    isLoading: query.isLoading,
+    dataLength: query.data?.length,
+  });
+
+  return query;
 }
 
 /**
@@ -541,10 +596,7 @@ export function useMemosByEntities(entityIds: string[]) {
   return useQuery<Memo[]>({
     queryKey: ['memos', 'byEntities', entityIds],
     queryFn: async () => {
-      console.log('🔎 [useMemosByEntities] 쿼리 시작', { entityIds });
-
       if (!entityIds || entityIds.length === 0) {
-        console.log('→ entityIds 비어있음, 빈 배열 반환');
         return [];
       }
 
@@ -559,14 +611,24 @@ export function useMemosByEntities(entityIds: string[]) {
         throw error;
       }
 
-      console.log('✅ [useMemosByEntities] 쿼리 성공:', {
-        count: data?.length,
-        memos: data,
-      });
+      // 중복 제거: 같은 ID를 가진 메모가 여러 번 나올 경우 제거
+      const uniqueMemos = data ? Array.from(
+        new Map(data.map(memo => [memo.id, memo])).values()
+      ) : [];
 
-      return data || [];
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ [useMemosByEntities] 쿼리 성공:', {
+          count: uniqueMemos.length,
+          originalCount: data?.length,
+          hadDuplicates: data && data.length !== uniqueMemos.length,
+        });
+      }
+
+      return uniqueMemos;
     },
     enabled: entityIds.length > 0,
+    refetchOnMount: false, // 마운트 시 재조회 방지
+    refetchOnWindowFocus: false, // 창 포커스 시 재조회 방지
   });
 }
 
@@ -575,7 +637,9 @@ export function useMemosByEntities(entityIds: string[]) {
  */
 export async function updateEntityDescription(entityId: string): Promise<void> {
   try {
-    console.log('🤖 [updateEntityDescription] 시작', { entityId })
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🤖 [updateEntityDescription] 시작', { entityId })
+    }
 
     const response = await fetch('/api/ai/update-entity-description', {
       method: 'POST',
@@ -590,7 +654,9 @@ export async function updateEntityDescription(entityId: string): Promise<void> {
     }
 
     const result = await response.json()
-    console.log('✅ [updateEntityDescription] 성공', result)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ [updateEntityDescription] 성공', result)
+    }
   } catch (error) {
     console.error('❌ [updateEntityDescription] 에러', error)
     // 에러를 throw하지 않고 조용히 실패 (메모 저장은 성공했으므로)

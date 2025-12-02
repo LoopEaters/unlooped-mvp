@@ -44,3 +44,84 @@ html, body {
   pointer-events: none;
   position: absolute;
 }
+
+/* ============================================================================
+   Tiptap Editor Styles
+   ============================================================================ */
+
+/* Tiptap 에디터 컨테이너 */
+.tiptap-editor {
+  min-height: 80px;
+}
+
+/* Tiptap ProseMirror 에디터 */
+.tiptap-editor .ProseMirror {
+  min-height: 80px;
+  padding: 0;
+  outline: none;
+  color: white;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Tiptap placeholder */
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #6b7280;
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* Tiptap mention (entity) 스타일 */
+.tiptap-editor .ProseMirror span[data-type="mention"] {
+  border-radius: 4px;
+  padding: 0 4px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.tiptap-editor .ProseMirror span[data-type="mention"]:hover {
+  opacity: 0.8;
+}
+
+/* Mention 기본 스타일 (data-entity-type이 없을 때) */
+.tiptap-editor .ProseMirror .mention {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: rgb(59, 130, 246);
+  border-radius: 4px;
+  padding: 0 4px;
+  cursor: pointer;
+}
+
+/* Entity type별 mention 색상 */
+.tiptap-editor .ProseMirror .mention[data-entity-type="project"] {
+  background-color: rgba(168, 85, 247, 0.2);
+  color: rgb(168, 85, 247);
+}
+
+.tiptap-editor .ProseMirror .mention[data-entity-type="person"] {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: rgb(34, 197, 94);
+}
+
+.tiptap-editor .ProseMirror .mention[data-entity-type="event"] {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: rgb(59, 130, 246);
+}
+
+/* Tippy.js 드롭다운 테마 */
+.tippy-box[data-theme~='dark'] {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.tippy-box[data-theme~='dark'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #2a2f3e;
+}
+
+.tippy-box[data-theme~='dark'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #2a2f3e;
+}

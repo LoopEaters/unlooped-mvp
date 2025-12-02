@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, memo, useMemo } from 'react'
 import { useEntities, useMemosByEntity, useUpdateEntityType } from '@/app/lib/queries'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { useAuth } from '@/app/providers/AuthProvider'
@@ -9,6 +9,9 @@ import MemoCard from './MemoCard'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
+
+// 빈 배열 상수화 - 참조 안정성 보장
+const EMPTY_ENTITIES: Entity[] = []
 
 /**
  * Entity type에 따른 색깔 클래스 반환
@@ -32,12 +35,34 @@ export default function MainContainer() {
   const containerRef = useRef<HTMLDivElement>(null)
   const { user } = useAuth()
   const { filteredEntityIds } = useEntityFilter()
-  const { data: entities = [] as Entity[] } = useEntities(user?.id)
+  const { data: entitiesData } = useEntities(user?.id)
 
-  console.log('📊 [MainContainer] 렌더링', {
-    filteredEntityIds,
-    entitiesCount: Array.isArray(entities) ? entities.length : 0,
-  })
+  // 🔧 FIX: entities를 useMemo로 안정화하여 무한 렌더링 방지
+  const entities = useMemo(() => entitiesData || EMPTY_ENTITIES, [entitiesData])
+
+  // 개발 모드 렌더링 추적 (Hook은 항상 최상단에서 호출)
+  const renderCountRef = useRef(0);
+  const prevPropsRef = useRef<any>({});
+
+  // 개발 모드에서만 로그 출력
+  if (process.env.NODE_ENV === 'development') {
+    renderCountRef.current++;
+
+    const currentProps = { user, filteredEntityIds, entities };
+    const changes: string[] = [];
+    if (prevPropsRef.current.user !== user) changes.push('user');
+    if (prevPropsRef.current.filteredEntityIds !== filteredEntityIds) changes.push('filteredEntityIds');
+    if (prevPropsRef.current.entities !== entities) changes.push('entities');
+
+    console.log(`📊 [MainContainer] 렌더링 #${renderCountRef.current}`, {
+      changes: changes.length > 0 ? changes.join(', ') : '없음 (순수 리렌더링)',
+      userId: user?.id,
+      filteredEntityIdsLength: filteredEntityIds.length,
+      entitiesCount: entities.length,
+    });
+
+    prevPropsRef.current = currentProps;
+  }
 
   // 메모가 추가될 때마다 가장 아래로 스크롤
   useEffect(() => {
@@ -51,7 +76,7 @@ export default function MainContainer() {
       ref={containerRef}
       className="flex-1 overflow-y-auto p-6 bg-bg-primary"
     >
-      <div className="space-y-6">
+      <div className="space-y-6 min-h-[400px]">
         {/* 헤더 */}
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-white">Entity 추천</h2>
@@ -63,27 +88,29 @@ export default function MainContainer() {
         </div>
 
         {/* Entity별 섹션 */}
-        {filteredEntityIds.length > 0 && (
+        {filteredEntityIds.length > 0 ? (
           <div className="space-y-8">
             {filteredEntityIds.map((entityId) => {
-              const entity = Array.isArray(entities) ? entities.find((e) => e.id === entityId) : undefined
+              const entity = entities.find((e) => e.id === entityId)
 
               return (
                 <EntitySection
                   key={entityId}
                   entityId={entityId}
                   entityName={entity?.name || '알 수 없음'}
+                  entities={entities}
+                  userId={user?.id}
                 />
               )
             })}
           </div>
-        )}
-
-        {/* 기본 상태 - entity를 아직 언급하지 않았을 때 */}
-        {filteredEntityIds.length === 0 && (
-          <div className="text-center text-gray-400 mt-20">
-            <p className="text-lg">@로 엔티티를 언급해보세요</p>
-            <p className="text-sm mt-2">관련된 과거 메모들이 여기에 표시됩니다</p>
+        ) : (
+          /* 기본 상태 - entity를 아직 언급하지 않았을 때 */
+          <div className="flex items-center justify-center h-[300px]">
+            <div className="text-center text-gray-400">
+              <p className="text-lg">@로 엔티티를 언급해보세요</p>
+              <p className="text-sm mt-2">관련된 과거 메모들이 여기에 표시됩니다</p>
+            </div>
           </div>
         )}
       </div>
@@ -94,10 +121,18 @@ export default function MainContainer() {
 /**
  * Entity별 섹션 컴포넌트
  */
-function EntitySection({ entityId, entityName }: { entityId: string; entityName: string }) {
-  const { user } = useAuth()
+const EntitySection = memo(function EntitySection({
+  entityId,
+  entityName,
+  entities,
+  userId
+}: {
+  entityId: string
+  entityName: string
+  entities: Entity[]
+  userId?: string
+}) {
   const { data: memos = [], isLoading, isError, error } = useMemosByEntity(entityId)
-  const { data: entities = [] } = useEntities(user?.id)
   const { isEntityUpdating } = useAIUpdate()
   const updateEntityType = useUpdateEntityType()
 
@@ -108,10 +143,10 @@ function EntitySection({ entityId, entityName }: { entityId: string; entityName:
   const entityColor = getEntityTypeColor(entity?.type)
 
   const handleTypeChange = (newType: 'person' | 'project' | 'unknown') => {
-    if (!user?.id) return
+    if (!userId) return
 
     updateEntityType.mutate(
-      { entityId, type: newType, userId: user.id },
+      { entityId, type: newType, userId },
       {
         onSuccess: () => {
           setIsEditingType(false)
@@ -120,14 +155,17 @@ function EntitySection({ entityId, entityName }: { entityId: string; entityName:
     )
   }
 
-  console.log(`📌 [EntitySection: ${entityName}]`, {
-    entityId,
-    memosCount: memos.length,
-    isLoading,
-    isUpdating,
-    description: entity?.description,
-    type: entity?.type,
-  })
+  // 개발 모드에서만 로그
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`📌 [EntitySection: ${entityName}]`, {
+      entityId,
+      memosCount: memos.length,
+      isLoading,
+      isUpdating,
+      description: entity?.description,
+      type: entity?.type,
+    })
+  }
 
   return (
     <div className="space-y-3">
@@ -288,4 +326,4 @@ function EntitySection({ entityId, entityName }: { entityId: string; entityName:
       )}
     </div>
   )
-}
+})

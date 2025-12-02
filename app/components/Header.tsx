@@ -74,7 +74,7 @@ export default function Header() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex items-center gap-6">
+        <nav className="flex items-center gap-6 ml-auto">
           <a href="#" className="text-gray-400 hover:text-white transition-colors">
             Dashboard
           </a>
@@ -128,21 +128,6 @@ export default function Header() {
               </Popover.Content>
             </Popover.Portal>
           </Popover.Root>
-
-          {/* Settings with Tooltip */}
-          <Tooltip.Root>
-            <Tooltip.Trigger asChild>
-              <button className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-bg-secondary">
-                <Settings className="w-5 h-5" />
-              </button>
-            </Tooltip.Trigger>
-            <Tooltip.Content
-              side="bottom"
-              className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg z-50"
-            >
-              Settings
-            </Tooltip.Content>
-          </Tooltip.Root>
 
           {/* Profile with Avatar and DropdownMenu */}
           <DropdownMenu.Root>

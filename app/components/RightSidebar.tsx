@@ -104,7 +104,12 @@ export default function RightSidebar() {
                 {/* 해당 날짜의 메모들 */}
                 <div className="space-y-1.5">
                   {groupedMemos[dateKey].map((memo) => (
-                    <MemoCardCompact key={memo.id} memo={memo} entities={entities} />
+                    <MemoCardCompact
+                      key={memo.id}
+                      memo={memo}
+                      entities={entities}
+                      userId={user?.id}
+                    />
                   ))}
                 </div>
               </div>

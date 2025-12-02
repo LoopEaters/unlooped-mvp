@@ -47,7 +47,7 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
         defaultOptions: {
           queries: {
             staleTime: 60 * 1000, // 1분
-            refetchOnWindowFocus: false,
+            refetchOnWindowFocus: true, // 🔧 FIX: focus 돌아올 때 refetch
             retry: 1,
             networkMode: 'always', // 네트워크 상태와 관계없이 항상 쿼리 실행
           },
