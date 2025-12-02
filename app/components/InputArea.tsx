@@ -7,7 +7,6 @@ import { useEntities, useCreateMemo, getEntityByName } from '@/app/lib/queries'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
-import { classifyEntityType } from '@/app/lib/ai'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -353,25 +352,7 @@ export default function InputArea() {
     setIsDropdownOpen(false)
     setCurrentEntitySearch('')
 
-    // 5. 🤖 새 Entity일 경우 즉시 AI 분류 (색깔 결정)
-    if (!entity && entityName) {
-      console.log('🤖 [handleEntitySelect] 새 Entity 감지, AI 분류 시작:', entityName);
-
-      // 비동기로 AI 호출 (백그라운드)
-      classifyEntityType(entityName)
-        .then((result) => {
-          console.log(`✅ [handleEntitySelect] AI 분류 완료: ${entityName} → ${result.type}`);
-          // 로컬 상태에 저장
-          setPendingEntityTypes((prev) => {
-            const newMap = new Map(prev);
-            newMap.set(entityName, result.type);
-            return newMap;
-          });
-        })
-        .catch((err) => {
-          console.error('❌ [handleEntitySelect] AI 분류 실패:', err);
-        });
-    }
+    // TODO: AI 분류는 서버 사이드에서 처리 (createEntityDirect에서 처리됨)
 
     console.log('✅ Entity 선택 완료')
   }

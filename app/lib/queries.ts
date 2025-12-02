@@ -260,18 +260,8 @@ async function createEntityDirect(name: string, userId: string): Promise<Entity>
   }
   console.log(`      ✅ [createEntityDirect] 유효성 검사 통과: ${name}`);
 
-  // 🤖 AI 타입 분류 먼저 수행 (동기)
-  console.log(`      🤖 [AI] 타입 분류 시작: ${name}`);
-  let entityType = 'unknown';
-
-  try {
-    const { type, confidence } = await classifyEntityType(name);
-    entityType = type;
-    console.log(`      ✅ [AI] 분류 완료: ${name} → ${type} (신뢰도: ${confidence})`);
-  } catch (error) {
-    console.error(`      ❌ [AI] 타입 분류 실패: ${name}`, error);
-    // AI 실패해도 unknown으로 계속 진행
-  }
+  // TODO: AI 타입 분류 구현 예정
+  const entityType = 'project'; // 임시로 'project'로 고정
 
   // 📤 Entity 생성 (type 포함)
   console.log(`      📤 [createEntityDirect] DB INSERT 시작: ${name} (type: ${entityType})`);
