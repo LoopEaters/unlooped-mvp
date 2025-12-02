@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Inter, Noto_Sans_KR } from 'next/font/google'
+import localFont from 'next/font/local'
 import QueryProvider from './providers/QueryProvider'
 import { AuthProvider } from './providers/AuthProvider'
 import { ToastProvider } from './providers/ToastProvider'
@@ -21,6 +22,13 @@ const notoSansKr = Noto_Sans_KR({
   display: 'swap',
 })
 
+const sweet = localFont({
+  src: './fonts/SUITE-Light.woff2',
+  variable: '--font-sweet',
+  weight: '300',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: 'Unlooped MVP',
   description: 'Unlooped MVP Project',
@@ -32,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${notoSansKr.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${notoSansKr.variable} ${sweet.variable}`} suppressHydrationWarning>
       <body className="font-sans">
         <AuthProvider>
           <QueryProvider>

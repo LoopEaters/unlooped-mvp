@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { createServerClient } from '@/app/lib/supabase/server'
+import { createClient } from '@/app/lib/supabase/server'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     console.log('🤖 [AI API] Entity description 업데이트 시작', { entityId })
 
     // Supabase 클라이언트 생성
-    const supabase = await createServerClient()
+    const supabase = await createClient()
 
     // 1. Entity 정보 조회
     const { data: entity, error: entityError } = await supabase
@@ -61,7 +61,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // @ts-expect-error - Supabase 타입 이슈
     const memos = memoLinks?.map((link) => link.memo).filter(Boolean) || []
 
     console.log('✅ [AI API] 메모 조회 성공', { count: memos.length })

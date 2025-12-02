@@ -330,9 +330,10 @@ export function useCreateMemo(userId: string) {
   const queryClient = useQueryClient();
 
   return useMutation<
-    Memo,
+    { memo: Memo; entities: Entity[] },
     Error,
-    { content: string; entityNames: string[]; onAIUpdateStart?: (entityIds: string[]) => void }
+    { content: string; entityNames: string[]; onAIUpdateStart?: (entityIds: string[]) => void },
+    { previousMemos: Memo[] | undefined }
   >({
     mutationFn: async ({ content, entityNames }) => {
       console.log('🚀 [useCreateMemo] 시작', { content, entityNames, userId });

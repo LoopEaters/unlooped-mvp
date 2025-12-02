@@ -49,7 +49,7 @@ export default function Header() {
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl text-gray-900" style={{ fontFamily: 'Sweet', fontWeight: 300 }}>
+        <h1 className="text-xl text-gray-900 font-light" style={{ fontFamily: 'var(--font-sweet)' }}>
           Unlooped
         </h1>
 
