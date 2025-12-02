@@ -249,7 +249,7 @@ export function useMemos(userId?: string) {
 /**
  * Entity 생성 (헬퍼 함수 - mutation 내부에서 사용)
  */
-async function createEntityDirect(name: string, userId: string): Promise<Entity> {
+export async function createEntityDirect(name: string, userId: string): Promise<Entity> {
   console.log(`      ➕ [createEntityDirect] 시작: ${name}`);
 
   // 이름 유효성 검사
@@ -260,8 +260,27 @@ async function createEntityDirect(name: string, userId: string): Promise<Entity>
   }
   console.log(`      ✅ [createEntityDirect] 유효성 검사 통과: ${name}`);
 
-  // TODO: AI 타입 분류 구현 예정
-  const entityType = 'project'; // 임시로 'project'로 고정
+  // AI 타입 분류 (API Route 호출)
+  let entityType = 'unknown';
+  try {
+    console.log(`      🤖 [AI] 타입 분류 API 호출: ${name}`);
+    const response = await fetch('/api/entity/classify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entityName: name }),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      entityType = result.type;
+      console.log(`      ✅ [AI] 타입 분류 완료: ${name} → ${result.type}`);
+    } else {
+      console.error(`      ⚠️ [AI] API 응답 실패: ${response.status}`);
+    }
+  } catch (error) {
+    console.error(`      ⚠️ [AI] 타입 분류 실패 (fallback to unknown): ${name}`, error);
+    // AI 실패 시 'unknown'으로 설정 (에러는 throw 하지 않음)
+  }
 
   // 📤 Entity 생성 (type 포함)
   console.log(`      📤 [createEntityDirect] DB INSERT 시작: ${name} (type: ${entityType})`);
@@ -293,8 +312,7 @@ export function useCreateMemo(userId: string) {
   return useMutation<
     { memo: Memo; entities: Entity[] },
     Error,
-    { content: string; entityNames: string[]; onAIUpdateStart?: (entityIds: string[]) => void },
-    { previousMemos?: Memo[]; previousEntityMemos?: { [entityId: string]: Memo[] } }
+    { content: string; entityNames: string[]; onAIUpdateStart?: (entityIds: string[]) => void }
   >({
     mutationFn: async ({ content, entityNames }) => {
       console.log('🚀 [useCreateMemo] 시작', { content, entityNames, userId });
@@ -363,30 +381,6 @@ export function useCreateMemo(userId: string) {
       console.log('🎉 [useCreateMemo] 모든 작업 완료');
       return { memo, entities };
     },
-    onMutate: async ({ content, entityNames }) => {
-      // Optimistic Update: 즉시 UI에 반영
-      console.log('🔄 [Optimistic Update] 시작', { content, entityNames });
-
-      // 임시 메모 생성
-      const tempMemo: Memo = {
-        id: `temp-${Date.now()}`,
-        content,
-        user_id: userId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      // 1. 전체 메모 리스트 캐시 업데이트
-      await queryClient.cancelQueries({ queryKey: ['memos', userId] });
-      const previousMemos = queryClient.getQueryData<Memo[]>(['memos', userId]);
-      queryClient.setQueryData<Memo[]>(['memos', userId], (old = []) => [...old, tempMemo]);
-      console.log('✅ [Optimistic] 전체 메모 리스트 업데이트');
-
-      // 2. Entity별 메모 리스트 캐시 업데이트 (나중에 entity 조회 후)
-      // 현재는 entityName만 있고 entityId가 없으므로, onSuccess에서 처리
-
-      return { previousMemos };
-    },
     onSuccess: async (result, variables) => {
       console.log('♻️ [useCreateMemo] 캐시 무효화 시작');
       
@@ -419,11 +413,7 @@ export function useCreateMemo(userId: string) {
 
       console.log('✅ [useCreateMemo] 완전히 종료');
     },
-    onError: (error, _variables, context) => {
-      // Optimistic Update 롤백
-      if (context?.previousMemos) {
-        queryClient.setQueryData(['memos', userId], context.previousMemos);
-      }
+    onError: (error) => {
       console.error('❌ [useCreateMemo] 에러 발생', error);
       toast.error(`메모 저장 실패: ${error.message}`);
     },
@@ -437,18 +427,34 @@ export function useMemosByEntity(entityId: string | null) {
   return useQuery<Memo[]>({
     queryKey: ['memos', 'byEntity', entityId],
     queryFn: async () => {
-      if (!entityId) return [];
+      console.log('🔎 [useMemosByEntity] 쿼리 시작', { entityId });
 
+      if (!entityId) {
+        console.log('→ entityId 없음, 빈 배열 반환');
+        return [];
+      }
+
+      console.log('📤 [useMemosByEntity] Supabase 쿼리 실행');
       const { data, error } = await supabase
         .from('memo')
         .select('*, memo_entity!inner(entity_id)')
         .eq('memo_entity.entity_id', entityId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [useMemosByEntity] 쿼리 에러:', error);
+        throw error;
+      }
+
+      console.log('✅ [useMemosByEntity] 쿼리 성공:', {
+        count: data?.length,
+        memos: data,
+      });
+
       return data || [];
     },
     enabled: !!entityId,
+    staleTime: 1 * 60 * 1000, // 1분
   });
 }
 

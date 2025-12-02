@@ -49,6 +49,7 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
             staleTime: 60 * 1000, // 1분
             refetchOnWindowFocus: false,
             retry: 1,
+            networkMode: 'always', // 네트워크 상태와 관계없이 항상 쿼리 실행
           },
         },
       })
