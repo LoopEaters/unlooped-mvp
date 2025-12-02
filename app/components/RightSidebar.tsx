@@ -63,7 +63,7 @@ export default function RightSidebar() {
   return (
     <div
       ref={sidebarRef}
-      className="w-80 border-l border-border-main overflow-y-auto p-4 bg-bg-primary"
+      className="w-80 h-screen border-l border-border-main overflow-y-auto p-4 bg-bg-primary"
     >
       <div className="space-y-4">
         {/* 헤더 */}
@@ -93,11 +93,11 @@ export default function RightSidebar() {
 
         {/* 날짜별 메모 그룹 */}
         {!isLoading && !isError && sortedDateKeys.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {sortedDateKeys.map((dateKey) => (
-              <div key={dateKey} className="space-y-2">
+              <div key={dateKey}>
                 {/* 날짜 헤더 */}
-                <div className="text-xs font-semibold text-white sticky top-0 bg-bg-primary py-1">
+                <div className="text-sm font-semibold text-white sticky top-0 z-10 bg-bg-primary backdrop-blur-md py-2.5 -mx-4 px-4 border-b border-border-main/40 mb-2">
                   {formatDateHeader(dateKey)}
                 </div>
 

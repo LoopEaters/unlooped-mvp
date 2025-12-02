@@ -150,7 +150,7 @@ export function useEntities(userId?: string) {
 }
 
 /**
- * Entity type 업데이트
+ * Entity type 업데이트 (Optimistic Update)
  */
 export function useUpdateEntityType() {
   const queryClient = useQueryClient();
@@ -158,7 +158,8 @@ export function useUpdateEntityType() {
   return useMutation<
     Entity,
     Error,
-    { entityId: string; type: 'person' | 'project' | 'unknown' }
+    { entityId: string; type: 'person' | 'project' | 'unknown'; userId: string },
+    { previousEntities: Entity[] | undefined }
   >({
     mutationFn: async ({ entityId, type }) => {
       const { data, error } = await supabase
@@ -171,12 +172,40 @@ export function useUpdateEntityType() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['entities'] });
+    // Optimistic update: 서버 응답 전에 UI 즉시 업데이트
+    onMutate: async ({ entityId, type, userId }) => {
+      // 진행 중인 refetch 취소
+      await queryClient.cancelQueries({ queryKey: ['entities', userId] });
+
+      // 이전 데이터 백업
+      const previousEntities = queryClient.getQueryData<Entity[]>(['entities', userId]);
+
+      // Optimistic update 적용
+      queryClient.setQueryData<Entity[]>(['entities', userId], (old) => {
+        if (!old) return old;
+        return old.map((entity) =>
+          entity.id === entityId ? { ...entity, type } : entity
+        );
+      });
+
+      // 롤백을 위해 이전 데이터 반환
+      return { previousEntities };
+    },
+    onSuccess: (data, variables) => {
+      // 서버에서 받은 최신 데이터로 캐시 업데이트 (invalidate 대신)
+      queryClient.setQueryData<Entity[]>(['entities', variables.userId], (old) => {
+        if (!old) return old;
+        return old.map((entity) =>
+          entity.id === data.id ? data : entity
+        );
+      });
       toast.success(`'${data.name}' 타입이 '${data.type}'(으)로 변경되었습니다`);
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // 에러 발생 시 롤백
+      if (context?.previousEntities) {
+        queryClient.setQueryData(['entities', variables.userId], context.previousEntities);
+      }
       toast.error(`타입 변경 실패: ${error.message}`);
     },
   });

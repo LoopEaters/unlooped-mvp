@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { useEntities, useMemosByEntity } from '@/app/lib/queries'
+import { useEffect, useRef, useState } from 'react'
+import { useEntities, useMemosByEntity, useUpdateEntityType } from '@/app/lib/queries'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
@@ -99,10 +99,26 @@ function EntitySection({ entityId, entityName }: { entityId: string; entityName:
   const { data: memos = [], isLoading, isError, error } = useMemosByEntity(entityId)
   const { data: entities = [] } = useEntities(user?.id)
   const { isEntityUpdating } = useAIUpdate()
+  const updateEntityType = useUpdateEntityType()
+
+  const [isEditingType, setIsEditingType] = useState(false)
 
   const entity = entities.find((e) => e.id === entityId)
   const isUpdating = isEntityUpdating(entityId)
   const entityColor = getEntityTypeColor(entity?.type)
+
+  const handleTypeChange = (newType: 'person' | 'project' | 'unknown') => {
+    if (!user?.id) return
+
+    updateEntityType.mutate(
+      { entityId, type: newType, userId: user.id },
+      {
+        onSuccess: () => {
+          setIsEditingType(false)
+        },
+      }
+    )
+  }
 
   console.log(`📌 [EntitySection: ${entityName}]`, {
     entityId,
@@ -123,6 +139,77 @@ function EntitySection({ entityId, entityName }: { entityId: string; entityName:
             <span className={`px-3 py-1.5 rounded-lg ${entityColor.bg} ${entityColor.text} font-medium text-sm`}>
               @{entityName}
             </span>
+
+            {/* Type 편집 버튼 */}
+            {!isEditingType && (
+              <button
+                onClick={() => setIsEditingType(true)}
+                className="p-1 hover:bg-gray-700 rounded transition-colors"
+                title="Entity 타입 변경"
+              >
+                <svg
+                  className="w-3.5 h-3.5 text-gray-400 hover:text-gray-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
+                </svg>
+              </button>
+            )}
+
+            {/* Type 선택 드롭다운 */}
+            {isEditingType && (
+              <div className="flex items-center gap-1.5 bg-bg-card px-2 py-1 rounded-lg border border-border-main">
+                <button
+                  onClick={() => handleTypeChange('person')}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                    entity?.type === 'person'
+                      ? 'bg-mention-person/20 text-mention-person'
+                      : 'text-gray-400 hover:bg-gray-700'
+                  }`}
+                  disabled={updateEntityType.isPending}
+                >
+                  Person
+                </button>
+                <button
+                  onClick={() => handleTypeChange('project')}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                    entity?.type === 'project'
+                      ? 'bg-mention-project/20 text-mention-project'
+                      : 'text-gray-400 hover:bg-gray-700'
+                  }`}
+                  disabled={updateEntityType.isPending}
+                >
+                  Project
+                </button>
+                <button
+                  onClick={() => handleTypeChange('unknown')}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                    entity?.type === 'unknown' || !entity?.type
+                      ? 'bg-gray-400/20 text-gray-400'
+                      : 'text-gray-400 hover:bg-gray-700'
+                  }`}
+                  disabled={updateEntityType.isPending}
+                >
+                  Unknown
+                </button>
+                <button
+                  onClick={() => setIsEditingType(false)}
+                  className="ml-1 p-0.5 text-gray-400 hover:text-gray-300"
+                  title="취소"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            )}
 
             {/* AI 업데이트 중 표시 */}
             {isUpdating && (
