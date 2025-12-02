@@ -75,13 +75,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // 소셜 로그인 프로필 사진 자동 저장
-  const syncSocialAvatar = async (authUser: User, profile: Tables<'users'> | null) => {
+  // 반환값: 업데이트된 avatar_url (업데이트가 없으면 null)
+  const syncSocialAvatar = async (authUser: User, profile: Tables<'users'> | null): Promise<string | null> => {
     // 소셜 로그인에서 제공하는 프로필 사진 URL
     const socialAvatarUrl = authUser.user_metadata?.avatar_url;
 
     // 이미 avatar_url이 있으면 패스
     if (profile?.avatar_url || !socialAvatarUrl) {
-      return;
+      return null;
     }
 
     // users 테이블에 소셜 프로필 사진 저장
@@ -89,6 +90,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .from('users')
       .update({ avatar_url: socialAvatarUrl })
       .eq('id', authUser.id);
+
+    // 업데이트된 avatar_url 반환
+    return socialAvatarUrl;
   };
 
   useEffect(() => {
@@ -99,17 +103,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // users 테이블에서 프로필 정보 가져오기
       if (session?.user) {
-        const profile = await fetchUserProfile(session.user);
+        let profile = await fetchUserProfile(session.user);
 
-        // 소셜 로그인 프로필 사진 자동 저장
-        await syncSocialAvatar(session.user, profile);
+        // 소셜 로그인 프로필 사진 자동 저장 (필요한 경우만 업데이트)
+        const updatedAvatarUrl = await syncSocialAvatar(session.user, profile);
 
-        // 프로필 사진 동기화 후 다시 가져오기
-        const updatedProfile = await fetchUserProfile(session.user);
+        // 아바타가 업데이트되었으면 profile 객체에 반영 (DB 재조회 불필요)
+        if (updatedAvatarUrl && profile) {
+          profile = { ...profile, avatar_url: updatedAvatarUrl };
+        }
 
         setUserProfile({
           ...session.user,
-          profile: updatedProfile,
+          profile,
         });
       } else {
         setUserProfile(null);
@@ -132,17 +138,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // users 테이블에서 프로필 정보 가져오기
       if (session?.user) {
-        const profile = await fetchUserProfile(session.user);
+        let profile = await fetchUserProfile(session.user);
 
-        // 소셜 로그인 프로필 사진 자동 저장
-        await syncSocialAvatar(session.user, profile);
+        // 소셜 로그인 프로필 사진 자동 저장 (필요한 경우만 업데이트)
+        const updatedAvatarUrl = await syncSocialAvatar(session.user, profile);
 
-        // 프로필 사진 동기화 후 다시 가져오기
-        const updatedProfile = await fetchUserProfile(session.user);
+        // 아바타가 업데이트되었으면 profile 객체에 반영 (DB 재조회 불필요)
+        if (updatedAvatarUrl && profile) {
+          profile = { ...profile, avatar_url: updatedAvatarUrl };
+        }
 
         setUserProfile({
           ...session.user,
-          profile: updatedProfile,
+          profile,
         });
       } else {
         setUserProfile(null);

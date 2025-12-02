@@ -4,12 +4,14 @@ import { highlightEntities } from '@/app/lib/utils/highlightEntities'
 import type { Database } from '@/types/supabase'
 
 type Memo = Database['public']['Tables']['memo']['Row']
+type Entity = Database['public']['Tables']['entity']['Row']
 
 interface MemoCardProps {
   memo: Memo
+  entities?: Entity[]
 }
 
-export default function MemoCard({ memo }: MemoCardProps) {
+export default function MemoCard({ memo, entities = [] }: MemoCardProps) {
   // 작성 시간 포맷팅
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -23,7 +25,7 @@ export default function MemoCard({ memo }: MemoCardProps) {
   }
 
   // Entity 하이라이트 처리
-  const highlightedContent = highlightEntities(memo.content)
+  const highlightedContent = highlightEntities(memo.content, entities)
 
   return (
     <div className="bg-bg-card border border-border-main rounded-lg p-4 hover:bg-bg-secondary/50 transition-colors cursor-pointer">
@@ -33,7 +35,7 @@ export default function MemoCard({ memo }: MemoCardProps) {
       </div>
 
       {/* 메모 내용 (Entity 하이라이트) */}
-      <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+      <div className="text-sm text-white leading-relaxed whitespace-pre-wrap wrap-break-word">
         {highlightedContent}
       </div>
     </div>

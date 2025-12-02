@@ -1,6 +1,15 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Sweet';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+
 @theme {
+  --font-family-sans: var(--font-inter), var(--font-noto-sans-kr), sans-serif;
+
   --color-bg-primary: #1a1f2e;
   --color-bg-secondary: #252b3b;
   --color-bg-card: #2a2f3e;

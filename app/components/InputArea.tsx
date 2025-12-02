@@ -6,9 +6,28 @@ import EntityDropdown from './EntityDropdown'
 import { useEntities, useCreateMemo, getEntityByName } from '@/app/lib/queries'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
+import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
+
+/**
+ * Entity type에 따른 색깔 클래스 반환 (InputArea용)
+ */
+function getEntityTypeColorForInput(type: string | null | undefined): string {
+  switch (type) {
+    case 'person':
+      return 'text-mention-person bg-mention-person' // 초록
+    case 'project':
+      return 'text-mention-project bg-mention-project' // 보라
+    case 'unknown':
+    case null:
+    case undefined:
+      return 'text-text-muted bg-text-muted' // 회색 (분류 전/실패)
+    default:
+      return 'text-text-muted bg-text-muted'
+  }
+}
 
 export default function InputArea() {
   const [content, setContent] = useState('')
@@ -21,6 +40,7 @@ export default function InputArea() {
   const { data: entities = [] as Entity[] } = useEntities(user?.id)
   const createMemo = useCreateMemo(user?.id || '')
   const { setFilteredEntityIds } = useEntityFilter()
+  const { addUpdatingEntity, removeUpdatingEntity } = useAIUpdate()
 
   // 현재 멘션된 entity를 추출하여 필터 Context에 설정
   useEffect(() => {
@@ -352,7 +372,20 @@ export default function InputArea() {
     console.log('→ createMemo.mutate 호출')
 
     createMemo.mutate(
-      { content, entityNames },
+      {
+        content,
+        entityNames,
+        onAIUpdateStart: (entityIds: string[]) => {
+          console.log('🤖 AI 업데이트 시작:', entityIds)
+          // 모든 entity를 업데이트 중 상태로 설정
+          entityIds.forEach((id) => addUpdatingEntity(id))
+
+          // 업데이트 완료 후 상태 제거 (3초 후 자동 제거)
+          setTimeout(() => {
+            entityIds.forEach((id) => removeUpdatingEntity(id))
+          }, 5000)
+        },
+      },
       {
         onSuccess: () => {
           console.log('✅ 메모 저장 성공')
@@ -390,10 +423,17 @@ export default function InputArea() {
           >
             {content.split(/(@[가-힣a-zA-Z0-9]+)/g).map((part, index) => {
               if (part.match(/^@[가-힣a-zA-Z0-9]+$/)) {
+                // @제외하고 Entity 이름 추출
+                const entityName = part.substring(1)
+                // Entity 조회
+                const entity = (entities as Entity[]).find(e => e.name === entityName)
+                // Entity type에 따른 색깔 클래스 결정
+                const colorClass = getEntityTypeColorForInput(entity?.type)
+
                 return (
                   <span
                     key={index}
-                    className="bg-mention-project/30 text-mention-project rounded px-0.5"
+                    className={`${colorClass}/30 ${colorClass} rounded px-0.5`}
                   >
                     {part}
                   </span>
