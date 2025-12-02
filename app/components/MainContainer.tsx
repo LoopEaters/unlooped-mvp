@@ -77,8 +77,9 @@ export default function MainContainer() {
  * Entity별 섹션 컴포넌트
  */
 function EntitySection({ entityId, entityName }: { entityId: string; entityName: string }) {
+  const { user } = useAuth()
   const { data: memos = [], isLoading, isError, error } = useMemosByEntity(entityId)
-  const { data: entities = [] } = useEntities(undefined)
+  const { data: entities = [] } = useEntities(user?.id)
   const { isEntityUpdating } = useAIUpdate()
 
   const entity = entities.find((e) => e.id === entityId)

@@ -3,6 +3,7 @@
  * Entity 타입 분류 기능 제공
  */
 
+import 'server-only';
 import { aiProvider } from './factory';
 import { EntityType } from './types';
 import type { EntityClassificationResult } from './types';

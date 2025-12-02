@@ -73,8 +73,8 @@ function getEntityTypeColor(type: string | null | undefined): string {
     case 'unknown':
     case null:
     case undefined:
-      return 'text-text-muted bg-text-muted' // 회색 (분류 전/실패)
+      return 'text-gray-400 bg-gray-400' // 회색 (분류 전/실패)
     default:
-      return 'text-text-muted bg-text-muted'
+      return 'text-gray-400 bg-gray-400'
   }
 }

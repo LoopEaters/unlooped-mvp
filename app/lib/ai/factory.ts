@@ -3,6 +3,7 @@
  * 환경 변수에 따라 적절한 Provider 인스턴스 생성
  */
 
+import 'server-only';
 import type { AIProvider, AIProviderConfig } from './types';
 import { AIProviderType } from './types';
 import { GeminiProvider } from './providers/gemini';

@@ -7,6 +7,7 @@ import { useEntities, useCreateMemo, getEntityByName } from '@/app/lib/queries'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
+import { classifyEntityType } from '@/app/lib/ai'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -23,9 +24,9 @@ function getEntityTypeColorForInput(type: string | null | undefined): string {
     case 'unknown':
     case null:
     case undefined:
-      return 'text-text-muted bg-text-muted' // 회색 (분류 전/실패)
+      return 'text-gray-400 bg-gray-400' // 회색 (분류 전/실패)
     default:
-      return 'text-text-muted bg-text-muted'
+      return 'text-gray-400 bg-gray-400'
   }
 }
 
@@ -34,6 +35,7 @@ export default function InputArea() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [currentEntitySearch, setCurrentEntitySearch] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [pendingEntityTypes, setPendingEntityTypes] = useState<Map<string, string>>(new Map())
   const inputRef = useRef<HTMLDivElement>(null)
 
   const { user } = useAuth()
@@ -351,6 +353,26 @@ export default function InputArea() {
     setIsDropdownOpen(false)
     setCurrentEntitySearch('')
 
+    // 5. 🤖 새 Entity일 경우 즉시 AI 분류 (색깔 결정)
+    if (!entity && entityName) {
+      console.log('🤖 [handleEntitySelect] 새 Entity 감지, AI 분류 시작:', entityName);
+
+      // 비동기로 AI 호출 (백그라운드)
+      classifyEntityType(entityName)
+        .then((result) => {
+          console.log(`✅ [handleEntitySelect] AI 분류 완료: ${entityName} → ${result.type}`);
+          // 로컬 상태에 저장
+          setPendingEntityTypes((prev) => {
+            const newMap = new Map(prev);
+            newMap.set(entityName, result.type);
+            return newMap;
+          });
+        })
+        .catch((err) => {
+          console.error('❌ [handleEntitySelect] AI 분류 실패:', err);
+        });
+    }
+
     console.log('✅ Entity 선택 완료')
   }
 
@@ -394,6 +416,8 @@ export default function InputArea() {
           if (inputRef.current) {
             inputRef.current.innerText = ''
           }
+          // pendingEntityTypes 초기화
+          setPendingEntityTypes(new Map())
         },
         onError: (error) => {
           console.error('❌ 메모 저장 실패:', error)
@@ -425,10 +449,14 @@ export default function InputArea() {
               if (part.match(/^@[가-힣a-zA-Z0-9]+$/)) {
                 // @제외하고 Entity 이름 추출
                 const entityName = part.substring(1)
-                // Entity 조회
+                // Entity 조회 (DB에 있는 것)
                 const entity = (entities as Entity[]).find(e => e.name === entityName)
+                // 로컬 상태에서 pending type 조회 (아직 DB에 없는 것)
+                const pendingType = pendingEntityTypes.get(entityName)
+                // Entity type 결정: entity가 있으면 entity.type, 없으면 pendingType
+                const entityType = entity ? entity.type : pendingType
                 // Entity type에 따른 색깔 클래스 결정
-                const colorClass = getEntityTypeColorForInput(entity?.type)
+                const colorClass = getEntityTypeColorForInput(entityType)
 
                 return (
                   <span
