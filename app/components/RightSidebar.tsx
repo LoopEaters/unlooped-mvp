@@ -63,11 +63,11 @@ export default function RightSidebar() {
   return (
     <div
       ref={sidebarRef}
-      className="w-80 h-screen border-l border-border-main overflow-y-auto p-4 bg-bg-primary"
+      className="w-80 h-full border-l border-border-main overflow-y-auto pt-0 px-4 pb-4 bg-bg-primary"
     >
       <div className="space-y-4">
         {/* 헤더 */}
-        <div className="mb-3">
+        <div className="mt-4 mb-3">
           <h2 className="text-base font-semibold text-white">히스토리</h2>
           <p className="text-[10px] text-white mt-0.5">
             최신 메모가 아래에 표시됩니다 ↓
