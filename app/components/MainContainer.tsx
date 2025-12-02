@@ -10,6 +10,24 @@ import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
 
+/**
+ * Entity type에 따른 색깔 클래스 반환
+ */
+function getEntityTypeColor(type: string | null | undefined): { bg: string; text: string } {
+  switch (type) {
+    case 'person':
+      return { bg: 'bg-mention-person/20', text: 'text-mention-person' }
+    case 'project':
+      return { bg: 'bg-mention-project/20', text: 'text-mention-project' }
+    case 'unknown':
+    case null:
+    case undefined:
+      return { bg: 'bg-gray-400/20', text: 'text-gray-400' }
+    default:
+      return { bg: 'bg-gray-400/20', text: 'text-gray-400' }
+  }
+}
+
 export default function MainContainer() {
   const containerRef = useRef<HTMLDivElement>(null)
   const { user } = useAuth()
@@ -84,6 +102,7 @@ function EntitySection({ entityId, entityName }: { entityId: string; entityName:
 
   const entity = entities.find((e) => e.id === entityId)
   const isUpdating = isEntityUpdating(entityId)
+  const entityColor = getEntityTypeColor(entity?.type)
 
   console.log(`📌 [EntitySection: ${entityName}]`, {
     entityId,
@@ -91,16 +110,17 @@ function EntitySection({ entityId, entityName }: { entityId: string; entityName:
     isLoading,
     isUpdating,
     description: entity?.description,
+    type: entity?.type,
   })
 
   return (
     <div className="space-y-3">
       {/* Entity 헤더 */}
-      <div className="flex items-center justify-between pb-2 border-b border-border-main">
+      <div className="flex items-center justify-between pb-2 border-border-main">
         <div className="flex flex-col gap-2 flex-1">
           {/* Entity 뱃지 + 상태 */}
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1.5 rounded-lg bg-mention-project/20 text-mention-project font-medium text-sm">
+            <span className={`px-3 py-1.5 rounded-lg ${entityColor.bg} ${entityColor.text} font-medium text-sm`}>
               @{entityName}
             </span>
 

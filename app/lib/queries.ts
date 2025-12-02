@@ -150,6 +150,39 @@ export function useEntities(userId?: string) {
 }
 
 /**
+ * Entity type 업데이트
+ */
+export function useUpdateEntityType() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    Entity,
+    Error,
+    { entityId: string; type: 'person' | 'project' | 'unknown' }
+  >({
+    mutationFn: async ({ entityId, type }) => {
+      const { data, error } = await supabase
+        .from('entity')
+        .update({ type })
+        .eq('id', entityId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      // 캐시 업데이트
+      queryClient.invalidateQueries({ queryKey: ['entities'] });
+      toast.success(`'${data.name}' 타입이 '${data.type}'(으)로 변경되었습니다`);
+    },
+    onError: (error) => {
+      toast.error(`타입 변경 실패: ${error.message}`);
+    },
+  });
+}
+
+/**
  * Entity 생성
  */
 export function useCreateEntity() {
@@ -249,7 +282,11 @@ export function useMemos(userId?: string) {
 /**
  * Entity 생성 (헬퍼 함수 - mutation 내부에서 사용)
  */
-export async function createEntityDirect(name: string, userId: string): Promise<Entity> {
+export async function createEntityDirect(
+  name: string, 
+  userId: string,
+  preClassifiedType?: string  // 미리 분류된 type (optional)
+): Promise<Entity> {
   console.log(`      ➕ [createEntityDirect] 시작: ${name}`);
 
   // 이름 유효성 검사
@@ -260,26 +297,29 @@ export async function createEntityDirect(name: string, userId: string): Promise<
   }
   console.log(`      ✅ [createEntityDirect] 유효성 검사 통과: ${name}`);
 
-  // AI 타입 분류 (API Route 호출)
-  let entityType = 'unknown';
-  try {
-    console.log(`      🤖 [AI] 타입 분류 API 호출: ${name}`);
-    const response = await fetch('/api/entity/classify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entityName: name }),
-    });
+  // AI 타입 분류 (미리 분류된 type이 없을 때만)
+  let entityType = preClassifiedType || 'unknown';
+  if (!preClassifiedType) {
+    try {
+      console.log(`      🤖 [AI] 타입 분류 API 호출: ${name}`);
+      const response = await fetch('/api/entity/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entityName: name }),
+      });
 
-    if (response.ok) {
-      const result = await response.json();
-      entityType = result.type;
-      console.log(`      ✅ [AI] 타입 분류 완료: ${name} → ${result.type}`);
-    } else {
-      console.error(`      ⚠️ [AI] API 응답 실패: ${response.status}`);
+      if (response.ok) {
+        const result = await response.json();
+        entityType = result.type;
+        console.log(`      ✅ [AI] 타입 분류 완료: ${name} → ${result.type}`);
+      } else {
+        console.error(`      ⚠️ [AI] API 응답 실패: ${response.status}`);
+      }
+    } catch (error) {
+      console.error(`      ⚠️ [AI] 타입 분류 실패 (fallback to unknown): ${name}`, error);
     }
-  } catch (error) {
-    console.error(`      ⚠️ [AI] 타입 분류 실패 (fallback to unknown): ${name}`, error);
-    // AI 실패 시 'unknown'으로 설정 (에러는 throw 하지 않음)
+  } else {
+    console.log(`      ℹ️ [AI] 미리 분류된 type 사용: ${name} → ${entityType}`);
   }
 
   // 📤 Entity 생성 (type 포함)
@@ -312,10 +352,15 @@ export function useCreateMemo(userId: string) {
   return useMutation<
     { memo: Memo; entities: Entity[] },
     Error,
-    { content: string; entityNames: string[]; onAIUpdateStart?: (entityIds: string[]) => void }
+    { 
+      content: string; 
+      entityNames: string[]; 
+      pendingEntityTypes?: Record<string, string>;  // 미리 분류된 types
+      onAIUpdateStart?: (entityIds: string[]) => void 
+    }
   >({
-    mutationFn: async ({ content, entityNames }) => {
-      console.log('🚀 [useCreateMemo] 시작', { content, entityNames, userId });
+    mutationFn: async ({ content, entityNames, pendingEntityTypes = {} }) => {
+      console.log('🚀 [useCreateMemo] 시작', { content, entityNames, pendingEntityTypes, userId });
 
       if (!userId) throw new Error('User not authenticated');
       console.log('✅ [useCreateMemo] 사용자 인증 확인', userId);
@@ -343,11 +388,12 @@ export function useCreateMemo(userId: string) {
           // 기존 entity 조회
           let entity = await getEntityByName(name, userId);
 
-          // 없으면 생성
+          // 없으면 생성 (미리 분류된 type 사용)
           if (!entity) {
             console.log(`  ➕ [Entity: ${name}] 새로 생성`);
-            entity = await createEntityDirect(name, userId);
-            console.log(`  ✅ [Entity: ${name}] 생성 완료`, entity.id);
+            const preClassifiedType = pendingEntityTypes[name];
+            entity = await createEntityDirect(name, userId, preClassifiedType);
+            console.log(`  ✅ [Entity: ${name}] 생성 완료 (type: ${entity.type})`, entity.id);
             // Toast 피드백
             toast.success(`✨ 새 엔티티 '${name}'이(가) 생성되었습니다`);
           } else {
@@ -447,6 +493,7 @@ export function useMemosByEntity(entityId: string | null) {
       }
 
       console.log('✅ [useMemosByEntity] 쿼리 성공:', {
+        entityId,
         count: data?.length,
         memos: data,
       });

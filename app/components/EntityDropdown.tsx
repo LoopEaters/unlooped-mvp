@@ -13,7 +13,7 @@ interface EntityDropdownProps {
   /** 현재 선택된 인덱스 */
   selectedIndex: number
   /** Entity 선택 시 콜백 */
-  onSelect: (entity: Pick<Entity, 'id' | 'name'> | null) => void
+  onSelect: (entity: Entity | null) => void
   /** 드롭다운 표시 여부 */
   isOpen: boolean
 }
