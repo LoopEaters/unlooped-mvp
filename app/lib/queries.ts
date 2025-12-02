@@ -145,7 +145,40 @@ export function useEntities(userId?: string) {
       return data || [];
     },
     staleTime: 3 * 60 * 1000, // 3분
-    enabled: !!userId || true, // userId가 없어도 실행
+    enabled: !!userId,
+  });
+}
+
+/**
+ * Entity type 업데이트
+ */
+export function useUpdateEntityType() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    Entity,
+    Error,
+    { entityId: string; type: 'person' | 'project' | 'unknown' }
+  >({
+    mutationFn: async ({ entityId, type }) => {
+      const { data, error } = await supabase
+        .from('entity')
+        .update({ type })
+        .eq('id', entityId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      // 캐시 업데이트
+      queryClient.invalidateQueries({ queryKey: ['entities'] });
+      toast.success(`'${data.name}' 타입이 '${data.type}'(으)로 변경되었습니다`);
+    },
+    onError: (error) => {
+      toast.error(`타입 변경 실패: ${error.message}`);
+    },
   });
 }
 
@@ -230,6 +263,8 @@ export function useMemos(userId?: string) {
         currentUserId = user.id;
       }
 
+      console.log('currentUserId', currentUserId);
+
       const { data, error } = await supabase
         .from('memo')
         .select('*')
@@ -240,14 +275,18 @@ export function useMemos(userId?: string) {
       return data || [];
     },
     staleTime: 1 * 60 * 1000, // 1분
-    enabled: !!userId || true,
+    enabled: !!userId,
   });
 }
 
 /**
  * Entity 생성 (헬퍼 함수 - mutation 내부에서 사용)
  */
-async function createEntityDirect(name: string, userId: string): Promise<Entity> {
+export async function createEntityDirect(
+  name: string, 
+  userId: string,
+  preClassifiedType?: string  // 미리 분류된 type (optional)
+): Promise<Entity> {
   console.log(`      ➕ [createEntityDirect] 시작: ${name}`);
 
   // 이름 유효성 검사
@@ -258,10 +297,36 @@ async function createEntityDirect(name: string, userId: string): Promise<Entity>
   }
   console.log(`      ✅ [createEntityDirect] 유효성 검사 통과: ${name}`);
 
-  console.log(`      📤 [createEntityDirect] DB INSERT 시작: ${name}`);
+  // AI 타입 분류 (미리 분류된 type이 없을 때만)
+  let entityType = preClassifiedType || 'unknown';
+  if (!preClassifiedType) {
+    try {
+      console.log(`      🤖 [AI] 타입 분류 API 호출: ${name}`);
+      const response = await fetch('/api/entity/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entityName: name }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        entityType = result.type;
+        console.log(`      ✅ [AI] 타입 분류 완료: ${name} → ${result.type}`);
+      } else {
+        console.error(`      ⚠️ [AI] API 응답 실패: ${response.status}`);
+      }
+    } catch (error) {
+      console.error(`      ⚠️ [AI] 타입 분류 실패 (fallback to unknown): ${name}`, error);
+    }
+  } else {
+    console.log(`      ℹ️ [AI] 미리 분류된 type 사용: ${name} → ${entityType}`);
+  }
+
+  // 📤 Entity 생성 (type 포함)
+  console.log(`      📤 [createEntityDirect] DB INSERT 시작: ${name} (type: ${entityType})`);
   const { data, error } = await supabase
     .from('entity')
-    .insert({ name, user_id: userId })
+    .insert({ name, user_id: userId, type: entityType })
     .select()
     .single();
 
@@ -285,12 +350,17 @@ export function useCreateMemo(userId: string) {
   const queryClient = useQueryClient();
 
   return useMutation<
-    Memo,
+    { memo: Memo; entities: Entity[] },
     Error,
-    { content: string; entityNames: string[] }
+    { 
+      content: string; 
+      entityNames: string[]; 
+      pendingEntityTypes?: Record<string, string>;  // 미리 분류된 types
+      onAIUpdateStart?: (entityIds: string[]) => void 
+    }
   >({
-    mutationFn: async ({ content, entityNames }) => {
-      console.log('🚀 [useCreateMemo] 시작', { content, entityNames, userId });
+    mutationFn: async ({ content, entityNames, pendingEntityTypes = {} }) => {
+      console.log('🚀 [useCreateMemo] 시작', { content, entityNames, pendingEntityTypes, userId });
 
       if (!userId) throw new Error('User not authenticated');
       console.log('✅ [useCreateMemo] 사용자 인증 확인', userId);
@@ -318,11 +388,12 @@ export function useCreateMemo(userId: string) {
           // 기존 entity 조회
           let entity = await getEntityByName(name, userId);
 
-          // 없으면 생성
+          // 없으면 생성 (미리 분류된 type 사용)
           if (!entity) {
             console.log(`  ➕ [Entity: ${name}] 새로 생성`);
-            entity = await createEntityDirect(name, userId);
-            console.log(`  ✅ [Entity: ${name}] 생성 완료`, entity.id);
+            const preClassifiedType = pendingEntityTypes[name];
+            entity = await createEntityDirect(name, userId, preClassifiedType);
+            console.log(`  ✅ [Entity: ${name}] 생성 완료 (type: ${entity.type})`, entity.id);
             // Toast 피드백
             toast.success(`✨ 새 엔티티 '${name}'이(가) 생성되었습니다`);
           } else {
@@ -354,14 +425,38 @@ export function useCreateMemo(userId: string) {
       }
 
       console.log('🎉 [useCreateMemo] 모든 작업 완료');
-      return memo;
+      return { memo, entities };
     },
-    onSuccess: () => {
+    onSuccess: async (result, variables) => {
       console.log('♻️ [useCreateMemo] 캐시 무효화 시작');
-      // 메모 및 엔티티 캐시 무효화
+      
+      const { memo, entities } = result;
+      
+      // 모든 메모 관련 쿼리 무효화
       queryClient.invalidateQueries({ queryKey: ['memos'] });
       queryClient.invalidateQueries({ queryKey: ['entities'] });
+      
       toast.success('메모가 저장되었습니다.');
+
+      // AI 업데이트 시작 알림 (콜백이 있으면)
+      if (variables.onAIUpdateStart && entities && entities.length > 0) {
+        const entityIds = entities.map((e: Entity) => e.id);
+        variables.onAIUpdateStart(entityIds);
+
+        // 각 Entity에 대해 AI 업데이트 비동기 실행
+        Promise.all(
+          entityIds.map(async (entityId: string) => {
+            try {
+              await updateEntityDescription(entityId);
+              // 업데이트 완료 후 엔티티 캐시 무효화
+              queryClient.invalidateQueries({ queryKey: ['entities'] });
+            } catch (error) {
+              console.error('AI 업데이트 실패 (조용히 무시)', error);
+            }
+          })
+        );
+      }
+
       console.log('✅ [useCreateMemo] 완전히 종료');
     },
     onError: (error) => {
@@ -378,18 +473,35 @@ export function useMemosByEntity(entityId: string | null) {
   return useQuery<Memo[]>({
     queryKey: ['memos', 'byEntity', entityId],
     queryFn: async () => {
-      if (!entityId) return [];
+      console.log('🔎 [useMemosByEntity] 쿼리 시작', { entityId });
 
+      if (!entityId) {
+        console.log('→ entityId 없음, 빈 배열 반환');
+        return [];
+      }
+
+      console.log('📤 [useMemosByEntity] Supabase 쿼리 실행');
       const { data, error } = await supabase
         .from('memo')
         .select('*, memo_entity!inner(entity_id)')
         .eq('memo_entity.entity_id', entityId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [useMemosByEntity] 쿼리 에러:', error);
+        throw error;
+      }
+
+      console.log('✅ [useMemosByEntity] 쿼리 성공:', {
+        entityId,
+        count: data?.length,
+        memos: data,
+      });
+
       return data || [];
     },
     enabled: !!entityId,
+    staleTime: 1 * 60 * 1000, // 1분
   });
 }
 
@@ -427,4 +539,31 @@ export function useMemosByEntities(entityIds: string[]) {
     },
     enabled: entityIds.length > 0,
   });
+}
+
+/**
+ * AI를 사용하여 Entity Description 업데이트
+ */
+export async function updateEntityDescription(entityId: string): Promise<void> {
+  try {
+    console.log('🤖 [updateEntityDescription] 시작', { entityId })
+
+    const response = await fetch('/api/ai/update-entity-description', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ entityId }),
+    })
+
+    if (!response.ok) {
+      throw new Error('AI 업데이트 실패')
+    }
+
+    const result = await response.json()
+    console.log('✅ [updateEntityDescription] 성공', result)
+  } catch (error) {
+    console.error('❌ [updateEntityDescription] 에러', error)
+    // 에러를 throw하지 않고 조용히 실패 (메모 저장은 성공했으므로)
+  }
 }

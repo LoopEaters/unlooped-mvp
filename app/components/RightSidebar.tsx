@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useMemo } from 'react'
-import { useMemos } from '@/app/lib/queries'
+import { useMemos, useEntities } from '@/app/lib/queries'
 import { useAuth } from '@/app/providers/AuthProvider'
 import MemoCardCompact from './MemoCardCompact'
 import type { Database } from '@/types/supabase'
@@ -39,7 +39,8 @@ function formatDateHeader(dateString: string) {
 export default function RightSidebar() {
   const sidebarRef = useRef<HTMLDivElement>(null)
   const { user } = useAuth()
-  const { data: memos, isLoading } = useMemos(user?.id)
+  const { data: memos, isLoading, isError, error } = useMemos(user?.id)
+  const { data: entities = [] } = useEntities(user?.id)
 
   // 날짜별로 그룹화
   const groupedMemos = useMemo(() => {
@@ -82,8 +83,16 @@ export default function RightSidebar() {
           </div>
         )}
 
+        {/* 에러 상태 */}
+        {isError && (
+          <div className="text-center text-red-400 text-xs mt-10 p-4 bg-red-500/10 rounded-md">
+            <p className="font-semibold mb-1">데이터를 불러올 수 없습니다</p>
+            <p className="text-[10px] text-gray-400">{error?.message || '알 수 없는 오류'}</p>
+          </div>
+        )}
+
         {/* 날짜별 메모 그룹 */}
-        {!isLoading && sortedDateKeys.length > 0 && (
+        {!isLoading && !isError && sortedDateKeys.length > 0 && (
           <div className="space-y-4">
             {sortedDateKeys.map((dateKey) => (
               <div key={dateKey} className="space-y-2">
@@ -95,7 +104,7 @@ export default function RightSidebar() {
                 {/* 해당 날짜의 메모들 */}
                 <div className="space-y-1.5">
                   {groupedMemos[dateKey].map((memo) => (
-                    <MemoCardCompact key={memo.id} memo={memo} />
+                    <MemoCardCompact key={memo.id} memo={memo} entities={entities} />
                   ))}
                 </div>
               </div>
@@ -104,7 +113,7 @@ export default function RightSidebar() {
         )}
 
         {/* 빈 상태 */}
-        {!isLoading && (!memos || memos.length === 0) && (
+        {!isLoading && !isError && (!memos || memos.length === 0) && (
           <div className="text-center text-gray-400 text-xs mt-10">
             아직 메모가 없습니다
           </div>

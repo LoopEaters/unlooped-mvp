@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @theme {
+  --font-family-sans: var(--font-inter), var(--font-noto-sans-kr), sans-serif;
+
   --color-bg-primary: #1a1f2e;
   --color-bg-secondary: #252b3b;
   --color-bg-card: #2a2f3e;

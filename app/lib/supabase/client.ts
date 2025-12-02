@@ -5,6 +5,15 @@ import type { Database } from '@/types/supabase'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+// 환경 변수 로드 확인 (디버깅용)
+if (typeof window !== 'undefined') {
+  console.log('🔑 Supabase Client 초기화:', {
+    url: supabaseUrl,
+    hasKey: !!supabaseAnonKey,
+    keyPrefix: supabaseAnonKey?.substring(0, 20) + '...',
+  })
+}
+
 // 클라이언트 측에서 사용할 Supabase Client를 생성합니다
 // createBrowserClient는 싱글톤 패턴으로 동작하므로 여러 번 호출해도 같은 인스턴스를 반환합니다
 // @supabase/ssr을 사용하여 브라우저에서 쿠키 기반 세션을 올바르게 관리합니다

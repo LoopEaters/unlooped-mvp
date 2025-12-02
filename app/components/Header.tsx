@@ -5,13 +5,13 @@ import * as Avatar from '@radix-ui/react-avatar'
 import * as Popover from '@radix-ui/react-popover'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as Tooltip from '@radix-ui/react-tooltip'
-import { Search, Bell, Settings, User, LogOut, UserCircle, FolderOpen } from 'lucide-react'
+import { Search, Bell, Settings, LogOut, UserCircle, User, Keyboard, HelpCircle } from 'lucide-react'
 import { useAuth } from '@/app/providers/AuthProvider'
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const { userProfile, signOut } = useAuth()
+  const { userProfile, signOut, isLoading } = useAuth()
 
   // 사용자 이름 첫 글자 (아바타용)
   const getInitials = () => {
@@ -54,10 +54,9 @@ export default function Header() {
       <header className="flex items-center justify-between px-6 py-3 bg-bg-primary border-b border-border-main">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center">
-            <FolderOpen className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xl font-semibold text-white">Archive</span>
+          <h1 className="text-xl text-white font-light" style={{ fontFamily: 'var(--font-sweet)' }}>
+            Unlooped
+          </h1>
         </div>
 
         {/* Search */}
@@ -149,16 +148,20 @@ export default function Header() {
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
               <button className="focus:outline-none">
-                <Avatar.Root className="w-9 h-9 rounded-full bg-orange-400 flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-orange-500 transition-all">
-                  <Avatar.Image
-                    src={userProfile?.profile?.avatar_url || undefined}
-                    alt={getDisplayName()} //todo: 이거 로직 많이 수정해야함. 사용성이 별로임. 
-                    className="w-full h-full object-cover"
-                  />
-                  <Avatar.Fallback className="w-full h-full flex items-center justify-center bg-orange-400 text-white font-medium">
-                    {getInitials()}
-                  </Avatar.Fallback>
-                </Avatar.Root>
+                {isLoading ? (
+                  <div className="w-9 h-9 rounded-full bg-gray-600 animate-pulse" />
+                ) : (
+                  <Avatar.Root className="w-9 h-9 rounded-full bg-orange-400 flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-orange-500 transition-all">
+                    <Avatar.Image
+                      src={userProfile?.profile?.avatar_url || undefined}
+                      alt={getDisplayName()}
+                      className="w-full h-full object-cover"
+                    />
+                    <Avatar.Fallback className="w-full h-full flex items-center justify-center bg-orange-400 text-white font-medium">
+                      {getInitials()}
+                    </Avatar.Fallback>
+                  </Avatar.Root>
+                )}
               </button>
             </DropdownMenu.Trigger>
 
@@ -167,7 +170,6 @@ export default function Header() {
                 className="bg-bg-secondary border border-border-main rounded-lg shadow-xl p-1 w-56 z-50"
                 sideOffset={5}
               >
-                {/* 사용자 정보 표시 */}
                 <div className="px-3 py-2 mb-1">
                   <p className="text-sm font-medium text-white">{getDisplayName()}</p>
                   <p className="text-xs text-gray-400 truncate">{userProfile?.email}</p>
@@ -177,11 +179,19 @@ export default function Header() {
 
                 <DropdownMenu.Item className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none">
                   <UserCircle className="w-4 h-4" />
-                  <span>Profile</span>
+                  <span>My Profile</span>
                 </DropdownMenu.Item>
                 <DropdownMenu.Item className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none">
                   <Settings className="w-4 h-4" />
                   <span>Settings</span>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none">
+                  <Keyboard className="w-4 h-4" />
+                  <span>Keyboard Shortcuts</span>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none">
+                  <HelpCircle className="w-4 h-4" />
+                  <span>Help</span>
                 </DropdownMenu.Item>
                 <DropdownMenu.Separator className="h-px bg-border-main my-1" />
                 <DropdownMenu.Item
