@@ -63,11 +63,11 @@ export default function RightSidebar() {
   return (
     <div
       ref={sidebarRef}
-      className="w-80 border-l border-border-main overflow-y-auto p-4 bg-bg-primary"
+      className="w-80 h-full border-l border-border-main overflow-y-auto pt-0 px-4 pb-4 bg-bg-primary"
     >
       <div className="space-y-4">
         {/* 헤더 */}
-        <div className="mb-3">
+        <div className="mt-4 mb-3">
           <h2 className="text-base font-semibold text-white">히스토리</h2>
           <p className="text-[10px] text-white mt-0.5">
             최신 메모가 아래에 표시됩니다 ↓
@@ -93,11 +93,11 @@ export default function RightSidebar() {
 
         {/* 날짜별 메모 그룹 */}
         {!isLoading && !isError && sortedDateKeys.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {sortedDateKeys.map((dateKey) => (
-              <div key={dateKey} className="space-y-2">
+              <div key={dateKey}>
                 {/* 날짜 헤더 */}
-                <div className="text-xs font-semibold text-white sticky top-0 bg-bg-primary py-1">
+                <div className="text-sm font-semibold text-white sticky top-0 z-10 bg-bg-primary backdrop-blur-md py-2.5 -mx-4 px-4 border-b border-border-main/40 mb-2">
                   {formatDateHeader(dateKey)}
                 </div>
 

@@ -74,8 +74,7 @@ export default function InputArea() {
       .filter((id): id is string => id !== undefined)
 
     setFilteredEntityIds(entityIds)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [confirmedEntityNames, user?.id, setFilteredEntityIds])
+  }, [confirmedEntityNames, user?.id, setFilteredEntityIds, entities])
 
   // selectedIndex 초기화 (드롭다운이 열릴 때마다)
   React.useEffect(() => {
