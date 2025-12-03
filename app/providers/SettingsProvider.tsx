@@ -18,7 +18,7 @@ interface AppSettings {
 // 기본 설정값
 const DEFAULT_SETTINGS: AppSettings = {
   layout: {
-    isFullWidth: true,
+    isFullWidth: false,
   },
   font: {
     size: 'medium',
