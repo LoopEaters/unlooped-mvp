@@ -219,13 +219,19 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
     },
   })
 
+  // memo.id와 content 추적용 ref
+  const previousMemoRef = useRef<{ id: string; content: string } | null>(null)
+
   // 에디터 초기화 시 메모 내용 pre-populate
   useEffect(() => {
     if (!editor || !memo || entities.length === 0) return
 
-    // 이미 콘텐츠가 있으면 다시 설정하지 않음 (초기화 한 번만)
-    const currentText = editor.getText()
-    if (currentText && currentText.trim().length > 0) return
+    // memo.id와 content가 모두 같으면 skip (사용자가 편집 중일 수 있음)
+    const isSameMemo =
+      previousMemoRef.current?.id === memo.id &&
+      previousMemoRef.current?.content === memo.content
+
+    if (isSameMemo) return
 
     try {
       // 메모 내용을 Tiptap JSON으로 변환
@@ -241,10 +247,20 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
 
       // previousMentions도 초기화
       previousMentionsRef.current = new Set(entityNames)
+
+      // 현재 memo.id와 content 저장
+      previousMemoRef.current = { id: memo.id, content: memo.content }
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 [useTiptapEditorForEdit] 에디터 콘텐츠 초기화:', {
+          memoId: memo.id,
+          contentPreview: memo.content.substring(0, 50),
+        })
+      }
     } catch (error) {
       console.error('❌ [useTiptapEditorForEdit] 콘텐츠 초기화 실패:', error)
     }
-  }, [editor, memo, entities, extractConfirmedEntities])
+  }, [editor, memo.id, memo.content, entities, extractConfirmedEntities])
 
   // 에디터 내용이 변경될 때 entity 필터 업데이트 + 새 mention 감지
   useEffect(() => {

@@ -961,9 +961,8 @@ export function useDeleteEntityWithMemoUpdate(userId: string) {
       };
     },
     onSuccess: (result) => {
-      // 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['memos', userId], exact: true });
-      queryClient.invalidateQueries({ queryKey: ['memos', 'byEntity'] });
+      // 캐시 무효화 - 모든 memos 관련 쿼리를 무효화 (업데이트된 메모가 다른 entity와도 연결되어 있을 수 있음)
+      queryClient.invalidateQueries({ queryKey: ['memos'] });
       queryClient.invalidateQueries({ queryKey: ['entities', userId], exact: true });
 
       if (result.updatedMemoCount > 0) {
