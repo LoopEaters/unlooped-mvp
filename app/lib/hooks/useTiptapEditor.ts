@@ -10,6 +10,8 @@ import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { mentionSuggestionOptions } from './tiptap/suggestion'
 import { CustomMention } from './tiptap/CustomMention'
+import { validateEntityNames } from '@/app/lib/utils/entityValidation'
+import { toast } from 'sonner'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -289,6 +291,13 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
     if (!content.trim()) return
 
     const confirmedEntityNames = extractConfirmedEntities(editor)
+
+    // 엔티티 이름 검증
+    const validation = validateEntityNames(confirmedEntityNames)
+    if (!validation.isValid) {
+      toast.error(validation.errorMessage)
+      return
+    }
 
     createMemo.mutate(
       {

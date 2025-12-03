@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState, memo, useMemo } from 'react'
-import { useEntities, useMemosByEntity, useUpdateEntityType } from '@/app/lib/queries'
+import { useEntities, useMemosByEntity, useUpdateEntityType, useDeleteEntityWithMemoUpdate } from '@/app/lib/queries'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
 import { useAppReady } from '@/app/hooks/useAppReady'
 import { useLayout } from '@/app/providers/SettingsProvider'
 import MemoCard from './MemoCard'
+import EntityDeleteModal from './EntityDeleteModal'
 import { getEntityTypeColor, getCurrentTheme } from '@/app/lib/theme'
 import type { Database } from '@/types/supabase'
 
@@ -58,6 +59,26 @@ export default function MainContainer() {
 
     prevPropsRef.current = currentProps;
   }
+
+  // 🗑️ entities 변경 시 (entity 삭제 등) accumulatedEntityIds에서 삭제된 것들 제거
+  useEffect(() => {
+    setAccumulatedEntityIds(prev => {
+      const existingEntityIds = new Set(entities.map(e => e.id))
+      const filtered = prev.filter(id => existingEntityIds.has(id))
+
+      // 변경이 없으면 기존 배열 반환 (re-render 방지)
+      if (filtered.length === prev.length) {
+        return prev
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        const removedIds = prev.filter(id => !existingEntityIds.has(id))
+        console.log('🗑️ [MainContainer] accumulatedEntityIds에서 삭제된 entity 제거:', removedIds)
+      }
+
+      return filtered
+    })
+  }, [entities])
 
   // 📌 filteredEntityIds 변경 시 accumulatedEntityIds 업데이트 및 재정렬
   useEffect(() => {
@@ -189,8 +210,10 @@ const EntitySection = memo(function EntitySection({
   const { data: memos = [], isLoading, isError, error } = useMemosByEntity(entityId)
   const { isEntityUpdating } = useAIUpdate()
   const updateEntityType = useUpdateEntityType()
+  const deleteEntity = useDeleteEntityWithMemoUpdate(userId || '')
 
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [visibleMemoCount, setVisibleMemoCount] = useState(5)
 
   const entity = entities.find((e) => e.id === entityId)
@@ -232,10 +255,20 @@ const EntitySection = memo(function EntitySection({
     )
   }
 
-  const handleDelete = () => {
-    // TODO: 삭제 기능 구현 예정
-    console.log('Delete entity:', entityId)
+  const handleDeleteClick = () => {
     setIsTypeDropdownOpen(false)
+    setShowDeleteModal(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    deleteEntity.mutate(
+      { entityId, entityName },
+      {
+        onSuccess: () => {
+          setShowDeleteModal(false)
+        },
+      }
+    )
   }
 
   // 개발 모드에서만 로그
@@ -366,10 +399,10 @@ const EntitySection = memo(function EntitySection({
 
                     {/* 삭제 버튼 */}
                     <button
-                      onClick={handleDelete}
-                      className={`px-2.5 py-1 rounded text-xs font-medium ${theme.ui.delete.text} ${theme.ui.delete.bgHover} transition-colors`}
+                      onClick={handleDeleteClick}
+                      className={`px-2.5 py-1 rounded text-xs font-medium ${theme.ui.delete.text} ${theme.ui.delete.bgHover} transition-colors cursor-pointer`}
                       disabled={updateEntityType.isPending}
-                      title="삭제 (기능 추가 예정)"
+                      title="엔티티 삭제"
                     >
                       삭제
                     </button>
@@ -417,6 +450,16 @@ const EntitySection = memo(function EntitySection({
           </div>
         </div>
       </div>
+
+      {/* Entity Delete Modal */}
+      <EntityDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        entityName={entityName}
+        memoCount={memos.length}
+        isDeleting={deleteEntity.isPending}
+      />
     </div>
   )
 })

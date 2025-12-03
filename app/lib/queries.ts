@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/app/lib/supabase/client';
 import type { Database } from '@/types/supabase';
 import { toast } from 'sonner';
+import { isValidEntityName } from '@/app/lib/utils/entityValidation';
 
 // 테이블 이름 타입 추출
 type TableName = keyof Database['public']['Tables'];
@@ -227,9 +228,8 @@ export function useCreateEntity() {
       if (!user) throw new Error('User not authenticated');
 
       // 이름 유효성 검사
-      const regex = /^[가-힣a-zA-Z0-9]{1,20}$/;
-      if (!regex.test(name)) {
-        throw new Error('Entity 이름은 한글, 영문, 숫자만 가능하며 1-20자여야 합니다.');
+      if (!isValidEntityName(name)) {
+        throw new Error('Entity 이름은 한글, 영문, 숫자, "-", "_"만 가능하며 1-20자여야 합니다.');
       }
 
       const { data, error } = await supabase
@@ -323,12 +323,11 @@ export async function createEntityDirect(
   }
 
   // 이름 유효성 검사
-  const regex = /^[가-힣a-zA-Z0-9]{1,20}$/;
-  if (!regex.test(name)) {
+  if (!isValidEntityName(name)) {
     if (process.env.NODE_ENV === 'development') {
       console.error(`      ❌ [createEntityDirect] 유효성 검사 실패: ${name}`);
     }
-    throw new Error('Entity 이름은 한글, 영문, 숫자만 가능하며 1-20자여야 합니다.');
+    throw new Error('Entity 이름은 한글, 영문, 숫자, "-", "_"만 가능하며 1-20자여야 합니다.');
   }
 
   // AI 타입 분류 (미리 분류된 type이 없을 때만)
@@ -510,7 +509,7 @@ export function useUpdateMemo(userId: string) {
   const queryClient = useQueryClient();
 
   return useMutation<
-    { memo: Memo; addedEntities: Entity[]; removedEntityIds: string[] },
+    { memo: Memo; addedEntities: Entity[]; removedEntityIds: string[]; orphanedEntityIds: string[] },
     Error,
     {
       memoId: string;
@@ -566,6 +565,9 @@ export function useUpdateMemo(userId: string) {
       const toAdd = newEntityIds.filter((id) => !originalSet.has(id));
       const toRemove = originalEntityIds.filter((id) => !newSet.has(id));
 
+      // Track orphaned entities
+      let orphanedEntityIds: string[] = [];
+
       // 4. Delete removed relationships
       if (toRemove.length > 0) {
         const { error: deleteError } = await supabase
@@ -575,6 +577,35 @@ export function useUpdateMemo(userId: string) {
           .in('entity_id', toRemove);
 
         if (deleteError) throw deleteError;
+
+        // 4.1. Check for orphaned entities and delete them
+        for (const entityId of toRemove) {
+          const { count, error: countError } = await supabase
+            .from('memo_entity')
+            .select('*', { count: 'exact', head: true })
+            .eq('entity_id', entityId);
+
+          if (countError) throw countError;
+
+          // If no other memo uses this entity, it's orphaned
+          if (count === 0) {
+            orphanedEntityIds.push(entityId);
+          }
+        }
+
+        // Delete orphaned entities
+        if (orphanedEntityIds.length > 0) {
+          const { error: deleteEntityError } = await supabase
+            .from('entity')
+            .delete()
+            .in('id', orphanedEntityIds);
+
+          if (deleteEntityError) throw deleteEntityError;
+
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🗑️ [useUpdateMemo] 고아 Entity 삭제:', orphanedEntityIds);
+          }
+        }
       }
 
       // 5. Add new relationships
@@ -595,6 +626,7 @@ export function useUpdateMemo(userId: string) {
         memo,
         addedEntities: entities.filter((e) => toAdd.includes(e.id)),
         removedEntityIds: toRemove,
+        orphanedEntityIds,
       };
     },
     onSuccess: (result) => {
@@ -603,7 +635,14 @@ export function useUpdateMemo(userId: string) {
       queryClient.invalidateQueries({ queryKey: ['memos', 'byEntity'] });
       queryClient.invalidateQueries({ queryKey: ['entities', userId], exact: true });
 
-      toast.success('메모가 수정되었습니다.');
+      // Show appropriate success message
+      if (result.orphanedEntityIds.length > 0) {
+        toast.success(
+          `메모가 수정되고 ${result.orphanedEntityIds.length}개의 엔티티가 삭제되었습니다.`
+        );
+      } else {
+        toast.success('메모가 수정되었습니다.');
+      }
 
       // Optional: Trigger AI updates for added entities
       if (result.addedEntities.length > 0) {
@@ -835,6 +874,108 @@ export function useDeleteMemoWithOrphanedEntities(userId: string) {
     },
     onError: (error) => {
       console.error('❌ [useDeleteMemoWithOrphanedEntities] 에러 발생', error);
+      toast.error(`삭제 실패: ${error.message}`);
+    },
+  });
+}
+
+/**
+ * Entity 삭제 + 연결된 메모에서 @멘션 제거
+ * - entity가 멘션된 모든 메모에서 "@entityName" → "entityName"으로 변경
+ * - memo_entity 관계 삭제
+ * - entity 삭제
+ */
+export function useDeleteEntityWithMemoUpdate(userId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { deletedEntityId: string; updatedMemoCount: number },
+    Error,
+    { entityId: string; entityName: string }
+  >({
+    mutationFn: async ({ entityId, entityName }) => {
+      if (!userId) throw new Error('User not authenticated');
+
+      // 1. 이 entity와 연결된 모든 메모 조회
+      const { data: memoEntities, error: fetchError } = await supabase
+        .from('memo_entity')
+        .select('memo_id')
+        .eq('entity_id', entityId);
+
+      if (fetchError) throw fetchError;
+
+      const memoIds = memoEntities?.map((me) => me.memo_id) || [];
+
+      // 2. 각 메모에서 @entityName → entityName으로 교체
+      let updatedCount = 0;
+
+      if (memoIds.length > 0) {
+        const { data: memos, error: memosError } = await supabase
+          .from('memo')
+          .select('id, content')
+          .in('id', memoIds);
+
+        if (memosError) throw memosError;
+
+        // 각 메모 업데이트
+        for (const memo of memos || []) {
+          const updatedContent = memo.content.replace(
+            new RegExp(`@${entityName}`, 'g'),
+            entityName
+          );
+
+          // 실제로 변경된 경우에만 업데이트
+          if (updatedContent !== memo.content) {
+            const { error: updateError } = await supabase
+              .from('memo')
+              .update({ content: updatedContent })
+              .eq('id', memo.id);
+
+            if (updateError) throw updateError;
+            updatedCount++;
+          }
+        }
+      }
+
+      // 3. memo_entity 관계 삭제
+      if (memoIds.length > 0) {
+        const { error: deleteRelError } = await supabase
+          .from('memo_entity')
+          .delete()
+          .eq('entity_id', entityId);
+
+        if (deleteRelError) throw deleteRelError;
+      }
+
+      // 4. entity 삭제
+      const { error: deleteEntityError } = await supabase
+        .from('entity')
+        .delete()
+        .eq('id', entityId);
+
+      if (deleteEntityError) throw deleteEntityError;
+
+      return {
+        deletedEntityId: entityId,
+        updatedMemoCount: updatedCount,
+      };
+    },
+    onSuccess: (result) => {
+      // 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['memos', userId], exact: true });
+      queryClient.invalidateQueries({ queryKey: ['memos', 'byEntity'] });
+      queryClient.invalidateQueries({ queryKey: ['entities', userId], exact: true });
+
+      if (result.updatedMemoCount > 0) {
+        toast.success(
+          `엔티티가 삭제되고 ${result.updatedMemoCount}개의 메모에서 @ 멘션이 제거되었습니다.`
+        );
+      } else {
+        toast.success('엔티티가 삭제되었습니다.');
+      }
+    },
+    onError: (error) => {
+      console.error('❌ [useDeleteEntityWithMemoUpdate] 에러 발생', error);
       toast.error(`삭제 실패: ${error.message}`);
     },
   });
