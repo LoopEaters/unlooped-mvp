@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/app/lib/supabase/client';
 import type { Database } from '@/types/supabase';
 import { toast } from 'sonner';
-import { isValidEntityName } from '@/app/lib/utils/entityValidation';
+import { isValidEntityName } from '@/app/lib/utils/entityUtils';
 
 // 테이블 이름 타입 추출
 type TableName = keyof Database['public']['Tables'];

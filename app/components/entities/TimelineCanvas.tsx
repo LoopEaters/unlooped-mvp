@@ -18,6 +18,7 @@ interface TimelineCanvasProps {
   timeRange: { start: number; end: number }
   canvasWidth: number
   canvasHeight: number
+  scale: number
   hoveredMemoId: string | null
   selectedMemoId: string | null
   hoveredEntityId: string | null
@@ -37,6 +38,7 @@ export default function TimelineCanvas({
   timeRange,
   canvasWidth,
   canvasHeight,
+  scale,
   hoveredMemoId,
   selectedMemoId,
   hoveredEntityId,
@@ -86,10 +88,12 @@ export default function TimelineCanvas({
     return { entityId: entity.id, minY, maxY, memoCount: entityMemos.length }
   }).filter((r): r is NonNullable<typeof r> => r !== null)
 
-  // 시간 눈금 생성 (개선된 버전)
+  // 시간 눈금 생성 (scale에 따라 동적 조정)
   const timeMarks = []
   const totalRange = timeRange.end - timeRange.start
-  const markCount = Math.min(12, Math.max(6, Math.floor(canvasHeight / 80)))
+  // scale이 클수록 더 많은 가로선 (확대 시 더 세밀하게)
+  const baseInterval = 80 / scale // scale 1.0일 때 80px, 2.0일 때 40px
+  const markCount = Math.min(24, Math.max(6, Math.floor(canvasHeight / baseInterval)))
 
   for (let i = 0; i <= markCount; i++) {
     const timestamp = timeRange.start + (totalRange * i) / markCount
@@ -250,7 +254,8 @@ export default function TimelineCanvas({
           // 반원으로 우회하는 경로
           const startX = entityXs[0].x!
           const endX = entityXs[entityXs.length - 1].x!
-          const arcRadius = 12 // 고정 반원 반지름
+          // scale에 따라 반지름 조정 (화면상 크기 일정하게 유지)
+          const arcRadius = 12 / scale
 
           let path = `M ${startX} ${y}` // 시작점
 
@@ -296,8 +301,9 @@ export default function TimelineCanvas({
                 const stage = e.target.getStage()
                 if (stage) stage.container().style.cursor = 'pointer'
                 const centerX = (entityXs[0].x! + entityXs[entityXs.length - 1].x!) / 2
-                // 반원이 있으면 위쪽에, 없으면 같은 높이에
-                const tooltipY = skippedEntityXs.length > 0 ? y - 35 : y
+                // 반원이 있으면 위쪽에, 없으면 같은 높이에 (scale 고려)
+                const arcRadius = 12 / scale
+                const tooltipY = skippedEntityXs.length > 0 ? y - arcRadius - 23 : y
                 setTooltipData({ memo, x: centerX, y: tooltipY })
               }}
               onMouseLeave={(e) => {

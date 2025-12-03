@@ -17,9 +17,9 @@ export function parseMemoContentWithMentions(
 ): JSONContent {
   const entityNameMap = new Map(entities.map(e => [e.name, e]))
 
-  // 정규식으로 @mentions 찾기 (한글, 영문, 숫자 지원)
-  // 예: @John, @프로젝트, @Project123
-  const regex = /@([가-힣a-zA-Z0-9]+)/g
+  // 정규식으로 @mentions 찾기 (공백/줄바꿈을 제외한 모든 문자)
+  // 예: @John, @프로젝트, @Project[A], @테스트(백업)
+  const regex = /@(\S+)/g
   let match
   let lastIndex = 0
   const contentNodes: JSONContent[] = []

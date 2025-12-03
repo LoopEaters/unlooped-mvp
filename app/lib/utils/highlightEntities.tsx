@@ -16,8 +16,8 @@ export function highlightEntities(
   entities: Entity[] = [],
   currentEntityId?: string
 ): React.ReactNode[] {
-  // @entity_name 패턴 정규표현식 (한글, 영문, 숫자만 허용)
-  const entityPattern = /@([가-힣a-zA-Z0-9]+)/g
+  // @entity_name 패턴 정규표현식 (공백/줄바꿈을 제외한 모든 문자)
+  const entityPattern = /@(\S+)/g
 
   const result: React.ReactNode[] = []
   let lastIndex = 0

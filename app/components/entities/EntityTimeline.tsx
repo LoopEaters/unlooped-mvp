@@ -21,16 +21,16 @@ interface EntityTimelineProps {
 
 export default function EntityTimeline({ entities, memos }: EntityTimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<any>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const [selectedMemoId, setSelectedMemoId] = useState<string | null>(null)
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null)
   const [hoveredMemoId, setHoveredMemoId] = useState<string | null>(null)
   const [hoveredEntityId, setHoveredEntityId] = useState<string | null>(null)
 
-  // 드래그 스크롤 상태
-  const [isDragging, setIsDragging] = useState(false)
-  const [startX, setStartX] = useState(0)
-  const [scrollLeft, setScrollLeft] = useState(0)
+  // 스케일 및 위치 상태
+  const [scale, setScale] = useState(1)
+  const [stagePosition, setStagePosition] = useState({ x: 0, y: 0 })
 
   // Entity 배치 최적화
   const optimizedEntities = useMemo(() => {
@@ -100,52 +100,50 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
     return () => resizeObserver.disconnect()
   }, [])
 
-  // Entity 중간을 화면 중앙에 배치 (초기 스크롤 위치 설정)
+  // Entity 중간을 화면 중앙에 배치 (초기 위치 설정)
   useEffect(() => {
-    if (!containerRef.current || optimizedEntities.length === 0) return
+    if (optimizedEntities.length === 0) return
 
     // Entity들의 중간 지점 계산
-    const entityMiddleX = 120 + (optimizedEntities.length * 85) / 2 // LEFT_PADDING + (총 너비 / 2)
+    const entityMiddleX = LEFT_PADDING + (optimizedEntities.length * 85) / 2
 
     // 화면 중앙
     const viewportCenterX = dimensions.width / 2
 
-    // 스크롤 위치 = Entity 중간 - 화면 중앙
-    const scrollX = entityMiddleX - viewportCenterX
+    // Stage 위치 = 화면 중앙 - Entity 중간
+    const offsetX = viewportCenterX - entityMiddleX
 
-    // 스크롤 (음수면 0으로)
-    containerRef.current.scrollLeft = Math.max(0, scrollX)
+    setStagePosition({ x: offsetX, y: 0 })
   }, [optimizedEntities.length, dimensions.width])
 
-  // 드래그 스크롤 핸들러
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return
-    setIsDragging(true)
-    setStartX(e.pageX - containerRef.current.offsetLeft)
-    setScrollLeft(containerRef.current.scrollLeft)
-    containerRef.current.style.cursor = 'grabbing'
-  }
+  // 마우스 휠 줌
+  const handleWheel = (e: any) => {
+    e.evt.preventDefault()
 
-  const handleMouseLeave = () => {
-    setIsDragging(false)
-    if (containerRef.current) {
-      containerRef.current.style.cursor = 'grab'
+    const stage = e.target.getStage()
+    const oldScale = stage.scaleX()
+    const pointer = stage.getPointerPosition()
+
+    // 줌 방향
+    const scaleBy = 1.05
+    const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy
+
+    // 스케일 제한 (0.5x ~ 2.0x)
+    const clampedScale = Math.max(0.5, Math.min(2.0, newScale))
+
+    // 마우스 포인터 기준으로 줌
+    const mousePointTo = {
+      x: (pointer.x - stage.x()) / oldScale,
+      y: (pointer.y - stage.y()) / oldScale,
     }
-  }
 
-  const handleMouseUp = () => {
-    setIsDragging(false)
-    if (containerRef.current) {
-      containerRef.current.style.cursor = 'grab'
+    const newPos = {
+      x: pointer.x - mousePointTo.x * clampedScale,
+      y: pointer.y - mousePointTo.y * clampedScale,
     }
-  }
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !containerRef.current) return
-    e.preventDefault()
-    const x = e.pageX - containerRef.current.offsetLeft
-    const walk = (x - startX) * 1.5 // 드래그 속도 (1.5배)
-    containerRef.current.scrollLeft = scrollLeft - walk
+    setScale(clampedScale)
+    setStagePosition(newPos)
   }
 
   // 선택된 memo와 entity 찾기
@@ -164,11 +162,12 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
       <div className="flex-1 relative">
         {/* Fixed Date Scale (HTML) */}
         <div
-          className="absolute left-0 top-0 z-10 pointer-events-none"
+          className="absolute left-0 top-0 z-20 pointer-events-none"
           style={{
             width: `${LEFT_PADDING - 10}px`,
             height: '100%',
             backgroundColor: defaultTheme.timeline.background,
+            boxShadow: '2px 0 0 0 rgba(255, 255, 255, 0.25)',
           }}
         >
           {timeMarks.map((mark, i) => (
@@ -176,7 +175,7 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
               key={`time-${i}`}
               className="absolute left-2.5"
               style={{
-                top: `${mark.y}px`,
+                top: `${mark.y * scale + stagePosition.y}px`,
                 transform: 'translateY(-50%)',
               }}
             >
@@ -193,17 +192,34 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
           ))}
         </div>
 
-        {/* Konva Canvas - 스크롤 가능 + 드래그 스크롤 */}
+        {/* Konva Canvas - 드래그 가능 + 휠 줌 */}
         <div
           ref={containerRef}
-          className="w-full h-full bg-bg-secondary overflow-auto"
-          style={{ cursor: 'grab' }}
-          onMouseDown={handleMouseDown}
-          onMouseLeave={handleMouseLeave}
-          onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
+          className="w-full h-full bg-bg-secondary overflow-hidden"
         >
-          <Stage width={canvasWidth} height={canvasHeight}>
+          <Stage
+            ref={stageRef}
+            width={dimensions.width}
+            height={dimensions.height}
+            scaleX={scale}
+            scaleY={scale}
+            x={stagePosition.x}
+            y={stagePosition.y}
+            draggable
+            onWheel={handleWheel}
+            onDragMove={(e) => {
+              setStagePosition({
+                x: e.target.x(),
+                y: e.target.y(),
+              })
+            }}
+            onDragEnd={(e) => {
+              setStagePosition({
+                x: e.target.x(),
+                y: e.target.y(),
+              })
+            }}
+          >
             <Layer>
               <TimelineCanvas
                 entities={optimizedEntities}
@@ -211,6 +227,7 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
                 timeRange={timeRange}
                 canvasWidth={canvasWidth}
                 canvasHeight={canvasHeight}
+                scale={scale}
                 hoveredMemoId={hoveredMemoId}
                 selectedMemoId={selectedMemoId}
                 hoveredEntityId={hoveredEntityId}

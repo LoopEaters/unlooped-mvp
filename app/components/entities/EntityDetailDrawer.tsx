@@ -1,7 +1,7 @@
 'use client'
 
 import type { Database } from '@/types/supabase'
-import BaseDrawer from './BaseDrawer'
+import BaseDrawer from '@/app/components/common/BaseDrawer'
 import { getEntityTypeColor, defaultTheme } from '@/app/lib/theme'
 import { getRelativeTime } from '@/app/lib/util'
 import { useState } from 'react'
@@ -46,6 +46,7 @@ export default function EntityDetailDrawer({
       onClose={onClose}
       title={entity.name}
       width="w-[500px]"
+      modal={false}
       footer={
         <div className="px-6 py-4">
           <button
