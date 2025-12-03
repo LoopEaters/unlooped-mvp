@@ -10,6 +10,8 @@ import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { mentionSuggestionOptions } from './tiptap/suggestion'
 import { CustomMention } from './tiptap/CustomMention'
+import { validateEntityNames } from '@/app/lib/utils/entityValidation'
+import { toast } from 'sonner'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -290,6 +292,13 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
 
     const confirmedEntityNames = extractConfirmedEntities(editor)
 
+    // 엔티티 이름 검증
+    const validation = validateEntityNames(confirmedEntityNames)
+    if (!validation.isValid) {
+      toast.error(validation.errorMessage)
+      return
+    }
+
     createMemo.mutate(
       {
         content,
@@ -364,6 +373,18 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
           .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
             background-color: rgba(34, 197, 94, 0.2) !important;
             color: rgb(34, 197, 94) !important;
+            border: 2px solid rgb(34, 197, 94) !important;
+            padding: 1px 5px !important;
+            animation: pulse-border-person 2s infinite ease-in-out !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+          }
+          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:hover {
+            background-color: rgba(34, 197, 94, 0.3) !important;
+            animation: pulse-border-person-fast 1s infinite ease-in-out !important;
+          }
+          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:active {
+            transform: scale(0.95) !important;
           }
         `
       } else if (type === 'project') {
@@ -371,13 +392,37 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
           .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
             background-color: rgba(168, 85, 247, 0.2) !important;
             color: rgb(168, 85, 247) !important;
+            border: 2px solid rgb(168, 85, 247) !important;
+            padding: 1px 5px !important;
+            animation: pulse-border-project 2s infinite ease-in-out !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+          }
+          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:hover {
+            background-color: rgba(168, 85, 247, 0.3) !important;
+            animation: pulse-border-project-fast 1s infinite ease-in-out !important;
+          }
+          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:active {
+            transform: scale(0.95) !important;
           }
         `
       } else if (type === 'event') {
         css += `
           .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
-            background-color: rgba(249, 115, 22, 0.2) !important;
-            color: rgb(249, 115, 22) !important;
+            background-color: rgba(59, 130, 246, 0.2) !important;
+            color: rgb(59, 130, 246) !important;
+            border: 2px solid rgb(59, 130, 246) !important;
+            padding: 1px 5px !important;
+            animation: pulse-border-event 2s infinite ease-in-out !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+          }
+          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:hover {
+            background-color: rgba(59, 130, 246, 0.3) !important;
+            animation: pulse-border-event-fast 1s infinite ease-in-out !important;
+          }
+          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:active {
+            transform: scale(0.95) !important;
           }
         `
       } else if (type === 'unknown') {
@@ -387,13 +432,13 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
             color: rgb(107, 114, 128) !important;
             border: 2px solid rgb(107, 114, 128) !important;
             padding: 1px 5px !important;
-            animation: pulse-border 2s infinite ease-in-out !important;
+            animation: pulse-border-unknown 2s infinite ease-in-out !important;
             font-weight: 500 !important;
             cursor: pointer !important;
           }
           .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:hover {
             background-color: rgba(107, 114, 128, 0.3) !important;
-            animation: pulse-border-fast 1s infinite ease-in-out !important;
+            animation: pulse-border-unknown-fast 1s infinite ease-in-out !important;
           }
           .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:active {
             transform: scale(0.95) !important;
@@ -408,24 +453,92 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
         0%, 100% { opacity: 0.5; }
         50% { opacity: 1; }
       }
-      @keyframes pulse-border {
+
+      /* Person 테두리 애니메이션 (초록색) */
+      @keyframes pulse-border-person {
+        0%, 100% {
+          border-color: rgb(34, 197, 94);
+          box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+        }
+        50% {
+          border-color: rgb(74, 222, 128);
+          box-shadow: 0 0 0 3px rgba(34, 197, 94, 0);
+        }
+      }
+      @keyframes pulse-border-person-fast {
+        0%, 100% {
+          border-color: rgb(74, 222, 128);
+          box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5);
+        }
+        50% {
+          border-color: rgb(134, 239, 172);
+          box-shadow: 0 0 0 4px rgba(74, 222, 128, 0);
+        }
+      }
+
+      /* Project 테두리 애니메이션 (보라색) */
+      @keyframes pulse-border-project {
+        0%, 100% {
+          border-color: rgb(168, 85, 247);
+          box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
+        }
+        50% {
+          border-color: rgb(192, 132, 252);
+          box-shadow: 0 0 0 3px rgba(168, 85, 247, 0);
+        }
+      }
+      @keyframes pulse-border-project-fast {
+        0%, 100% {
+          border-color: rgb(192, 132, 252);
+          box-shadow: 0 0 0 0 rgba(192, 132, 252, 0.5);
+        }
+        50% {
+          border-color: rgb(216, 180, 254);
+          box-shadow: 0 0 0 4px rgba(192, 132, 252, 0);
+        }
+      }
+
+      /* Event 테두리 애니메이션 (파란색) */
+      @keyframes pulse-border-event {
+        0%, 100% {
+          border-color: rgb(59, 130, 246);
+          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+        }
+        50% {
+          border-color: rgb(96, 165, 250);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0);
+        }
+      }
+      @keyframes pulse-border-event-fast {
+        0%, 100% {
+          border-color: rgb(96, 165, 250);
+          box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.5);
+        }
+        50% {
+          border-color: rgb(147, 197, 253);
+          box-shadow: 0 0 0 4px rgba(96, 165, 250, 0);
+        }
+      }
+
+      /* Unknown 테두리 애니메이션 (회색) */
+      @keyframes pulse-border-unknown {
         0%, 100% {
           border-color: rgb(107, 114, 128);
           box-shadow: 0 0 0 0 rgba(107, 114, 128, 0.4);
         }
         50% {
           border-color: rgb(156, 163, 175);
-          box-shadow: 0 0 0 3px rgba(156, 163, 175, 0);
+          box-shadow: 0 0 0 3px rgba(107, 114, 128, 0);
         }
       }
-      @keyframes pulse-border-fast {
+      @keyframes pulse-border-unknown-fast {
         0%, 100% {
           border-color: rgb(156, 163, 175);
           box-shadow: 0 0 0 0 rgba(156, 163, 175, 0.5);
         }
         50% {
           border-color: rgb(209, 213, 219);
-          box-shadow: 0 0 0 4px rgba(209, 213, 219, 0);
+          box-shadow: 0 0 0 4px rgba(156, 163, 175, 0);
         }
       }
     `
