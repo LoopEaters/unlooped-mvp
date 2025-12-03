@@ -3,7 +3,7 @@
 import React from 'react'
 import { Send } from 'lucide-react'
 import { EditorContent } from '@tiptap/react'
-import { useTiptapEditor } from '@/app/lib/hooks/useTiptapEditor'
+import { useTiptapEditor } from '@/app/hooks/useTiptapEditor'
 import { useLayout } from '@/app/providers/SettingsProvider'
 
 // ============================================================================

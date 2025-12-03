@@ -7,9 +7,10 @@ import EntityTimeline from '@/app/components/EntityTimeline'
 
 export default function EntitiesPage() {
   const { userProfile } = useAuth()
-  const { data, isLoading, error } = useTimelineData(userProfile?.id)
+  const { data, isLoading, error, status } = useTimelineData(userProfile?.id)
 
-  if (isLoading) {
+  // 로딩 중: 이전 에러 상태 무시
+  if (isLoading && status === 'pending') {
     return (
       <div className="flex flex-col h-screen bg-bg-primary">
         <Header />
@@ -20,7 +21,8 @@ export default function EntitiesPage() {
     )
   }
 
-  if (error) {
+  // 로딩 완료 후 에러만 체크
+  if (error && !isLoading) {
     return (
       <div className="flex flex-col h-screen bg-bg-primary">
         <Header />

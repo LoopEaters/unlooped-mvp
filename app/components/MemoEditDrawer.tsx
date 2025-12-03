@@ -3,7 +3,7 @@
 import BaseDrawer from '@/app/components/BaseDrawer'
 import { Save } from 'lucide-react'
 import { EditorContent } from '@tiptap/react'
-import { useTiptapEditorForEdit } from '@/app/lib/hooks/useTiptapEditorForEdit'
+import { useTiptapEditorForEdit } from '@/app/hooks/useTiptapEditorForEdit'
 import type { Database } from '@/types/supabase'
 
 type Memo = Database['public']['Tables']['memo']['Row']

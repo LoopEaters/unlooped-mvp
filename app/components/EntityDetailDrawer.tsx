@@ -2,8 +2,9 @@
 
 import type { Database } from '@/types/supabase'
 import BaseDrawer from './BaseDrawer'
-import { getEntityTypeColor } from '@/app/lib/theme'
+import { getEntityTypeColor, defaultTheme } from '@/app/lib/theme'
 import { getRelativeTime } from '@/app/lib/util'
+import { useState } from 'react'
 
 type Entity = Database['public']['Tables']['entity']['Row']
 type Memo = Database['public']['Tables']['memo']['Row'] & {
@@ -25,6 +26,9 @@ export default function EntityDetailDrawer({
   onClose,
   onMemoClick,
 }: EntityDetailDrawerProps) {
+  const [isButtonHovered, setIsButtonHovered] = useState(false)
+  const [hoveredMemoId, setHoveredMemoId] = useState<string | null>(null)
+
   if (!entity) return null
 
   const typeColor = getEntityTypeColor(entity.type)
@@ -44,7 +48,17 @@ export default function EntityDetailDrawer({
       width="w-[500px]"
       footer={
         <div className="px-6 py-4">
-          <button className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
+          <button
+            onMouseEnter={() => setIsButtonHovered(true)}
+            onMouseLeave={() => setIsButtonHovered(false)}
+            className="w-full px-4 py-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: isButtonHovered
+                ? defaultTheme.drawer.button.primary.bgHover
+                : defaultTheme.drawer.button.primary.bg,
+              color: defaultTheme.drawer.button.primary.text,
+            }}
+          >
             Edit Entity
           </button>
         </div>
@@ -53,29 +67,52 @@ export default function EntityDetailDrawer({
       <div className="px-6 py-4 space-y-6">
         {/* Entity Type */}
         <div>
-          <h3 className="text-xs text-gray-400 uppercase tracking-wide mb-2">Type</h3>
-          <span className={`inline-block px-3 py-1.5 ${typeColor.bg} ${typeColor.text} rounded-full text-sm font-medium`}>
+          <h3
+            className="text-xs uppercase tracking-wide mb-2"
+            style={{ color: defaultTheme.drawer.section.title }}
+          >
+            Type
+          </h3>
+          <span
+            className={`inline-block px-3 py-1.5 ${typeColor.bg} ${typeColor.text} rounded-full text-sm font-medium`}
+          >
             {entity.type || 'unknown'}
           </span>
         </div>
 
         {/* Connected Memos */}
         <div>
-          <h3 className="text-xs text-gray-400 uppercase tracking-wide mb-3">
+          <h3
+            className="text-xs uppercase tracking-wide mb-3"
+            style={{ color: defaultTheme.drawer.section.title }}
+          >
             Connected Memos ({relatedMemos.length})
           </h3>
           <div className="space-y-2">
             {relatedMemos.length === 0 ? (
-              <p className="text-gray-400 text-sm">No memos connected to this entity.</p>
+              <p className="text-sm" style={{ color: defaultTheme.drawer.section.textMuted }}>
+                No memos connected to this entity.
+              </p>
             ) : (
               relatedMemos.map((memo) => (
                 <div
                   key={memo.id}
                   onClick={() => onMemoClick?.(memo.id)}
-                  className="bg-bg-primary rounded-lg p-3 border border-border-main hover:border-gray-500 cursor-pointer transition-colors"
+                  onMouseEnter={() => setHoveredMemoId(memo.id)}
+                  onMouseLeave={() => setHoveredMemoId(null)}
+                  className="rounded-lg p-3 cursor-pointer transition-colors"
+                  style={{
+                    backgroundColor: defaultTheme.drawer.card.background,
+                    border: `1px solid ${hoveredMemoId === memo.id ? defaultTheme.drawer.card.borderHover : defaultTheme.drawer.card.border}`,
+                  }}
                 >
-                  <p className="text-white text-sm line-clamp-2 mb-2">{memo.content}</p>
-                  <span className="text-xs text-gray-400">
+                  <p
+                    className="text-sm line-clamp-2 mb-2"
+                    style={{ color: defaultTheme.drawer.section.text }}
+                  >
+                    {memo.content}
+                  </p>
+                  <span className="text-xs" style={{ color: defaultTheme.drawer.section.textMuted }}>
                     {memo.created_at ? getRelativeTime(memo.created_at) : 'Unknown date'}
                   </span>
                 </div>

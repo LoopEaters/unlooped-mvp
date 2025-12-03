@@ -103,6 +103,51 @@ export interface ThemeColors {
       selectedOpacity: number // 선택 시 투명도
     }
   }
+
+  // Drawer 관련 색상
+  drawer: {
+    overlay: string          // 배경 오버레이
+    background: string       // Drawer 배경
+    border: string          // Drawer 테두리
+    header: {
+      title: string         // 제목 텍스트
+      closeButton: string   // 닫기 버튼 기본
+      closeButtonHover: string // 닫기 버튼 hover
+    }
+    section: {
+      title: string         // 섹션 제목
+      text: string          // 일반 텍스트
+      textMuted: string     // 부가 정보 텍스트
+    }
+    card: {
+      background: string    // 카드 배경
+      border: string        // 카드 테두리
+      borderHover: string   // 카드 테두리 hover
+    }
+    button: {
+      primary: {
+        bg: string          // 주요 버튼 배경
+        bgHover: string     // 주요 버튼 hover
+        text: string        // 주요 버튼 텍스트
+      }
+      secondary: {
+        bg: string          // 보조 버튼 배경
+        bgHover: string     // 보조 버튼 hover
+        text: string        // 보조 버튼 텍스트
+      }
+    }
+  }
+
+  // Tooltip 관련 색상
+  tooltip: {
+    background: string      // 배경
+    border: string          // 테두리
+    shadow: string          // 그림자
+    divider: string         // 구분선
+    title: string           // 제목 텍스트 (날짜 등)
+    text: string            // 본문 텍스트
+    hint: string            // 힌트 텍스트
+  }
 }
 
 /**
@@ -199,6 +244,49 @@ export const defaultTheme: ThemeColors = {
       hoverOpacity: 0.9,
       selectedOpacity: 1,
     },
+  },
+
+  drawer: {
+    overlay: 'rgba(0, 0, 0, 0.5)', // bg-black/50
+    background: '#0F172A', // bg-primary
+    border: '#1F2937', // border-main
+    header: {
+      title: '#FFFFFF', // text-white
+      closeButton: '#9CA3AF', // text-muted
+      closeButtonHover: '#FFFFFF', // hover:text-white
+    },
+    section: {
+      title: '#9CA3AF', // text-gray-400
+      text: '#FFFFFF', // text-white
+      textMuted: '#9CA3AF', // text-gray-400
+    },
+    card: {
+      background: '#0F172A', // bg-primary
+      border: '#1F2937', // border-main
+      borderHover: '#6B7280', // hover:border-gray-500
+    },
+    button: {
+      primary: {
+        bg: '#3B82F6', // blue-500
+        bgHover: '#2563EB', // blue-600
+        text: '#FFFFFF', // text-white
+      },
+      secondary: {
+        bg: '#F97316', // orange-500
+        bgHover: '#EA580C', // orange-600
+        text: '#FFFFFF', // text-white
+      },
+    },
+  },
+
+  tooltip: {
+    background: '#1a1a1a', // 어두운 배경
+    border: '#2d2d2d', // 테두리
+    shadow: 'rgba(0, 0, 0, 0.5)', // 그림자
+    divider: '#2d2d2d', // 구분선
+    title: '#888888', // 날짜 텍스트
+    text: '#FFFFFF', // 본문 텍스트
+    hint: '#666666', // 힌트 텍스트
   },
 }
 

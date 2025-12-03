@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import * as Avatar from '@radix-ui/react-avatar'
 import * as Popover from '@radix-ui/react-popover'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
@@ -111,11 +112,11 @@ export default function Header() {
     <Tooltip.Provider delayDuration={300}>
       <header className="flex items-center justify-between px-6 py-3 bg-bg-primary border-b border-border-main">
         {/* Logo */}
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
           <h1 className="text-xl text-white font-light" style={{ fontFamily: 'var(--font-sweet)' }}>
             Unlooped
           </h1>
-        </div>
+        </Link>
 
         {/* Search */}
         <div className="flex-1 max-w-md mx-8">

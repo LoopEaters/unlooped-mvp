@@ -10,6 +10,7 @@ Rules:
    Examples: 홍길동, 김철수, John Smith, Jane
 2. Action/task-oriented nouns → "project"
    Examples: 웹사이트개발, MVP프로젝트, Marketing Campaign
+   매우 이상한 이름이 아니면 왠만해서는 project로 분류하시오.
 3. If uncertain → "unknown"
 
 Respond ONLY with JSON in this exact format:
