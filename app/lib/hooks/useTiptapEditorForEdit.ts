@@ -403,6 +403,10 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
           .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
             background-color: rgba(107, 114, 128, 0.2) !important;
             color: rgb(107, 114, 128) !important;
+            border: none !important;
+            animation: none !important;
+            font-weight: normal !important;
+            padding: 0 4px !important;
           }
         `
       }

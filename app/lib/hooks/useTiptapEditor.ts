@@ -4,7 +4,7 @@ import { useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
-import { useEntities, useCreateMemo } from '@/app/lib/queries'
+import { useEntities, useCreateMemo, useUpdateEntityType } from '@/app/lib/queries'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
@@ -29,6 +29,7 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
   const { user } = useAuth()
   const { data: entities = [] as Entity[] } = useEntities(user?.id)
   const createMemo = useCreateMemo(user?.id || '')
+  const updateEntityType = useUpdateEntityType()
   const { addUpdatingEntity, removeUpdatingEntity } = useAIUpdate()
   const { setFilteredEntityIds } = useEntityFilter()
 
@@ -220,7 +221,7 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
     editorProps: {
       attributes: {
         class:
-          'min-h-[80px] text-white outline-none bg-transparent whitespace-pre-wrap break-words overflow-wrap-anywhere p-0',
+          'text-white outline-none bg-transparent whitespace-pre-wrap break-words overflow-wrap-anywhere p-0',
         style: 'word-break: break-word',
       },
     },
@@ -384,6 +385,18 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
           .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
             background-color: rgba(107, 114, 128, 0.2) !important;
             color: rgb(107, 114, 128) !important;
+            border: 2px solid rgb(107, 114, 128) !important;
+            padding: 1px 5px !important;
+            animation: pulse-border 2s infinite ease-in-out !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+          }
+          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:hover {
+            background-color: rgba(107, 114, 128, 0.3) !important;
+            animation: pulse-border-fast 1s infinite ease-in-out !important;
+          }
+          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:active {
+            transform: scale(0.95) !important;
           }
         `
       }
@@ -395,17 +408,30 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
         0%, 100% { opacity: 0.5; }
         50% { opacity: 1; }
       }
+      @keyframes pulse-border {
+        0%, 100% {
+          border-color: rgb(107, 114, 128);
+          box-shadow: 0 0 0 0 rgba(107, 114, 128, 0.4);
+        }
+        50% {
+          border-color: rgb(156, 163, 175);
+          box-shadow: 0 0 0 3px rgba(156, 163, 175, 0);
+        }
+      }
+      @keyframes pulse-border-fast {
+        0%, 100% {
+          border-color: rgb(156, 163, 175);
+          box-shadow: 0 0 0 0 rgba(156, 163, 175, 0.5);
+        }
+        50% {
+          border-color: rgb(209, 213, 219);
+          box-shadow: 0 0 0 4px rgba(209, 213, 219, 0);
+        }
+      }
     `
 
     style.textContent = css
     document.head.appendChild(style)
-
-    if (classifyingEntities.size > 0) {
-      console.log('⏳ [분류 중 스타일 적용]', Array.from(classifyingEntities))
-    }
-    if (Object.keys(pendingEntityTypes).length > 0) {
-      console.log('🎨 [완료된 스타일 적용]', Object.keys(pendingEntityTypes))
-    }
 
     return () => {
       const styleToRemove = document.getElementById('pending-entity-styles')
@@ -421,7 +447,6 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Enter' && event.ctrlKey) {
-        console.log('⌨️ [Ctrl+Enter] 감지!')
         event.preventDefault()
         event.stopPropagation()
         handleSubmit()
@@ -430,13 +455,97 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
 
     const editorElement = editor.view.dom
     editorElement.addEventListener('keydown', handleKeyDown, { capture: true })
-    console.log('⌨️ [Ctrl+Enter] 리스너 등록 완료')
 
     return () => {
       editorElement.removeEventListener('keydown', handleKeyDown, { capture: true })
-      console.log('⌨️ [Ctrl+Enter] 리스너 제거')
     }
   }, [editor, handleSubmit])
+
+  // 🔧 NEW: Mention 클릭 핸들러 - Type 순환 변경
+  useEffect(() => {
+    if (!editor || !user?.id) return
+
+    const handleMentionClick = (event: MouseEvent) => {
+      let target = event.target as HTMLElement
+
+      // mention span 찾기 (클릭한 요소나 부모 요소)
+      let mentionElement: HTMLElement | null = target
+      let depth = 0
+      while (mentionElement && depth < 5) {
+        if (mentionElement.getAttribute('data-type') === 'mention') {
+          break
+        }
+        mentionElement = mentionElement.parentElement
+        depth++
+      }
+
+      if (!mentionElement || mentionElement.getAttribute('data-type') !== 'mention') {
+        return // mention이 아니면 종료
+      }
+
+      const entityName = mentionElement.getAttribute('data-id')
+      const currentType = mentionElement.getAttribute('data-entity-type') || 'unknown'
+
+      if (!entityName) return
+
+      // Type 순환: unknown → person → project → event → unknown
+      const typeOrder: Array<'unknown' | 'person' | 'project' | 'event'> = [
+        'unknown',
+        'person',
+        'project',
+        'event',
+      ]
+      const currentIndex = typeOrder.indexOf(currentType as any)
+      const nextType = typeOrder[(currentIndex + 1) % typeOrder.length]
+
+      // entities에서 해당 entity 찾기
+      const entity = entitiesRef.current.find((e) => e.name === entityName)
+
+      // DB에 이미 있는 entity는 클릭 불가 (저장 전 entity만 type 변경 가능)
+      if (entity) {
+        return
+      }
+
+      // 저장 전 entity만 처리: pendingEntityTypes 업데이트 (동적 CSS 변경)
+      setPendingEntityTypes((prev) => ({
+        ...prev,
+        [entityName]: nextType,
+      }))
+
+      // 에디터 내 mention의 type 속성 업데이트
+      const json = editor.getJSON()
+      let updated = false
+
+      const traverse = (node: any) => {
+        if (node.type === 'mention' && node.attrs?.id === entityName) {
+          node.attrs.type = nextType
+          updated = true
+        }
+        if (node.content) {
+          node.content.forEach(traverse)
+        }
+      }
+
+      traverse(json)
+
+      if (updated) {
+        editor.commands.setContent(json, { emitUpdate: false })
+      }
+
+      // DOM 속성 즉시 업데이트 (중요!)
+      const mentionElements = editorElement.querySelectorAll(`[data-type="mention"][data-id="${entityName}"]`)
+      mentionElements.forEach((el) => {
+        el.setAttribute('data-entity-type', nextType)
+      })
+    }
+
+    const editorElement = editor.view.dom
+    editorElement.addEventListener('click', handleMentionClick, { capture: true })
+
+    return () => {
+      editorElement.removeEventListener('click', handleMentionClick, { capture: true })
+    }
+  }, [editor, user?.id, updateEntityType])
 
   return {
     editor,

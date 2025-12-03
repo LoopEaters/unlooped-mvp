@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { cn } from '@/app/lib/util'
 import type { Database } from '@/types/supabase'
 
@@ -36,11 +36,24 @@ export default function SearchResults({
 }: SearchResultsProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
 
-  // Entity + Memo를 하나의 배열로 통합
-  const flatResults: FlatResult[] = [
-    ...entities.map((entity) => ({ type: 'entity' as const, data: entity, id: entity.id })),
-    ...memos.map((memo) => ({ type: 'memo' as const, data: memo, id: memo.id })),
-  ]
+  // Entity를 이름 매치 우선으로 정렬
+  const sortedEntities = useMemo(() => {
+    const withNameMatch = entities.filter(e =>
+      e.name.toLowerCase().includes(query.toLowerCase())
+    )
+    const withoutNameMatch = entities.filter(e =>
+      !e.name.toLowerCase().includes(query.toLowerCase())
+    )
+    return [...withNameMatch, ...withoutNameMatch]
+  }, [entities, query])
+
+  // Entity + Memo를 우선순위에 따라 정렬
+  const flatResults: FlatResult[] = useMemo(() => {
+    return [
+      ...sortedEntities.map((entity) => ({ type: 'entity' as const, data: entity, id: entity.id })),
+      ...memos.map((memo) => ({ type: 'memo' as const, data: memo, id: memo.id })),
+    ]
+  }, [sortedEntities, memos])
 
   // 결과가 변경되면 선택 인덱스 초기화
   useEffect(() => {
@@ -158,12 +171,12 @@ export default function SearchResults({
   return (
     <div className="py-2">
       {/* Entity 섹션 */}
-      {entities.length > 0 && (
+      {sortedEntities.length > 0 && (
         <div className="mb-2">
           <div className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase">
             Entities
           </div>
-          {entities.map((entity) => {
+          {sortedEntities.map((entity) => {
             const index = currentIndex++
             const isSelected = index === selectedIndex
 

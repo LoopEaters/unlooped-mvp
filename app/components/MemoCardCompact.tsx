@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { Edit2, Trash2 } from 'lucide-react'
 import { highlightEntities } from '@/app/lib/utils/highlightEntities'
 import { useDeleteMemoWithOrphanedEntities } from '@/app/lib/queries'
+import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import MemoEditDrawer from './MemoEditDrawer'
 import MemoDeleteModal from './MemoDeleteModal'
 import type { Database } from '@/types/supabase'
+import { cn } from '@/app/lib/util'
 
 type Memo = Database['public']['Tables']['memo']['Row']
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -21,8 +23,12 @@ export default function MemoCardCompact({ memo, entities = [], userId }: MemoCar
   const [isHovered, setIsHovered] = useState(false)
   const [showEditDrawer, setShowEditDrawer] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const { highlightedMemoId } = useEntityFilter()
 
   const deleteMemo = useDeleteMemoWithOrphanedEntities(userId || '')
+
+  // 하이라이트 여부
+  const isHighlighted = highlightedMemoId === memo.id
 
   const handleDelete = () => {
     deleteMemo.mutate(memo.id, {
@@ -47,7 +53,13 @@ export default function MemoCardCompact({ memo, entities = [], userId }: MemoCar
   return (
     <>
       <div
-        className="relative bg-bg-card border border-border-main rounded-md p-2 hover:bg-bg-secondary/50 transition-colors cursor-pointer group"
+        id={`memo-compact-${memo.id}`}
+        className={cn(
+          "relative bg-bg-card rounded-md p-2 hover:bg-bg-secondary/50 transition-all duration-300 cursor-pointer group",
+          isHighlighted
+            ? "border-2 border-[var(--color-search-highlight-border)] animate-pulse-border"
+            : "border border-border-main"
+        )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >

@@ -7,8 +7,10 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as Tooltip from '@radix-ui/react-tooltip'
 import { Search, Bell, Settings, LogOut, UserCircle, User, Keyboard, HelpCircle } from 'lucide-react'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { useSearchEntities, useSearchMemos } from '@/app/lib/queries'
 import SearchResults from '@/app/components/SearchResults'
+import SettingsDrawer from '@/app/components/SettingsDrawer'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -18,8 +20,10 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const { userProfile, signOut, isLoading } = useAuth()
+  const { setFilteredEntityIds, setHighlightedMemoId } = useEntityFilter()
 
   // 디바운싱: 300ms 후에 debouncedQuery 업데이트
   useEffect(() => {
@@ -64,15 +68,27 @@ export default function Header() {
     return 'User'
   }
 
-  // 검색 결과 선택 핸들러 (추후 CRUD 기능 연결)
+  // 검색 결과 선택 핸들러
   const handleSelectEntity = (entity: Entity) => {
-    console.log('TODO: Open entity detail', entity)
+    // Entity 검색: MainContainer에 표시
+    // 이미 있으면 맨 뒤로 이동, 없으면 추가 (항상 맨 아래로)
+    setFilteredEntityIds(prev => {
+      const filtered = prev.filter(id => id !== entity.id)
+      return [...filtered, entity.id]
+    })
     setIsSearchOpen(false)
     setSearchQuery('') // 검색어 초기화
   }
 
   const handleSelectMemo = (memo: Memo) => {
-    console.log('TODO: Open memo for editing', memo)
+    // Memo 검색: RightSidebar에서 하이라이트
+    setHighlightedMemoId(memo.id)
+
+    // 3초 후 하이라이트 해제
+    setTimeout(() => {
+      setHighlightedMemoId(null)
+    }, 3000)
+
     setIsSearchOpen(false)
     setSearchQuery('') // 검색어 초기화
   }
@@ -230,7 +246,10 @@ export default function Header() {
                   <UserCircle className="w-4 h-4" />
                   <span>My Profile</span>
                 </DropdownMenu.Item>
-                <DropdownMenu.Item className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none">
+                <DropdownMenu.Item
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none"
+                  onSelect={() => setIsSettingsOpen(true)}
+                >
                   <Settings className="w-4 h-4" />
                   <span>Settings</span>
                 </DropdownMenu.Item>
@@ -256,6 +275,9 @@ export default function Header() {
           </DropdownMenu.Root>
         </div>
       </header>
+
+      {/* Settings Drawer */}
+      <SettingsDrawer isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </Tooltip.Provider>
   )
 }

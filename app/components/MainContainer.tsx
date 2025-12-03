@@ -5,6 +5,7 @@ import { useEntities, useMemosByEntity, useUpdateEntityType } from '@/app/lib/qu
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
 import { useAppReady } from '@/app/hooks/useAppReady'
+import { useLayout } from '@/app/providers/SettingsProvider'
 import MemoCard from './MemoCard'
 import { getEntityTypeColor, getCurrentTheme } from '@/app/lib/theme'
 import type { Database } from '@/types/supabase'
@@ -21,6 +22,7 @@ export default function MainContainer() {
   const containerRef = useRef<HTMLDivElement>(null)
   const { isReady, user } = useAppReady()
   const { filteredEntityIds } = useEntityFilter()
+  const { isFullWidth } = useLayout()
   const { data: entitiesData } = useEntities(user?.id)
 
   // 🔧 FIX: entities를 useMemo로 안정화하여 무한 렌더링 방지
@@ -57,17 +59,30 @@ export default function MainContainer() {
     prevPropsRef.current = currentProps;
   }
 
-  // 📌 filteredEntityIds 변경 시 새로운 entity만 누적 목록에 추가
+  // 📌 filteredEntityIds 변경 시 accumulatedEntityIds 업데이트 및 재정렬
   useEffect(() => {
     setAccumulatedEntityIds(prev => {
-      // 새로 추가된 ID만 필터링 (중복 제거)
+      // filteredEntityIds에 없지만 prev에 있던 것들 (앞에 유지)
+      const onlyInPrev = prev.filter(id => !filteredEntityIds.includes(id))
+
+      // 새로 추가된 것이 있는지 체크 (스크롤 트리거용)
       const newIds = filteredEntityIds.filter(id => !prev.includes(id))
       if (newIds.length > 0) {
-        // 마지막에 추가된 entity ID 저장
         lastEntityIdRef.current = newIds[newIds.length - 1]
-        return [...prev, ...newIds]  // 새로운 ID를 아래에 추가
       }
-      return prev
+
+      // 새로운 배열 구성
+      const newArray = [...onlyInPrev, ...filteredEntityIds]
+
+      // 배열 내용이 실제로 바뀌었는지 체크 (순서까지 비교)
+      if (
+        newArray.length === prev.length &&
+        newArray.every((id, index) => id === prev[index])
+      ) {
+        return prev // 변경 없으면 기존 배열 반환 (re-render 방지)
+      }
+
+      return newArray
     })
   }, [filteredEntityIds])
 
@@ -76,69 +91,74 @@ export default function MainContainer() {
   useEffect(() => {
     if (accumulatedEntityIds.length === 0) return
 
-    // 메모 데이터 로딩 + displayedMemos 렌더링 + DOM 업데이트 대기
-    const scrollTimer = setTimeout(() => {
-      if (containerRef.current) {
-        containerRef.current.scrollTo({
-          top: containerRef.current.scrollHeight,
-          behavior: 'smooth'
-        })
-      }
-    }, 400) // 메모 로딩 + 렌더링 대기
-
-    return () => clearTimeout(scrollTimer)
+    // RAF + setTimeout 조합: DOM 렌더링 + 메모 로딩 대기
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (containerRef.current) {
+            containerRef.current.scrollTo({
+              top: containerRef.current.scrollHeight,
+              behavior: 'smooth'
+            })
+          }
+        }, 300)
+      })
+    })
   }, [accumulatedEntityIds])
 
-  // 🔄 로딩 중 UI (user + entities 완료될 때까지)
-  if (!isReady) {
-    return (
-      <div className={`flex-1 overflow-y-auto p-6 ${theme.ui.primaryBg}`}>
-        <div className="flex items-center justify-center h-full">
-          <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-            <p className={`${theme.ui.textPlaceholder} text-sm`}>데이터 로딩 중...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // 🔄 로딩 중 UI (작은 로딩 바만 표시, input은 계속 사용 가능)
+  const isLoadingOverlay = !isReady
 
   return (
     <div
       ref={containerRef}
-      className={`flex-1 overflow-y-auto px-6 pt-6 ${theme.ui.primaryBg}`}
+      className={`flex-1 overflow-y-auto ${theme.ui.primaryBg} relative`}
     >
-      <div className="space-y-6 min-h-[400px]">
-        {/* 헤더 */}
-        <div className="mb-4">
-          <h2 className={`text-lg font-semibold ${theme.ui.textPrimary}`}>Entity 추천</h2>
-          <p className={`text-xs ${theme.ui.textSecondary} mt-1`}>
-            {accumulatedEntityIds.length > 0
-              ? '입력한 엔티티와 관련된 메모'
-              : '아래 입력창에서 @로 엔티티를 언급하면 관련 메모가 표시됩니다'}
-          </p>
+      {/* 로딩 바 (상단에 작게) */}
+      {isLoadingOverlay && (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500/20 z-50">
+          <div className="h-full bg-blue-500 animate-pulse" style={{ width: '60%' }}></div>
         </div>
+      )}
 
-        {/* Entity별 섹션 */}
+      {/* 컨텐츠 Wrapper - full width 설정에 따라 중앙 정렬 */}
+      <div className={`${isFullWidth ? 'w-full px-6' : 'max-w-3xl mx-auto px-6'} min-h-full flex flex-col`}>
+        {/* 헤더 (entity 없을 때만 표시, 위쪽 고정) */}
+        {accumulatedEntityIds.length === 0 && (
+          <div className="pt-6 pb-4 flex-shrink-0">
+            <h2 className={`text-lg font-semibold ${theme.ui.textPrimary}`}>Entity 추천</h2>
+            <p className={`text-xs ${theme.ui.textSecondary} mt-1`}>
+              아래 입력창에서 @로 엔티티를 언급하면 관련 메모가 표시됩니다
+            </p>
+          </div>
+        )}
+
         {accumulatedEntityIds.length > 0 ? (
-          <div>
-            {accumulatedEntityIds.map((entityId) => {
-              const entity = entities.find((e) => e.id === entityId)
+          /* Entity가 있을 때: 아래쪽에서 시작 */
+          <div className="flex flex-col justify-end flex-1 min-h-0">
+            <div className="pt-6">
+              <div className="space-y-6">
+                {accumulatedEntityIds.map((entityId, index) => {
+                  const entity = entities.find((e) => e.id === entityId)
+                  const isLast = index === accumulatedEntityIds.length - 1
 
-              return (
-                <EntitySection
-                  key={entityId}
-                  entityId={entityId}
-                  entityName={entity?.name || '알 수 없음'}
-                  entities={entities}
-                  userId={user?.id}
-                />
-              )
-            })}
+                  return (
+                    <EntitySection
+                      key={entityId}
+                      entityId={entityId}
+                      entityName={entity?.name || '알 수 없음'}
+                      entities={entities}
+                      userId={user?.id}
+                      isLast={isLast}
+                    />
+                  )
+                })}
+              </div>
+            </div>
           </div>
         ) : (
-          /* 기본 상태 - entity를 아직 언급하지 않았을 때 */
-          <div className="flex items-center justify-center h-[300px]">
+          /* 기본 상태 - 중앙 배치 */
+          <div className="flex items-center justify-center flex-1">
             <div className={`text-center ${theme.ui.textPlaceholder}`}>
               <p className="text-lg">@로 엔티티를 언급해보세요</p>
               <p className="text-sm mt-2">관련된 과거 메모들이 여기에 표시됩니다</p>
@@ -157,12 +177,14 @@ const EntitySection = memo(function EntitySection({
   entityId,
   entityName,
   entities,
-  userId
+  userId,
+  isLast = false
 }: {
   entityId: string
   entityName: string
   entities: Entity[]
   userId?: string
+  isLast?: boolean
 }) {
   const { data: memos = [], isLoading, isError, error } = useMemosByEntity(entityId)
   const { isEntityUpdating } = useAIUpdate()
@@ -265,6 +287,7 @@ const EntitySection = memo(function EntitySection({
               memo={memo}
               entities={entities}
               currentEntityId={entityId}
+              userId={userId}
             />
           ))}
         </div>
@@ -283,17 +306,81 @@ const EntitySection = memo(function EntitySection({
           {/* 왼쪽: Entity 정보 */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Entity 뱃지 (클릭 가능) */}
-            <button
-              onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
-              className={`px-3 py-1.5 rounded-lg ${entityColor.bg}/20 ${entityColor.text} font-medium text-sm hover:${entityColor.bg}/30 transition-colors flex-shrink-0`}
-              title="클릭하여 타입 변경"
-            >
-              @{entityName}
-            </button>
+            <div className="relative flex-shrink-0">
+              <button
+                onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
+                className={`px-3 py-1.5 rounded-lg ${entityColor.bg}/20 ${entityColor.text} font-medium text-sm hover:${entityColor.bg}/40 hover:shadow-md transition-all whitespace-nowrap`}
+                title="클릭하여 타입 변경"
+              >
+                @{entityName}
+              </button>
 
-            {/* Description (오른쪽) */}
+              {/* Type 변경 드롭다운 (Overlay) */}
+              {isTypeDropdownOpen && (
+                <>
+                  {/* 배경 클릭 시 닫기 */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsTypeDropdownOpen(false)}
+                  ></div>
+
+                  {/* 드롭다운 메뉴 */}
+                  <div className={`absolute top-full left-0 mt-2 z-50 flex items-center gap-2 ${theme.ui.cardBg} px-3 py-2 rounded-lg border ${theme.ui.border} shadow-xl min-w-max`}>
+                    <span className={`text-xs ${theme.ui.textPlaceholder} mr-1`}>타입:</span>
+                    <button
+                      onClick={() => handleTypeChange('person')}
+                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                        entity?.type === 'person'
+                          ? `${theme.entityTypes.person.bg}/20 ${theme.entityTypes.person.text}`
+                          : `${theme.ui.textPlaceholder} ${theme.ui.buttonHover}`
+                      }`}
+                      disabled={updateEntityType.isPending}
+                    >
+                      Person
+                    </button>
+                    <button
+                      onClick={() => handleTypeChange('project')}
+                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                        entity?.type === 'project'
+                          ? `${theme.entityTypes.project.bg}/20 ${theme.entityTypes.project.text}`
+                          : `${theme.ui.textPlaceholder} ${theme.ui.buttonHover}`
+                      }`}
+                      disabled={updateEntityType.isPending}
+                    >
+                      Project
+                    </button>
+                    <button
+                      onClick={() => handleTypeChange('unknown')}
+                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                        entity?.type === 'unknown' || !entity?.type
+                          ? `${theme.entityTypes.unknown.bg}/20 ${theme.entityTypes.unknown.text}`
+                          : `${theme.ui.textPlaceholder} ${theme.ui.buttonHover}`
+                      }`}
+                      disabled={updateEntityType.isPending}
+                    >
+                      Unknown
+                    </button>
+
+                    {/* 구분선 */}
+                    <div className={`w-px h-4 ${theme.ui.border} mx-1`}></div>
+
+                    {/* 삭제 버튼 */}
+                    <button
+                      onClick={handleDelete}
+                      className={`px-2.5 py-1 rounded text-xs font-medium ${theme.ui.delete.text} ${theme.ui.delete.bgHover} transition-colors`}
+                      disabled={updateEntityType.isPending}
+                      title="삭제 (기능 추가 예정)"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Description (오른쪽) - 남은 공간 차지 */}
             {entity?.description && (
-              <p className={`text-sm ${theme.ui.textPlaceholder}`}>
+              <p className={`text-sm ${theme.ui.textPlaceholder} flex-1 min-w-0`}>
                 {entity.description}
               </p>
             )}
@@ -329,70 +416,6 @@ const EntitySection = memo(function EntitySection({
             )}
           </div>
         </div>
-
-        {/* Type 변경 드롭다운 */}
-        {isTypeDropdownOpen && (
-          <div className={`mt-3 flex items-center gap-2 ${theme.ui.cardBg} px-3 py-2 rounded-lg border ${theme.ui.border}`}>
-            <span className={`text-xs ${theme.ui.textPlaceholder} mr-1`}>타입:</span>
-            <button
-              onClick={() => handleTypeChange('person')}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                entity?.type === 'person'
-                  ? `${theme.entityTypes.person.bg}/20 ${theme.entityTypes.person.text}`
-                  : `${theme.ui.textPlaceholder} ${theme.ui.buttonHover}`
-              }`}
-              disabled={updateEntityType.isPending}
-            >
-              Person
-            </button>
-            <button
-              onClick={() => handleTypeChange('project')}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                entity?.type === 'project'
-                  ? `${theme.entityTypes.project.bg}/20 ${theme.entityTypes.project.text}`
-                  : `${theme.ui.textPlaceholder} ${theme.ui.buttonHover}`
-              }`}
-              disabled={updateEntityType.isPending}
-            >
-              Project
-            </button>
-            <button
-              onClick={() => handleTypeChange('unknown')}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                entity?.type === 'unknown' || !entity?.type
-                  ? `${theme.entityTypes.unknown.bg}/20 ${theme.entityTypes.unknown.text}`
-                  : `${theme.ui.textPlaceholder} ${theme.ui.buttonHover}`
-              }`}
-              disabled={updateEntityType.isPending}
-            >
-              Unknown
-            </button>
-
-            {/* 구분선 */}
-            <div className={`w-px h-4 ${theme.ui.border} mx-1`}></div>
-
-            {/* 삭제 버튼 */}
-            <button
-              onClick={handleDelete}
-              className={`px-2.5 py-1 rounded text-xs font-medium ${theme.ui.delete.text} ${theme.ui.delete.bgHover} transition-colors`}
-              disabled={updateEntityType.isPending}
-              title="삭제 (기능 추가 예정)"
-            >
-              삭제
-            </button>
-
-            {/* 닫기 버튼 */}
-            <button
-              onClick={() => setIsTypeDropdownOpen(false)}
-              className={`ml-auto p-0.5 ${theme.ui.textPlaceholder} hover:text-gray-300`}
-              title="닫기"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )

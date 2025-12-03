@@ -11,14 +11,22 @@ export interface ThemeColors {
     person: {
       bg: string
       text: string
+      hex: string // Timeline에서 사용할 hex 색상
     }
     project: {
       bg: string
       text: string
+      hex: string
+    }
+    event: {
+      bg: string
+      text: string
+      hex: string
     }
     unknown: {
       bg: string
       text: string
+      hex: string
     }
   }
 
@@ -69,8 +77,31 @@ export interface ThemeColors {
       bgHover: string
     }
 
+    // 검색 하이라이트
+    searchHighlight: {
+      borderColor: string      // 테두리 색상 (hex)
+      borderColorLight: string // 밝은 테두리 색상 (hex)
+      shadowColor: string      // 그림자 색상 (rgba)
+    }
+
     // 버튼 hover
     buttonHover: string
+  }
+
+  // Timeline 관련 색상
+  timeline: {
+    background: string       // 타임라인 배경
+    entityLine: string       // Entity 수직선 (기본)
+    entityLineActive: string // Entity 수직선 (hover/active)
+    timeScale: {
+      text: string          // 시간 눈금 텍스트
+      line: string          // 시간 눈금 선
+      majorLine: string     // 주요 시간 눈금 (강조)
+    }
+    memo: {
+      hoverOpacity: number  // Hover 시 투명도
+      selectedOpacity: number // 선택 시 투명도
+    }
   }
 }
 
@@ -82,14 +113,22 @@ export const defaultTheme: ThemeColors = {
     person: {
       bg: 'bg-mention-person',
       text: 'text-mention-person',
+      hex: '#60A5FA', // blue-400
     },
     project: {
       bg: 'bg-mention-project',
       text: 'text-mention-project',
+      hex: '#34D399', // emerald-400
+    },
+    event: {
+      bg: 'bg-mention-event',
+      text: 'text-mention-event',
+      hex: '#F59E0B', // amber-500
     },
     unknown: {
       bg: 'bg-gray-400',
       text: 'text-gray-400',
+      hex: '#9CA3AF', // gray-400
     },
   },
 
@@ -136,8 +175,30 @@ export const defaultTheme: ThemeColors = {
       bgHover: 'hover:bg-red-500/10',
     },
 
+    // 검색 하이라이트
+    searchHighlight: {
+      borderColor: '#EAB308',      // yellow-500
+      borderColorLight: '#FACC15', // yellow-400
+      shadowColor: 'rgba(234, 179, 8, 0.6)', // yellow-500 with opacity
+    },
+
     // 버튼 hover
     buttonHover: 'hover:bg-gray-700',
+  },
+
+  timeline: {
+    background: '#0F172A', // bg-secondary
+    entityLine: '#374151', // gray-700
+    entityLineActive: '#4B5563', // gray-600
+    timeScale: {
+      text: '#9CA3AF', // gray-400
+      line: '#374151', // gray-700
+      majorLine: '#4B5563', // gray-600
+    },
+    memo: {
+      hoverOpacity: 0.9,
+      selectedOpacity: 1,
+    },
   },
 }
 
@@ -147,12 +208,14 @@ export const defaultTheme: ThemeColors = {
 export function getEntityTypeColor(
   type: string | null | undefined,
   theme: ThemeColors = defaultTheme
-): { bg: string; text: string } {
+): { bg: string; text: string; hex: string } {
   switch (type) {
     case 'person':
       return theme.entityTypes.person
     case 'project':
       return theme.entityTypes.project
+    case 'event':
+      return theme.entityTypes.event
     case 'unknown':
     case null:
     case undefined:
@@ -160,6 +223,16 @@ export function getEntityTypeColor(
     default:
       return theme.entityTypes.unknown
   }
+}
+
+/**
+ * Entity type에 따른 hex 색상 반환 (Timeline용)
+ */
+export function getEntityTypeHexColor(
+  type: string | null | undefined,
+  theme: ThemeColors = defaultTheme
+): string {
+  return getEntityTypeColor(type, theme).hex
 }
 
 /**

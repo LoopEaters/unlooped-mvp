@@ -34,14 +34,11 @@ export const CustomMention = Mention.extend({
         },
       },
       type: {
-        default: null,
-        parseHTML: (element) => element.getAttribute('data-entity-type'),
+        default: 'unknown',
+        parseHTML: (element) => element.getAttribute('data-entity-type') || 'unknown',
         renderHTML: (attributes) => {
-          if (!attributes.type) {
-            return {}
-          }
           return {
-            'data-entity-type': attributes.type,
+            'data-entity-type': attributes.type || 'unknown',
           }
         },
       },
@@ -65,7 +62,9 @@ export const CustomMention = Mention.extend({
     return [
       'span',
       mergeAttributes(
-        { 'data-type': this.name },
+        {
+          'data-type': this.name,
+        },
         this.options.HTMLAttributes,
         HTMLAttributes
       ),

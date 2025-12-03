@@ -160,7 +160,7 @@ export function useUpdateEntityType() {
   return useMutation<
     Entity,
     Error,
-    { entityId: string; type: 'person' | 'project' | 'unknown'; userId: string },
+    { entityId: string; type: 'person' | 'project' | 'event' | 'unknown'; userId: string },
     { previousEntities: Entity[] | undefined }
   >({
     mutationFn: async ({ entityId, type }) => {
