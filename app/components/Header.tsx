@@ -1,17 +1,46 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import * as Avatar from '@radix-ui/react-avatar'
 import * as Popover from '@radix-ui/react-popover'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as Tooltip from '@radix-ui/react-tooltip'
 import { Search, Bell, Settings, LogOut, UserCircle, User, Keyboard, HelpCircle } from 'lucide-react'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { useSearchEntities, useSearchMemos } from '@/app/lib/queries'
+import SearchResults from '@/app/components/SearchResults'
+import type { Database } from '@/types/supabase'
+
+type Entity = Database['public']['Tables']['entity']['Row']
+type Memo = Database['public']['Tables']['memo']['Row']
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const { userProfile, signOut, isLoading } = useAuth()
+
+  // 디바운싱: 300ms 후에 debouncedQuery 업데이트
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery)
+    }, 300)
+
+    return () => clearTimeout(handler)
+  }, [searchQuery])
+
+  // Popover 열림 상태 관리
+  useEffect(() => {
+    setIsSearchOpen(debouncedQuery.length >= 2)
+  }, [debouncedQuery])
+
+  // 검색 훅
+  const userId = userProfile?.id || ''
+  const { data: entities = [], isLoading: entitiesLoading } = useSearchEntities(debouncedQuery, userId)
+  const { data: memos = [], isLoading: memosLoading } = useSearchMemos(debouncedQuery, userId)
+
+  const isSearchLoading = entitiesLoading || memosLoading
 
   // 사용자 이름 첫 글자 (아바타용)
   const getInitials = () => {
@@ -33,6 +62,19 @@ export default function Header() {
       return userProfile.email.split('@')[0]
     }
     return 'User'
+  }
+
+  // 검색 결과 선택 핸들러 (추후 CRUD 기능 연결)
+  const handleSelectEntity = (entity: Entity) => {
+    console.log('TODO: Open entity detail', entity)
+    setIsSearchOpen(false)
+    setSearchQuery('') // 검색어 초기화
+  }
+
+  const handleSelectMemo = (memo: Memo) => {
+    console.log('TODO: Open memo for editing', memo)
+    setIsSearchOpen(false)
+    setSearchQuery('') // 검색어 초기화
   }
 
   const handleLogout = async () => {
@@ -61,16 +103,38 @@ export default function Header() {
 
         {/* Search */}
         <div className="flex-1 max-w-md mx-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search records..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-bg-secondary text-white placeholder-gray-500 rounded-lg border border-border-main focus:border-gray-500 focus:outline-none transition-colors"
-            />
-          </div>
+          <Popover.Root open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+            <Popover.Trigger asChild>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search records..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-bg-secondary text-white placeholder-gray-500 rounded-lg border border-border-main focus:border-gray-500 focus:outline-none transition-colors"
+                />
+              </div>
+            </Popover.Trigger>
+
+            <Popover.Portal>
+              <Popover.Content
+                className="bg-bg-secondary border border-border-main rounded-lg shadow-xl w-[var(--radix-popover-trigger-width)] z-50"
+                sideOffset={5}
+                onOpenAutoFocus={(e) => e.preventDefault()} // 포커스를 Popover로 이동하지 않음
+              >
+                <SearchResults
+                  entities={entities}
+                  memos={memos}
+                  isLoading={isSearchLoading}
+                  query={debouncedQuery}
+                  onSelectEntity={handleSelectEntity}
+                  onSelectMemo={handleSelectMemo}
+                  onClose={() => setIsSearchOpen(false)}
+                />
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
         </div>
 
         {/* Navigation */}
@@ -81,7 +145,7 @@ export default function Header() {
           <a href="#" className="text-gray-400 hover:text-white transition-colors">
             Records
           </a>
-          <a href="#" className="text-gray-400 hover:text-white transition-colors">
+          <a href="/entities" className="text-gray-400 hover:text-white transition-colors">
             Entities
           </a>
         </nav>

@@ -40,6 +40,9 @@ export default function MainContainer() {
   // 🔧 FIX: entities를 useMemo로 안정화하여 무한 렌더링 방지
   const entities = useMemo(() => entitiesData || EMPTY_ENTITIES, [entitiesData])
 
+  // 📝 누적된 entity ID 목록 관리 (기록 보존)
+  const [accumulatedEntityIds, setAccumulatedEntityIds] = useState<string[]>([])
+
   // 개발 모드 렌더링 추적 (Hook은 항상 최상단에서 호출)
   const renderCountRef = useRef(0);
   const prevPropsRef = useRef<any>({});
@@ -59,17 +62,30 @@ export default function MainContainer() {
       userId: user?.id,
       filteredEntityIdsLength: filteredEntityIds.length,
       entitiesCount: entities.length,
+      accumulatedEntityIdsLength: accumulatedEntityIds.length,
     });
 
     prevPropsRef.current = currentProps;
   }
 
-  // 메모가 추가될 때마다 가장 아래로 스크롤
+  // 📌 filteredEntityIds 변경 시 새로운 entity만 누적 목록에 추가
+  useEffect(() => {
+    setAccumulatedEntityIds(prev => {
+      // 새로 추가된 ID만 필터링 (중복 제거)
+      const newIds = filteredEntityIds.filter(id => !prev.includes(id))
+      if (newIds.length > 0) {
+        return [...prev, ...newIds]  // 새로운 ID를 아래에 추가
+      }
+      return prev
+    })
+  }, [filteredEntityIds])
+
+  // ⬇️ 새로운 entity가 추가될 때마다 가장 아래로 스크롤
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight
     }
-  }, [filteredEntityIds])
+  }, [accumulatedEntityIds])
 
   // 🔄 로딩 중 UI (user + entities 완료될 때까지)
   if (!isReady) {
@@ -95,16 +111,16 @@ export default function MainContainer() {
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-white">Entity 추천</h2>
           <p className="text-xs text-gray-300 mt-1">
-            {filteredEntityIds.length > 0
+            {accumulatedEntityIds.length > 0
               ? '입력한 엔티티와 관련된 메모'
               : '아래 입력창에서 @로 엔티티를 언급하면 관련 메모가 표시됩니다'}
           </p>
         </div>
 
         {/* Entity별 섹션 */}
-        {filteredEntityIds.length > 0 ? (
+        {accumulatedEntityIds.length > 0 ? (
           <div className="space-y-8">
-            {filteredEntityIds.map((entityId) => {
+            {accumulatedEntityIds.map((entityId) => {
               const entity = entities.find((e) => e.id === entityId)
 
               return (

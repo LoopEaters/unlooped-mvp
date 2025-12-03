@@ -751,6 +751,96 @@ export function useMemosByEntities(entityIds: string[]) {
 }
 
 /**
+ * Memo 삭제 + 고아(orphaned) Entity 자동 삭제
+ * - 메모와 연결된 entity가 다른 메모에서 사용되지 않으면 함께 삭제
+ */
+export function useDeleteMemoWithOrphanedEntities(userId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { deletedMemoId: string; deletedEntityIds: string[] },
+    Error,
+    string
+  >({
+    mutationFn: async (memoId: string) => {
+      if (!userId) throw new Error('User not authenticated');
+
+      // 1. 메모와 연결된 entity ID들 가져오기
+      const { data: memoEntities, error: fetchError } = await supabase
+        .from('memo_entity')
+        .select('entity_id')
+        .eq('memo_id', memoId);
+
+      if (fetchError) throw fetchError;
+
+      const entityIds = memoEntities?.map((me) => me.entity_id) || [];
+
+      // 2. 각 entity가 다른 메모에서도 쓰이는지 확인
+      const orphanedEntityIds: string[] = [];
+
+      for (const entityId of entityIds) {
+        const { count, error: countError } = await supabase
+          .from('memo_entity')
+          .select('*', { count: 'exact', head: true })
+          .eq('entity_id', entityId);
+
+        if (countError) throw countError;
+
+        // 이 entity를 사용하는 메모가 1개 (현재 메모)뿐이면 고아
+        if (count === 1) {
+          orphanedEntityIds.push(entityId);
+        }
+      }
+
+      // 3. 고아 entity들 삭제
+      if (orphanedEntityIds.length > 0) {
+        const { error: deleteEntityError } = await supabase
+          .from('entity')
+          .delete()
+          .in('id', orphanedEntityIds);
+
+        if (deleteEntityError) throw deleteEntityError;
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🗑️ [고아 Entity 삭제]', orphanedEntityIds);
+        }
+      }
+
+      // 4. 메모 삭제 (memo_entity는 CASCADE로 자동 삭제됨)
+      const { error: deleteMemoError } = await supabase
+        .from('memo')
+        .delete()
+        .eq('id', memoId);
+
+      if (deleteMemoError) throw deleteMemoError;
+
+      return {
+        deletedMemoId: memoId,
+        deletedEntityIds: orphanedEntityIds,
+      };
+    },
+    onSuccess: (result) => {
+      // 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['memos', userId], exact: true });
+      queryClient.invalidateQueries({ queryKey: ['memos', 'byEntity'] });
+      queryClient.invalidateQueries({ queryKey: ['entities', userId], exact: true });
+
+      if (result.deletedEntityIds.length > 0) {
+        toast.success(
+          `메모와 함께 ${result.deletedEntityIds.length}개의 엔티티가 삭제되었습니다.`
+        );
+      } else {
+        toast.success('메모가 삭제되었습니다.');
+      }
+    },
+    onError: (error) => {
+      console.error('❌ [useDeleteMemoWithOrphanedEntities] 에러 발생', error);
+      toast.error(`삭제 실패: ${error.message}`);
+    },
+  });
+}
+
+/**
  * AI를 사용하여 Entity Description 업데이트
  */
 export async function updateEntityDescription(entityId: string): Promise<void> {
@@ -779,4 +869,132 @@ export async function updateEntityDescription(entityId: string): Promise<void> {
     console.error('❌ [updateEntityDescription] 에러', error)
     // 에러를 throw하지 않고 조용히 실패 (메모 저장은 성공했으므로)
   }
+}
+
+// ==================== Timeline API ====================
+
+/**
+ * 타임라인 렌더링용 데이터 조회
+ * - 모든 Entity와 Memo를 가져오고
+ * - 각 Memo가 어떤 Entity들과 연결되어 있는지 포함
+ */
+export function useTimelineData(userId?: string) {
+  return useQuery({
+    queryKey: ['timeline', userId],
+    queryFn: async () => {
+      // userId가 없으면 직접 조회
+      let currentUserId = userId;
+      if (!currentUserId) {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+        currentUserId = user.id;
+      }
+
+      // 1. Entity 조회
+      const { data: entities, error: entitiesError } = await supabase
+        .from('entity')
+        .select('*')
+        .eq('user_id', currentUserId)
+        .order('name', { ascending: true });
+
+      if (entitiesError) throw entitiesError;
+
+      // 2. Memo 조회 (memo_entity 관계 포함)
+      const { data: memosRaw, error: memosError } = await supabase
+        .from('memo')
+        .select(`
+          *,
+          memo_entity(entity_id)
+        `)
+        .eq('user_id', currentUserId)
+        .order('created_at', { ascending: true });
+
+      if (memosError) throw memosError;
+
+      // 3. Memo 데이터 가공 (entity_id 배열로 변환)
+      const memos = (memosRaw || []).map((memo: any) => ({
+        ...memo,
+        entityIds: (memo.memo_entity || []).map((me: any) => me.entity_id),
+      }));
+
+      return {
+        entities: entities || [],
+        memos,
+      };
+    },
+    staleTime: 3 * 60 * 1000, // 3분
+    enabled: !!userId,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+}
+
+// ==================== Search API ====================
+
+/**
+ * Entity 검색 (name, description, summary)
+ * 최소 2자 이상 입력 시 검색 수행
+ */
+export function useSearchEntities(query: string, userId: string) {
+  return useQuery<Entity[]>({
+    queryKey: ['search', 'entities', userId, query],
+    queryFn: async () => {
+      if (!query || query.length < 2) {
+        return [];
+      }
+
+      const searchPattern = `%${query}%`;
+
+      const { data, error } = await supabase
+        .from('entity')
+        .select('*')
+        .eq('user_id', userId)
+        .or(`name.ilike.${searchPattern},description.ilike.${searchPattern},summary.ilike.${searchPattern}`)
+        .order('name', { ascending: true })
+        .limit(5);
+
+      if (error) {
+        console.error('❌ [useSearchEntities] 쿼리 에러:', error);
+        throw error;
+      }
+
+      return data || [];
+    },
+    enabled: !!userId && query.length >= 2,
+    staleTime: 2 * 60 * 1000, // 2분
+  });
+}
+
+/**
+ * Memo 검색 (content)
+ * 최소 2자 이상 입력 시 검색 수행
+ */
+export function useSearchMemos(query: string, userId: string) {
+  return useQuery<Memo[]>({
+    queryKey: ['search', 'memos', userId, query],
+    queryFn: async () => {
+      if (!query || query.length < 2) {
+        return [];
+      }
+
+      const { data, error } = await supabase
+        .from('memo')
+        .select('*')
+        .eq('user_id', userId)
+        .ilike('content', `%${query}%`)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error('❌ [useSearchMemos] 쿼리 에러:', error);
+        throw error;
+      }
+
+      return data || [];
+    },
+    enabled: !!userId && query.length >= 2,
+    staleTime: 1 * 60 * 1000, // 1분
+  });
 }

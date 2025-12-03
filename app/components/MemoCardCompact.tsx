@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { Edit2, Trash2 } from 'lucide-react'
-import { toast } from 'sonner'
 import { highlightEntities } from '@/app/lib/utils/highlightEntities'
-import { useDeleteData } from '@/app/lib/queries'
+import { useDeleteMemoWithOrphanedEntities } from '@/app/lib/queries'
 import MemoEditDrawer from './MemoEditDrawer'
 import MemoDeleteModal from './MemoDeleteModal'
 import type { Database } from '@/types/supabase'
@@ -23,16 +22,13 @@ export default function MemoCardCompact({ memo, entities = [], userId }: MemoCar
   const [showEditDrawer, setShowEditDrawer] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
-  const deleteMemo = useDeleteData('memo')
+  const deleteMemo = useDeleteMemoWithOrphanedEntities(userId || '')
 
   const handleDelete = () => {
     deleteMemo.mutate(memo.id, {
       onSuccess: () => {
-        toast.success('메모가 삭제되었습니다.')
         setShowDeleteModal(false)
-      },
-      onError: (error: Error) => {
-        toast.error(`삭제 실패: ${error.message}`)
+        // Toast는 mutation의 onSuccess에서 처리됨
       },
     })
   }
