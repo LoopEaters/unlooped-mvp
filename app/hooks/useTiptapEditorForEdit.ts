@@ -10,7 +10,7 @@ import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { mentionSuggestionOptions } from './tiptap/suggestion'
 import { CustomMention } from './tiptap/CustomMention'
-import { parseMemoContentWithMentions } from '@/app/lib/utils/parseMemoContent'
+import { parseMemoContentWithMentions, buildMentionAwareContentNodes } from '@/app/lib/utils/parseMemoContent'
 import { validateEntityNames, normalizeContentWithMentions } from '@/app/lib/utils/entityUtils'
 import { toast } from 'sonner'
 import type { Database } from '@/types/supabase'
@@ -476,6 +476,40 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
       editorElement.removeEventListener('keydown', handleKeyDown, { capture: true })
     }
   }, [editor, handleUpdate])
+
+  // 붙여넣기 시 @mention 포함 텍스트를 스캔하여 mention 노드로 변환 (편집 모드)
+  useEffect(() => {
+    if (!editor) return
+
+    const handlePaste = (event: ClipboardEvent) => {
+      const text = event.clipboardData?.getData('text/plain') ?? ''
+
+      if (!text.includes('@')) {
+        return
+      }
+
+      event.preventDefault()
+      event.stopPropagation()
+
+      const contentNodes = buildMentionAwareContentNodes(text, entitiesRef.current)
+
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: 'paragraph',
+          content: contentNodes.length > 0 ? contentNodes : undefined,
+        })
+        .run()
+    }
+
+    const editorElement = editor.view.dom
+    editorElement.addEventListener('paste', handlePaste, { capture: true })
+
+    return () => {
+      editorElement.removeEventListener('paste', handlePaste, { capture: true })
+    }
+  }, [editor])
 
   return {
     editor,
