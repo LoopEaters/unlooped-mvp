@@ -1,5 +1,6 @@
 import React from 'react'
 import type { Database } from '@/types/supabase'
+import { getMentionHighlightClass } from '@/app/lib/theme'
 
 type Entity = Database['public']['Tables']['entity']['Row']
 
@@ -7,11 +8,13 @@ type Entity = Database['public']['Tables']['entity']['Row']
  * 메모 내용에서 @entity_name 패턴을 찾아서 타입별 색깔로 하이라이트 처리
  * @param content - 메모 내용
  * @param entities - Entity 배열 (type 정보 포함)
+ * @param currentEntityId - 현재 entity section의 entity ID (강조 표시용)
  * @returns 하이라이트된 React 요소들의 배열
  */
 export function highlightEntities(
   content: string,
-  entities: Entity[] = []
+  entities: Entity[] = [],
+  currentEntityId?: string
 ): React.ReactNode[] {
   // @entity_name 패턴 정규표현식 (한글, 영문, 숫자만 허용)
   const entityPattern = /@([가-힣a-zA-Z0-9]+)/g
@@ -36,15 +39,16 @@ export function highlightEntities(
       result.push(content.substring(lastIndex, matchStart))
     }
 
-    // Entity 조회 및 type별 색깔 결정
+    // Entity 조회 및 강조 여부 판단
     const entity = entityMap.get(entityName)
-    const colorClass = getEntityTypeColor(entity?.type)
+    const isEmphasized = entity?.id === currentEntityId
+    const highlightClass = getMentionHighlightClass(entity?.type, isEmphasized)
 
     // Entity 하이라이트 추가
     result.push(
       <span
         key={`entity-${matchStart}`}
-        className={`${colorClass}/20 ${colorClass} px-1.5 py-0.5 rounded font-medium`}
+        className={highlightClass}
       >
         @{entityName}
       </span>
@@ -59,22 +63,4 @@ export function highlightEntities(
   }
 
   return result
-}
-
-/**
- * Entity type에 따른 색깔 클래스 반환
- */
-function getEntityTypeColor(type: string | null | undefined): string {
-  switch (type) {
-    case 'person':
-      return 'text-mention-person bg-mention-person' // 초록
-    case 'project':
-      return 'text-mention-project bg-mention-project' // 보라
-    case 'unknown':
-    case null:
-    case undefined:
-      return 'text-gray-400 bg-gray-400' // 회색 (분류 전/실패)
-    default:
-      return 'text-gray-400 bg-gray-400'
-  }
 }

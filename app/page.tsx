@@ -12,7 +12,7 @@ export default function Home() {
       {/* Main content area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Main container with records */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <MainContainer />
           <InputArea />
         </div>

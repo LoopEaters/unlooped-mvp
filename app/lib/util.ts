@@ -96,3 +96,33 @@ export function formatTimelineDate(timestamp: number, totalRange: number): strin
   return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+/**
+ * 상대적 시간 표시 (n일 전, n시간 전)
+ * @param dateString - ISO timestamp string
+ * @returns "n일 전" 또는 "n시간 전" 형식의 문자열
+ */
+export function getRelativeTime(dateString: string): string {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now.getTime() - date.getTime();
+
+  // 밀리초를 시간 단위로 변환
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  // 0일 (24시간 이내)
+  if (diffDays === 0) {
+    if (diffHours === 0) {
+      if (diffMinutes === 0) {
+        return '방금 전';
+      }
+      return `${diffMinutes}분 전`;
+    }
+    return `${diffHours}시간 전`;
+  }
+
+  // 1일 이상
+  return `${diffDays}일 전`;
+}
+

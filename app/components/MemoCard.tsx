@@ -1,6 +1,7 @@
 'use client'
 
 import { highlightEntities } from '@/app/lib/utils/highlightEntities'
+import { getRelativeTime } from '@/app/lib/util'
 import type { Database } from '@/types/supabase'
 
 type Memo = Database['public']['Tables']['memo']['Row']
@@ -9,29 +10,18 @@ type Entity = Database['public']['Tables']['entity']['Row']
 interface MemoCardProps {
   memo: Memo
   entities?: Entity[]
+  currentEntityId?: string  // 현재 entity section의 entity ID
 }
 
-export default function MemoCard({ memo, entities = [] }: MemoCardProps) {
-  // 작성 시간 포맷팅
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const hours = String(date.getHours()).padStart(2, '0')
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-
-    return `${year}-${month}-${day} ${hours}:${minutes}`
-  }
-
-  // Entity 하이라이트 처리
-  const highlightedContent = highlightEntities(memo.content, entities)
+export default function MemoCard({ memo, entities = [], currentEntityId }: MemoCardProps) {
+  // Entity 하이라이트 처리 (현재 entity 강조)
+  const highlightedContent = highlightEntities(memo.content, entities, currentEntityId)
 
   return (
     <div className="bg-bg-card border border-border-main rounded-lg p-4 hover:bg-bg-secondary/50 transition-colors cursor-pointer">
-      {/* 작성 시간 */}
+      {/* 작성 시간 (상대 시간) */}
       <div className="text-xs text-text-muted mb-2">
-        {formatDate(memo.created_at || '')}
+        {getRelativeTime(memo.created_at || '')}
       </div>
 
       {/* 메모 내용 (Entity 하이라이트) */}
