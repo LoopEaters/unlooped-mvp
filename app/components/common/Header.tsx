@@ -10,8 +10,8 @@ import { Search, Bell, Settings, LogOut, UserCircle, User, Keyboard, HelpCircle 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { useSearchEntities, useSearchMemos } from '@/app/lib/queries'
-import SearchResults from '@/app/components/SearchResults'
-import SettingsDrawer from '@/app/components/SettingsDrawer'
+import SearchResults from './SearchResults'
+import SettingsDrawer from './SettingsDrawer'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']

@@ -1,6 +1,6 @@
 'use client'
 
-import BaseDrawer from '@/app/components/BaseDrawer'
+import BaseDrawer from '@/app/components/common/BaseDrawer'
 import { Save } from 'lucide-react'
 import { EditorContent } from '@tiptap/react'
 import { useTiptapEditorForEdit } from '@/app/hooks/useTiptapEditorForEdit'

@@ -1,5 +1,5 @@
-# worktrees
-/.worktrees/
+# worktree
+/.worktree
 
 # dependencies
 /node_modules

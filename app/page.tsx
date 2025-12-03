@@ -1,7 +1,7 @@
-import Header from './components/Header'
-import MainContainer from './components/MainContainer'
-import RightSidebar from './components/RightSidebar'
-import InputArea from './components/InputArea'
+import Header from './components/common/Header'
+import MainContainer from './components/home/MainContainer'
+import RightSidebar from './components/home/RightSidebar'
+import InputArea from './components/home/InputArea'
 
 export default function Home() {
   return (
