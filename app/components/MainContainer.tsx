@@ -309,7 +309,7 @@ const EntitySection = memo(function EntitySection({
             <div className="relative flex-shrink-0">
               <button
                 onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
-                className={`px-3 py-1.5 rounded-lg ${entityColor.bg}/20 ${entityColor.text} font-medium text-sm hover:${entityColor.bg}/40 hover:shadow-md transition-all whitespace-nowrap`}
+                className={`px-3 py-1.5 rounded-lg ${entityColor.bg}/20 ${entityColor.text} font-medium text-sm hover:bg-${entityColor.bg.replace('bg-', '')}/40 hover:shadow-md hover:scale-105 transition-all whitespace-nowrap cursor-pointer`}
                 title="클릭하여 타입 변경"
               >
                 @{entityName}
@@ -329,9 +329,9 @@ const EntitySection = memo(function EntitySection({
                     <span className={`text-xs ${theme.ui.textPlaceholder} mr-1`}>타입:</span>
                     <button
                       onClick={() => handleTypeChange('person')}
-                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                         entity?.type === 'person'
-                          ? `${theme.entityTypes.person.bg}/20 ${theme.entityTypes.person.text}`
+                          ? `${theme.entityTypes.person.bg}/20 ${theme.entityTypes.person.text} hover:bg-${theme.entityTypes.person.bg.replace('bg-', '')}/40`
                           : `${theme.ui.textPlaceholder} ${theme.ui.buttonHover}`
                       }`}
                       disabled={updateEntityType.isPending}
@@ -340,9 +340,9 @@ const EntitySection = memo(function EntitySection({
                     </button>
                     <button
                       onClick={() => handleTypeChange('project')}
-                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                         entity?.type === 'project'
-                          ? `${theme.entityTypes.project.bg}/20 ${theme.entityTypes.project.text}`
+                          ? `${theme.entityTypes.project.bg}/20 ${theme.entityTypes.project.text} hover:bg-${theme.entityTypes.project.bg.replace('bg-', '')}/40`
                           : `${theme.ui.textPlaceholder} ${theme.ui.buttonHover}`
                       }`}
                       disabled={updateEntityType.isPending}
@@ -351,9 +351,9 @@ const EntitySection = memo(function EntitySection({
                     </button>
                     <button
                       onClick={() => handleTypeChange('unknown')}
-                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                         entity?.type === 'unknown' || !entity?.type
-                          ? `${theme.entityTypes.unknown.bg}/20 ${theme.entityTypes.unknown.text}`
+                          ? `${theme.entityTypes.unknown.bg}/20 ${theme.entityTypes.unknown.text} hover:bg-${theme.entityTypes.unknown.bg.replace('bg-', '')}/40`
                           : `${theme.ui.textPlaceholder} ${theme.ui.buttonHover}`
                       }`}
                       disabled={updateEntityType.isPending}
