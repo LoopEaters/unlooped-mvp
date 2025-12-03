@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, memo, useMemo } from 'react'
 import { useEntities, useMemosByEntity, useUpdateEntityType } from '@/app/lib/queries'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
-import { useAuth } from '@/app/providers/AuthProvider'
 import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
+import { useAppReady } from '@/app/hooks/useAppReady'
 import MemoCard from './MemoCard'
 import type { Database } from '@/types/supabase'
 
@@ -33,7 +33,7 @@ function getEntityTypeColor(type: string | null | undefined): { bg: string; text
 
 export default function MainContainer() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const { user } = useAuth()
+  const { isReady, user } = useAppReady()
   const { filteredEntityIds } = useEntityFilter()
   const { data: entitiesData } = useEntities(user?.id)
 
@@ -70,6 +70,20 @@ export default function MainContainer() {
       containerRef.current.scrollTop = containerRef.current.scrollHeight
     }
   }, [filteredEntityIds])
+
+  // 🔄 로딩 중 UI (user + entities 완료될 때까지)
+  if (!isReady) {
+    return (
+      <div className="flex-1 overflow-y-auto p-6 bg-bg-primary">
+        <div className="flex items-center justify-center h-full">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <p className="text-gray-400 text-sm">데이터 로딩 중...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div

@@ -2,7 +2,11 @@
 
 import { useState } from 'react'
 import { Edit2, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { highlightEntities } from '@/app/lib/utils/highlightEntities'
+import { useDeleteData } from '@/app/lib/queries'
+import MemoEditDrawer from './MemoEditDrawer'
+import MemoDeleteModal from './MemoDeleteModal'
 import type { Database } from '@/types/supabase'
 
 type Memo = Database['public']['Tables']['memo']['Row']
@@ -16,6 +20,22 @@ interface MemoCardCompactProps {
 
 export default function MemoCardCompact({ memo, entities = [], userId }: MemoCardCompactProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const [showEditDrawer, setShowEditDrawer] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+  const deleteMemo = useDeleteData('memo')
+
+  const handleDelete = () => {
+    deleteMemo.mutate(memo.id, {
+      onSuccess: () => {
+        toast.success('메모가 삭제되었습니다.')
+        setShowDeleteModal(false)
+      },
+      onError: (error: Error) => {
+        toast.error(`삭제 실패: ${error.message}`)
+      },
+    })
+  }
 
   // 작성 시간 포맷팅 (시:분만)
   const formatTime = (dateString: string) => {
@@ -29,19 +49,19 @@ export default function MemoCardCompact({ memo, entities = [], userId }: MemoCar
   const highlightedContent = highlightEntities(memo.content, entities)
 
   return (
-    <div
-      className="relative bg-bg-card border border-border-main rounded-md p-2 hover:bg-bg-secondary/50 transition-colors cursor-pointer group"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <>
+      <div
+        className="relative bg-bg-card border border-border-main rounded-md p-2 hover:bg-bg-secondary/50 transition-colors cursor-pointer group"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
       {/* Hover 시 액션 버튼 표시 (오버레이) */}
       {isHovered && (
         <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-bg-card/80 backdrop-blur-sm rounded px-0.5 py-0.5">
           <button
             onClick={(e) => {
               e.stopPropagation()
-              console.log('편집 클릭:', memo.id)
-              // TODO: 편집 모달 열기
+              setShowEditDrawer(true)
             }}
             className="p-0.5 text-text-muted hover:text-blue-400 transition-colors"
             title="편집"
@@ -51,8 +71,7 @@ export default function MemoCardCompact({ memo, entities = [], userId }: MemoCar
           <button
             onClick={(e) => {
               e.stopPropagation()
-              console.log('삭제 클릭:', memo.id)
-              // TODO: 삭제 confirm 또는 모달
+              setShowDeleteModal(true)
             }}
             className="p-0.5 text-text-muted hover:text-red-400 transition-colors"
             title="삭제"
@@ -65,10 +84,31 @@ export default function MemoCardCompact({ memo, entities = [], userId }: MemoCar
       {/* 시간 */}
       <div className="text-[10px] text-text-muted mb-1">{formatTime(memo.created_at || '')}</div>
 
-      {/* 메모 내용 (Entity 하이라이트) */}
-      <div className="text-xs text-white leading-relaxed whitespace-pre-wrap wrap-break-word">
-        {highlightedContent}
+        {/* 메모 내용 (Entity 하이라이트) */}
+        <div className="text-xs text-white leading-relaxed whitespace-pre-wrap wrap-break-word">
+          {highlightedContent}
+        </div>
       </div>
-    </div>
+
+        {/* Edit Drawer */}
+      {userId && (
+        <MemoEditDrawer
+          isOpen={showEditDrawer}
+          onClose={() => setShowEditDrawer(false)}
+          memo={memo}
+          entities={entities}
+          userId={userId}
+        />
+      )}
+
+      {/* Delete Modal */}
+      <MemoDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        memoContent={memo.content}
+        isDeleting={deleteMemo.isPending}
+      />
+    </>
   )
 }

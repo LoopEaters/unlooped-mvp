@@ -504,6 +504,124 @@ export function useCreateMemo(userId: string) {
 }
 
 /**
+ * Memo 업데이트 + Entity 관계 동기화
+ */
+export function useUpdateMemo(userId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { memo: Memo; addedEntities: Entity[]; removedEntityIds: string[] },
+    Error,
+    {
+      memoId: string;
+      content: string;
+      entityNames: string[];
+      originalEntityIds: string[];
+      pendingEntityTypes?: Record<string, string>;
+    }
+  >({
+    mutationFn: async ({
+      memoId,
+      content,
+      entityNames,
+      originalEntityIds,
+      pendingEntityTypes = {},
+    }) => {
+      if (!userId) throw new Error('User not authenticated');
+
+      // 1. Update memo content
+      const { data: memo, error: memoError } = await supabase
+        .from('memo')
+        .update({
+          content,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', memoId)
+        .select()
+        .single();
+
+      if (memoError) throw memoError;
+
+      // 2. Get or create entities (reuse existing logic)
+      const entities = await Promise.all(
+        entityNames.map(async (name) => {
+          let entity = await getEntityByName(name, userId);
+
+          if (!entity) {
+            const preClassifiedType = pendingEntityTypes[name];
+            entity = await createEntityDirect(name, userId, preClassifiedType);
+            toast.success(`✨ 새 엔티티 '${name}'이(가) 생성되었습니다`);
+          }
+
+          return entity;
+        })
+      );
+
+      const newEntityIds = entities.map((e) => e.id);
+
+      // 3. Calculate changes
+      const originalSet = new Set(originalEntityIds);
+      const newSet = new Set(newEntityIds);
+
+      const toAdd = newEntityIds.filter((id) => !originalSet.has(id));
+      const toRemove = originalEntityIds.filter((id) => !newSet.has(id));
+
+      // 4. Delete removed relationships
+      if (toRemove.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('memo_entity')
+          .delete()
+          .eq('memo_id', memoId)
+          .in('entity_id', toRemove);
+
+        if (deleteError) throw deleteError;
+      }
+
+      // 5. Add new relationships
+      if (toAdd.length > 0) {
+        const inserts: MemoEntityInsert[] = toAdd.map((entityId) => ({
+          memo_id: memoId,
+          entity_id: entityId,
+        }));
+
+        const { error: insertError } = await supabase
+          .from('memo_entity')
+          .insert(inserts);
+
+        if (insertError) throw insertError;
+      }
+
+      return {
+        memo,
+        addedEntities: entities.filter((e) => toAdd.includes(e.id)),
+        removedEntityIds: toRemove,
+      };
+    },
+    onSuccess: (result) => {
+      // Invalidate queries (same pattern as useCreateMemo)
+      queryClient.invalidateQueries({ queryKey: ['memos', userId], exact: true });
+      queryClient.invalidateQueries({ queryKey: ['memos', 'byEntity'] });
+      queryClient.invalidateQueries({ queryKey: ['entities', userId], exact: true });
+
+      toast.success('메모가 수정되었습니다.');
+
+      // Optional: Trigger AI updates for added entities
+      if (result.addedEntities.length > 0) {
+        result.addedEntities.forEach((entity) => {
+          updateEntityDescription(entity.id).catch((err) =>
+            console.error('AI 업데이트 실패', err)
+          );
+        });
+      }
+    },
+    onError: (error) => {
+      console.error('❌ [useUpdateMemo] 에러 발생', error);
+      toast.error(`메모 수정 실패: ${error.message}`);
+    },
+  });
+}
+
+/**
  * Entity별 Memo 조회 (단일 entity)
  */
 export function useMemosByEntity(entityId: string | null) {
@@ -571,7 +689,7 @@ export function useMemosByEntity(entityId: string | null) {
     staleTime: 0, // 🔧 FIX: staleTime 0으로 설정하여 항상 최신 데이터
     gcTime: 5 * 60 * 1000, // 5분간 캐시 유지
     refetchOnMount: true, // 마운트 시 refetch
-    refetchOnWindowFocus: true, // 🔧 FIX: 포커스 돌아올 때 refetch (중요!)
+    refetchOnWindowFocus: false, // 포커스 돌아올 때 refetch 하지 않음 (캐시 활용)
     retry: 2, // 2번 재시도
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000), // 1초, 2초, 3초
   });

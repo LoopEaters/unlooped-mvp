@@ -86,13 +86,19 @@ html, body {
   opacity: 0.8;
 }
 
-/* Mention 기본 스타일 (data-entity-type이 없을 때) */
+/* Mention 기본 스타일 (data-entity-type이 없을 때 또는 unknown일 때) */
 .tiptap-editor .ProseMirror .mention {
-  background-color: rgba(59, 130, 246, 0.2);
-  color: rgb(59, 130, 246);
+  background-color: rgba(107, 114, 128, 0.2);
+  color: rgb(107, 114, 128);
   border-radius: 4px;
   padding: 0 4px;
   cursor: pointer;
+}
+
+/* Unknown type도 명시적으로 회색 */
+.tiptap-editor .ProseMirror .mention[data-entity-type="unknown"] {
+  background-color: rgba(107, 114, 128, 0.2);
+  color: rgb(107, 114, 128);
 }
 
 /* Entity type별 mention 색상 */
@@ -124,4 +130,37 @@ html, body {
 
 .tippy-box[data-theme~='dark'][data-placement^='bottom'] > .tippy-arrow::before {
   border-bottom-color: #2a2f3e;
+}
+
+/* ============================================================================
+   Drawer Animation (Notion-style)
+   ============================================================================ */
+
+/* Drawer 슬라이드 인 애니메이션 (오른쪽에서 왼쪽으로) */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Drawer Content가 열릴 때 애니메이션 적용 */
+.drawer-content[data-state="open"] {
+  animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Drawer Content가 닫힐 때 애니메이션 */
+@keyframes slide-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.drawer-content[data-state="closed"] {
+  animation: slide-out-right 0.25s cubic-bezier(0.4, 0, 1, 1);
 }

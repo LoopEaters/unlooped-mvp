@@ -132,45 +132,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 🔧 NEW: 세션 처리 로직을 분리하여 재사용
   const handleSessionChange = useCallback(async (session: Session | null) => {
-    // 모든 데이터를 먼저 준비한 후 한 번에 업데이트 (렌더링 최소화)
     const newUser = session?.user ?? null;
-    let newProfile: UserProfile | null = null;
-    let shouldShowModal = !session;
+    const shouldShowModal = !session;
 
-    // users 테이블에서 프로필 정보 가져오기
-    if (session?.user) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔐 [AuthProvider] 프로필 처리 시작');
-      }
-      let profile = await fetchUserProfile(session.user);
-
-      // 🔧 FIX: avatar sync를 백그라운드로 처리 (blocking 하지 않음)
-      // 프로필 로드를 기다리지 않고 UI를 먼저 표시
-      syncSocialAvatar(session.user, profile).then((updatedAvatarUrl) => {
-        if (updatedAvatarUrl && profile) {
-          // 아바타가 업데이트되면 상태만 다시 업데이트
-          setUserProfile({
-            ...session.user,
-            profile: { ...profile, avatar_url: updatedAvatarUrl },
-          });
-        }
-      });
-
-      newProfile = {
-        ...session.user,
-        profile,
-      };
-    }
-
-    // 한 번에 모든 상태 업데이트 (React 18이 자동으로 배칭)
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔐 [AuthProvider] 상태 일괄 업데이트');
+      console.log('🔐 [AuthProvider] 세션 변경 감지', {
+        hasSession: !!session,
+        userId: newUser?.id,
+      });
     }
+
+    // 1️⃣ user와 session은 즉시 설정 (쿠키에서 읽음 = 빠름)
     setSession(session);
     setUser(newUser);
-    setUserProfile(newProfile);
-    setIsLoading(false);
+    setIsLoading(false);  // 👈 즉시 로딩 끝! (entity 쿼리 시작 가능)
     setShowLoginModal(shouldShowModal);
+
+    // 2️⃣ 프로필은 백그라운드에서 로드 (UI 블로킹 없음)
+    if (session?.user) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 [AuthProvider] 프로필 백그라운드 로딩 시작');
+      }
+
+      fetchUserProfile(session.user).then((profile) => {
+        // 프로필 설정
+        setUserProfile({
+          ...session.user,
+          profile,
+        });
+
+        // 아바타 동기화 (추가 백그라운드)
+        syncSocialAvatar(session.user, profile).then((updatedAvatarUrl) => {
+          if (updatedAvatarUrl && profile) {
+            setUserProfile({
+              ...session.user,
+              profile: { ...profile, avatar_url: updatedAvatarUrl },
+            });
+          }
+        });
+      });
+    } else {
+      setUserProfile(null);
+    }
   }, []);
 
   useEffect(() => {
