@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react'
 
 interface AIUpdateContextType {
   updatingEntityIds: Set<string>
@@ -18,31 +18,33 @@ export function AIUpdateProvider({ children }: { children: ReactNode }) {
     new Set()
   )
 
-  const addUpdatingEntity = (entityId: string) => {
+  // 함수들을 메모이제이션하여 불필요한 리렌더링 방지
+  const addUpdatingEntity = useCallback((entityId: string) => {
     setUpdatingEntityIds((prev) => new Set(prev).add(entityId))
-  }
+  }, [])
 
-  const removeUpdatingEntity = (entityId: string) => {
+  const removeUpdatingEntity = useCallback((entityId: string) => {
     setUpdatingEntityIds((prev) => {
       const next = new Set(prev)
       next.delete(entityId)
       return next
     })
-  }
+  }, [])
 
-  const isEntityUpdating = (entityId: string) => {
+  const isEntityUpdating = useCallback((entityId: string) => {
     return updatingEntityIds.has(entityId)
-  }
+  }, [updatingEntityIds])
+
+  // value 객체를 메모이제이션
+  const value = useMemo(() => ({
+    updatingEntityIds,
+    addUpdatingEntity,
+    removeUpdatingEntity,
+    isEntityUpdating,
+  }), [updatingEntityIds, addUpdatingEntity, removeUpdatingEntity, isEntityUpdating])
 
   return (
-    <AIUpdateContext.Provider
-      value={{
-        updatingEntityIds,
-        addUpdatingEntity,
-        removeUpdatingEntity,
-        isEntityUpdating,
-      }}
-    >
+    <AIUpdateContext.Provider value={value}>
       {children}
     </AIUpdateContext.Provider>
   )

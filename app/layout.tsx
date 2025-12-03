@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import 'tippy.js/dist/tippy.css'
 import { Inter, Noto_Sans_KR } from 'next/font/google'
 import localFont from 'next/font/local'
 import QueryProvider from './providers/QueryProvider'
@@ -7,7 +8,9 @@ import { AuthProvider } from './providers/AuthProvider'
 import { ToastProvider } from './providers/ToastProvider'
 import { EntityFilterProvider } from './providers/EntityFilterProvider'
 import { AIUpdateProvider } from './providers/AIUpdateProvider'
+import { SettingsProvider } from './providers/SettingsProvider'
 import LoginModal from './components/auth/LoginModal'
+import FontSettingsApplier from './components/FontSettingsApplier'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -44,13 +47,16 @@ export default function RootLayout({
       <body className="font-sans">
         <AuthProvider>
           <QueryProvider>
-            <EntityFilterProvider>
-              <AIUpdateProvider>
-                <ToastProvider />
-                {children}
-                <LoginModal />
-              </AIUpdateProvider>
-            </EntityFilterProvider>
+            <SettingsProvider>
+              <FontSettingsApplier />
+              <EntityFilterProvider>
+                <AIUpdateProvider>
+                  <ToastProvider />
+                  {children}
+                  <LoginModal />
+                </AIUpdateProvider>
+              </EntityFilterProvider>
+            </SettingsProvider>
           </QueryProvider>
         </AuthProvider>
       </body>

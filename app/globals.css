@@ -3,20 +3,76 @@
 @theme {
   --font-family-sans: var(--font-inter), var(--font-noto-sans-kr), sans-serif;
 
+  /* Font size variables */
+  --font-size-small: 14px;
+  --font-size-medium: 16px;
+  --font-size-large: 18px;
+  --font-size-xlarge: 20px;
+
+  /* Background colors */
   --color-bg-primary: #1a1f2e;
   --color-bg-secondary: #252b3b;
   --color-bg-card: #2a2f3e;
   --color-bg-input: #323847;
+
+  /* Border colors */
   --color-border-main: #374151;
+
+  /* Text colors */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #e5e7eb;
   --color-text-muted: #9ca3af;
+
+  /* Mention colors */
   --color-mention-project: #a855f7;
+  --color-mention-project-bg: rgba(168, 85, 247, 0.2);
   --color-mention-person: #22c55e;
+  --color-mention-person-bg: rgba(34, 197, 94, 0.2);
   --color-mention-event: #3b82f6;
+  --color-mention-event-bg: rgba(59, 130, 246, 0.2);
+  --color-mention-unknown: #6b7280;
+  --color-mention-unknown-bg: rgba(107, 114, 128, 0.2);
+
+  /* Search Highlight colors */
+  --color-search-highlight-border: #EAB308;
+  --color-search-highlight-border-light: #FACC15;
+  --color-search-highlight-shadow: rgba(234, 179, 8, 0.6);
 }
 
 
 html, body {
   height: 100%;
+}
+
+/* Font size settings - !important to override Tailwind utilities */
+body[data-font-size="small"] {
+  font-size: var(--font-size-small) !important;
+}
+
+body[data-font-size="medium"] {
+  font-size: var(--font-size-medium) !important;
+}
+
+body[data-font-size="large"] {
+  font-size: var(--font-size-large) !important;
+}
+
+body[data-font-size="xlarge"] {
+  font-size: var(--font-size-xlarge) !important;
+}
+
+/* Font family settings - !important to override Tailwind utilities */
+body[data-font-family="inter"] {
+  font-family: var(--font-inter), sans-serif !important;
+}
+
+body[data-font-family="noto"] {
+  font-family: var(--font-noto-sans-kr), sans-serif !important;
+}
+
+body[data-font-family="system"] {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
 }
 
 /* Scrollbar styling */
@@ -43,4 +99,153 @@ html, body {
   color: #6b7280;
   pointer-events: none;
   position: absolute;
+}
+
+/* ============================================================================
+   Tiptap Editor Styles
+   ============================================================================ */
+
+/* Tiptap 에디터 컨테이너 - single line minimal */
+.tiptap-editor {
+  line-height: 1.5;
+}
+
+/* Tiptap ProseMirror 에디터 - single line minimal */
+.tiptap-editor .ProseMirror {
+  padding: 0;
+  outline: none;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+  font-size: 0.875rem; /* 14px */
+}
+
+/* Tiptap placeholder */
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* Tiptap mention (entity) 스타일 */
+.tiptap-editor .ProseMirror span[data-type="mention"] {
+  border-radius: 4px;
+  padding: 0 4px;
+  cursor: default;  /* 기본은 클릭 불가 */
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+/* Mention 기본 스타일 (data-entity-type이 없을 때 또는 unknown일 때) */
+.tiptap-editor .ProseMirror .mention {
+  background-color: var(--color-mention-unknown-bg);
+  color: var(--color-mention-unknown);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+/* Unknown type도 명시적으로 회색 (테두리는 동적 CSS에서만) */
+.tiptap-editor .ProseMirror .mention[data-entity-type="unknown"] {
+  background-color: var(--color-mention-unknown-bg);
+  color: var(--color-mention-unknown);
+}
+
+/* Entity type별 mention 색상 */
+.tiptap-editor .ProseMirror .mention[data-entity-type="project"] {
+  background-color: var(--color-mention-project-bg);
+  color: var(--color-mention-project);
+}
+
+.tiptap-editor .ProseMirror .mention[data-entity-type="project"]:hover {
+  background-color: rgba(168, 85, 247, 0.3);
+  transform: scale(1.02);
+}
+
+.tiptap-editor .ProseMirror .mention[data-entity-type="person"] {
+  background-color: var(--color-mention-person-bg);
+  color: var(--color-mention-person);
+}
+
+.tiptap-editor .ProseMirror .mention[data-entity-type="person"]:hover {
+  background-color: rgba(34, 197, 94, 0.3);
+  transform: scale(1.02);
+}
+
+.tiptap-editor .ProseMirror .mention[data-entity-type="event"] {
+  background-color: var(--color-mention-event-bg);
+  color: var(--color-mention-event);
+}
+
+.tiptap-editor .ProseMirror .mention[data-entity-type="event"]:hover {
+  background-color: rgba(59, 130, 246, 0.3);
+  transform: scale(1.02);
+}
+
+/* Tippy.js 드롭다운 테마 */
+.tippy-box[data-theme~='dark'] {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.tippy-box[data-theme~='dark'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #2a2f3e;
+}
+
+.tippy-box[data-theme~='dark'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #2a2f3e;
+}
+
+/* ============================================================================
+   Drawer Animation (Notion-style)
+   ============================================================================ */
+
+/* Drawer 슬라이드 인 애니메이션 (오른쪽에서 왼쪽으로) */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Drawer Content가 열릴 때 애니메이션 적용 */
+.drawer-content[data-state="open"] {
+  animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Drawer Content가 닫힐 때 애니메이션 */
+@keyframes slide-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.drawer-content[data-state="closed"] {
+  animation: slide-out-right 0.25s cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* ============================================================================
+   Search Highlight Animation (MemoCard Border Pulse)
+   ============================================================================ */
+
+@keyframes pulse-memo-border {
+  0%, 100% {
+    border-color: var(--color-search-highlight-border); /* 노란색 */
+  }
+  50% {
+    border-color: var(--color-border-main); /* 원래 회색 */
+  }
+}
+
+.animate-pulse-border {
+  animation: pulse-memo-border 2s ease-in-out infinite;
 }
