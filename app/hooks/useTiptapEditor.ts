@@ -11,6 +11,7 @@ import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { mentionSuggestionOptions } from './tiptap/suggestion'
 import { CustomMention } from './tiptap/CustomMention'
 import { validateEntityNames, normalizeContentWithMentions } from '@/app/lib/utils/entityUtils'
+import { buildMentionAwareContentNodes } from '@/app/lib/utils/parseMemoContent'
 import { toast } from 'sonner'
 import type { Database } from '@/types/supabase'
 
@@ -574,6 +575,44 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
       editorElement.removeEventListener('keydown', handleKeyDown, { capture: true })
     }
   }, [editor, handleSubmit])
+
+  // 붙여넣기 시 @mention 포함 텍스트를 스캔하여 mention 노드로 변환
+  useEffect(() => {
+    if (!editor) return
+
+    const handlePaste = (event: ClipboardEvent) => {
+      const text = event.clipboardData?.getData('text/plain') ?? ''
+
+      // @가 없으면 기본 동작 유지
+      if (!text.includes('@')) {
+        return
+      }
+
+      // Tiptap 기본 paste 동작 취소
+      event.preventDefault()
+      event.stopPropagation()
+
+      // 현재 entitiesRef를 기준으로 mention 노드가 섞인 content 생성
+      const contentNodes = buildMentionAwareContentNodes(text, entitiesRef.current)
+
+      // paragraph fragment로 삽입 (기존 커서 위치 기준)
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: 'paragraph',
+          content: contentNodes.length > 0 ? contentNodes : undefined,
+        })
+        .run()
+    }
+
+    const editorElement = editor.view.dom
+    editorElement.addEventListener('paste', handlePaste, { capture: true })
+
+    return () => {
+      editorElement.removeEventListener('paste', handlePaste, { capture: true })
+    }
+  }, [editor])
 
   // 🔧 NEW: Mention 클릭 핸들러 - Type 순환 변경
   useEffect(() => {

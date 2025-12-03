@@ -4,18 +4,17 @@ import type { Database } from '@/types/supabase'
 type Entity = Database['public']['Tables']['entity']['Row']
 
 /**
- * 플레인 텍스트 메모 내용을 Tiptap JSON 구조로 변환
- * @mention 패턴을 Mention 노드로 변환하여 에디터에서 제대로 표시되도록 함
+ * 내부 유틸: 플레인 텍스트에서 @mention 패턴을 찾아
+ * Tiptap paragraph의 content에 들어갈 노드 배열로 변환한다.
  *
- * @example
- * parseMemoContentWithMentions("Meeting with @John about @ProjectX", entities)
- * // → Tiptap JSON with mention nodes
+ * - 존재하는 entity 이름 → type 정보를 포함한 mention 노드
+ * - 존재하지 않는 이름 → type 없이 mention 노드 (저장 전 새 엔티티 후보)
  */
-export function parseMemoContentWithMentions(
+export function buildMentionAwareContentNodes(
   content: string,
   entities: Entity[]
-): JSONContent {
-  const entityNameMap = new Map(entities.map(e => [e.name, e]))
+): JSONContent[] {
+  const entityNameMap = new Map(entities.map((e) => [e.name, e]))
 
   // 정규식으로 @mentions 찾기 (공백/줄바꿈을 제외한 모든 문자)
   // 예: @John, @프로젝트, @Project[A], @테스트(백업)
@@ -33,7 +32,78 @@ export function parseMemoContentWithMentions(
       })
     }
 
-    // mention 노드 추가
+    const entityName = match[1]
+    const entity = entityNameMap.get(entityName)
+
+    // 존재하는 entity → type 포함 mention 노드
+    if (entity) {
+      contentNodes.push({
+        type: 'mention',
+        attrs: {
+          id: entityName,
+          label: entityName,
+          type: entity.type || null,
+        },
+      })
+    } else {
+      // 존재하지 않는 이름도 mention 노드로 만들어 두고,
+      // 이후 pipeline에서 새 엔티티 후보로 분류/색상 지정
+      contentNodes.push({
+        type: 'mention',
+        attrs: {
+          id: entityName,
+          label: entityName,
+          type: null,
+        },
+      })
+    }
+
+    lastIndex = regex.lastIndex
+  }
+
+  // 남은 텍스트 추가
+  if (lastIndex < content.length) {
+    contentNodes.push({
+      type: 'text',
+      text: content.slice(lastIndex),
+    })
+  }
+
+  return contentNodes
+}
+
+/**
+ * 플레인 텍스트 메모 내용을 Tiptap JSON 구조로 변환
+ * @mention 패턴을 Mention 노드로 변환하여 에디터에서 제대로 표시되도록 함
+ *
+ * - 기존 메모 로딩 용도: 저장 시점에 존재하던 entity만 mention 노드로,
+ *   삭제된 entity의 @이름은 일반 텍스트로 표시
+ *
+ * @example
+ * parseMemoContentWithMentions(\"Meeting with @John about @ProjectX\", entities)
+ * // → Tiptap JSON with mention nodes
+ */
+export function parseMemoContentWithMentions(
+  content: string,
+  entities: Entity[]
+): JSONContent {
+  const entityNameMap = new Map(entities.map((e) => [e.name, e]))
+
+  // 정규식으로 @mentions 찾기 (공백/줄바꿈을 제외한 모든 문자)
+  const regex = /@(\S+)/g
+  let match
+  let lastIndex = 0
+  const contentNodes: JSONContent[] = []
+
+  while ((match = regex.exec(content)) !== null) {
+    // mention 앞의 텍스트 추가
+    if (match.index > lastIndex) {
+      contentNodes.push({
+        type: 'text',
+        text: content.slice(lastIndex, match.index),
+      })
+    }
+
     const entityName = match[1]
     const entity = entityNameMap.get(entityName)
 
