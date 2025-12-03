@@ -1,6 +1,6 @@
 'use client'
 
-import BaseDrawer from '@/app/components/BaseDrawer'
+import BaseDrawer from './BaseDrawer'
 import { Palette, Bell, Database, Shield, Globe, Keyboard, Moon, Sun, Monitor, Maximize2 } from 'lucide-react'
 import { useLayout } from '@/app/providers/SettingsProvider'
 

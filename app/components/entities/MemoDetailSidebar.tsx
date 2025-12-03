@@ -1,7 +1,7 @@
 'use client'
 
 import type { Database } from '@/types/supabase'
-import BaseDrawer from './BaseDrawer'
+import BaseDrawer from '@/app/components/common/BaseDrawer'
 import { defaultTheme } from '@/app/lib/theme'
 import { useState } from 'react'
 

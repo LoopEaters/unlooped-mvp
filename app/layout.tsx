@@ -10,7 +10,7 @@ import { EntityFilterProvider } from './providers/EntityFilterProvider'
 import { AIUpdateProvider } from './providers/AIUpdateProvider'
 import { SettingsProvider } from './providers/SettingsProvider'
 import LoginModal from './components/auth/LoginModal'
-import FontSettingsApplier from './components/FontSettingsApplier'
+import FontSettingsApplier from './components/common/FontSettingsApplier'
 
 const inter = Inter({
   subsets: ['latin'],

@@ -2,8 +2,8 @@
 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useTimelineData } from '@/app/lib/queries'
-import Header from '@/app/components/Header'
-import EntityTimeline from '@/app/components/EntityTimeline'
+import Header from '@/app/components/common/Header'
+import EntityTimeline from '@/app/components/entities/EntityTimeline'
 
 export default function EntitiesPage() {
   const { userProfile } = useAuth()
