@@ -10,7 +10,7 @@ import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { mentionSuggestionOptions } from './tiptap/suggestion'
 import { CustomMention } from './tiptap/CustomMention'
-import { validateEntityNames } from '@/app/lib/utils/entityValidation'
+import { validateEntityNames, normalizeContentWithMentions } from '@/app/lib/utils/entityUtils'
 import { toast } from 'sonner'
 import type { Database } from '@/types/supabase'
 
@@ -287,10 +287,11 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
   const handleSubmit = useCallback(() => {
     if (!editor || !user?.id) return
 
-    const content = editor.getText()
-    if (!content.trim()) return
-
     const confirmedEntityNames = extractConfirmedEntities(editor)
+
+    // Mention 노드 뒤 공백 보장하며 컨텐츠 추출
+    const content = normalizeContentWithMentions(editor, confirmedEntityNames)
+    if (!content.trim()) return
 
     // 엔티티 이름 검증
     const validation = validateEntityNames(confirmedEntityNames)

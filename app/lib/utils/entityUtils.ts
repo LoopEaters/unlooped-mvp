@@ -1,6 +1,9 @@
+import type { Editor } from '@tiptap/react'
+
 /**
- * 엔티티 이름 검증 유틸리티
- * - 영문, 숫자, 한글, '-', '_'만 허용
+ * 엔티티 유틸리티
+ * - 엔티티 이름 검증
+ * - 에디터 컨텐츠 정규화
  */
 
 export interface ValidationResult {
@@ -41,4 +44,33 @@ export function validateEntityNames(entityNames: string[]): ValidationResult {
     isValid: true,
     invalidEntityNames: [],
   }
+}
+
+/**
+ * 에디터 컨텐츠를 추출하면서 Mention 노드 뒤에 공백 보장
+ * - Mention 노드 직후에 공백 없이 다른 문자가 오면 공백 추가
+ * - 이를 통해 DB 저장 시 항상 "@엔티티 텍스트" 형태 유지
+ * - 파싱 시 공백으로 구분하여 Mention 유실 방지
+ *
+ * @param editor - Tiptap 에디터 인스턴스
+ * @param entityNames - 확정된 엔티티 이름 배열
+ * @returns 정규화된 컨텐츠 문자열
+ */
+export function normalizeContentWithMentions(
+  editor: Editor,
+  entityNames: string[]
+): string {
+  const rawContent = editor.getText()
+  let normalized = rawContent
+
+  // 각 엔티티 이름 뒤에 공백 없으면 추가
+  entityNames.forEach((name) => {
+    // 정규식 특수문자 이스케이프
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    // @엔티티명 뒤에 바로 공백이 아닌 문자가 오는 경우 공백 추가
+    const regex = new RegExp(`@${escaped}(?=\\S)`, 'g')
+    normalized = normalized.replace(regex, `@${name} `)
+  })
+
+  return normalized
 }

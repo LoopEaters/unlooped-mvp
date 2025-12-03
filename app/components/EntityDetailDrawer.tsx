@@ -46,6 +46,7 @@ export default function EntityDetailDrawer({
       onClose={onClose}
       title={entity.name}
       width="w-[500px]"
+      modal={false}
       footer={
         <div className="px-6 py-4">
           <button

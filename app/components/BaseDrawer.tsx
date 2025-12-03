@@ -12,6 +12,7 @@ interface BaseDrawerProps {
   children: ReactNode
   footer?: ReactNode
   width?: string // 예: 'w-[600px]', 'w-[800px]'
+  modal?: boolean // true: 모달(오버레이, 외부 클릭 시 닫힘), false: 사이드 패널(외부 상호작용 가능)
 }
 
 export default function BaseDrawer({
@@ -21,17 +22,20 @@ export default function BaseDrawer({
   children,
   footer,
   width = 'w-[600px]',
+  modal = true,
 }: BaseDrawerProps) {
   const [isCloseHovered, setIsCloseHovered] = useState(false)
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={onClose}>
+    <Dialog.Root open={isOpen} onOpenChange={modal ? onClose : undefined} modal={modal}>
       <Dialog.Portal>
         {/* Overlay */}
-        <Dialog.Overlay
-          className="fixed inset-0 backdrop-blur-sm z-40"
-          style={{ backgroundColor: defaultTheme.drawer.overlay }}
-        />
+        {modal && (
+          <Dialog.Overlay
+            className="fixed inset-0 backdrop-blur-sm z-40"
+            style={{ backgroundColor: defaultTheme.drawer.overlay }}
+          />
+        )}
 
         {/* Drawer Content */}
         <Dialog.Content
@@ -40,7 +44,7 @@ export default function BaseDrawer({
             backgroundColor: defaultTheme.drawer.background,
             borderLeft: `1px solid ${defaultTheme.drawer.border}`,
           }}
-          onEscapeKeyDown={onClose}
+          onEscapeKeyDown={modal ? onClose : undefined}
         >
           {/* Header */}
           <div
