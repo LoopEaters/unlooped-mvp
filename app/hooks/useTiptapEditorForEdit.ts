@@ -13,14 +13,26 @@ import { CustomMention } from './tiptap/CustomMention'
 import { parseMemoContentWithMentions, buildMentionAwareContentNodes } from '@/app/lib/utils/parseMemoContent'
 import { validateEntityNames, normalizeContentWithMentions } from '@/app/lib/utils/entityUtils'
 import { toast } from 'sonner'
+import { defaultTheme } from '@/app/lib/theme'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
 type Memo = Database['public']['Tables']['memo']['Row']
 
+/**
+ * Hex 색상을 rgba로 변환
+ */
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
 interface UseTiptapEditorForEditOptions {
   memo: Memo
   onSuccess?: () => void
+  createdAt?: string
 }
 
 /**
@@ -32,7 +44,7 @@ interface UseTiptapEditorForEditOptions {
  * - Entity 관계 동기화
  */
 export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
-  const { memo, onSuccess } = options
+  const { memo, onSuccess, createdAt: createdAtProp } = options
   const { user } = useAuth()
   const { data: entities = [] as Entity[] } = useEntities(user?.id)
   const updateMemo = useUpdateMemo(user?.id || '')
@@ -50,6 +62,7 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
   const entitiesRef = useRef<Entity[]>([])
   const userRef = useRef(user)
   const previousMentionsRef = useRef<Set<string>>(new Set())
+  const createdAtRef = useRef<string | undefined>(createdAtProp)
 
   // entities가 업데이트될 때 ref도 업데이트
   useEffect(() => {
@@ -59,6 +72,11 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
   useEffect(() => {
     userRef.current = user
   }, [user])
+
+  // createdAtProp이 업데이트될 때 ref도 업데이트
+  useEffect(() => {
+    createdAtRef.current = createdAtProp
+  }, [createdAtProp])
 
   /**
    * AI를 통해 entity type 분류 (백그라운드)
@@ -314,7 +332,7 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
   /**
    * 메모 업데이트
    */
-  const handleUpdate = useCallback(() => {
+  const handleUpdate = useCallback((createdAt?: string) => {
     if (!editor || !user?.id) return
 
     const confirmedEntityNames = extractConfirmedEntities(editor)
@@ -330,6 +348,9 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
       return
     }
 
+    // createdAt이 명시적으로 전달되지 않았으면 ref의 값 사용
+    const finalCreatedAt = createdAt || createdAtRef.current
+
     updateMemo.mutate(
       {
         memoId: memo.id,
@@ -337,6 +358,7 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
         entityNames: confirmedEntityNames,
         originalEntityIds: originalEntityIdsRef.current,
         pendingEntityTypes,
+        createdAt: finalCreatedAt,
       },
       {
         onSuccess: (result) => {
@@ -396,43 +418,41 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
       `
     })
 
-    // 분류 완료된 entity: 확정된 색깔
+    // 분류 완료된 entity: 확정된 색깔 (theme.ts 색상 사용)
     Object.entries(pendingEntityTypes).forEach(([entityName, type]) => {
       // 분류 중이 아닌 것만 (분류 중이면 위의 스타일이 우선)
       if (classifyingEntities.has(entityName)) return
 
       const escapedName = entityName.replace(/"/g, '\\"')
 
+      let bgColor = ''
+      let textColor = ''
+
       if (type === 'person') {
-        css += `
-          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
-            background-color: rgba(34, 197, 94, 0.2) !important;
-            color: rgb(34, 197, 94) !important;
-          }
-        `
+        bgColor = hexToRgba(defaultTheme.entityTypes.person.hex, 0.2)
+        textColor = defaultTheme.entityTypes.person.hex
       } else if (type === 'project') {
-        css += `
-          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
-            background-color: rgba(168, 85, 247, 0.2) !important;
-            color: rgb(168, 85, 247) !important;
-          }
-        `
+        bgColor = hexToRgba(defaultTheme.entityTypes.project.hex, 0.2)
+        textColor = defaultTheme.entityTypes.project.hex
       } else if (type === 'event') {
-        css += `
-          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
-            background-color: rgba(249, 115, 22, 0.2) !important;
-            color: rgb(249, 115, 22) !important;
-          }
-        `
+        bgColor = hexToRgba(defaultTheme.entityTypes.event.hex, 0.2)
+        textColor = defaultTheme.entityTypes.event.hex
       } else if (type === 'unknown') {
+        bgColor = hexToRgba(defaultTheme.entityTypes.unknown.hex, 0.2)
+        textColor = defaultTheme.entityTypes.unknown.hex
+      }
+
+      if (bgColor && textColor) {
         css += `
           .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
-            background-color: rgba(107, 114, 128, 0.2) !important;
-            color: rgb(107, 114, 128) !important;
-            border: none !important;
-            animation: none !important;
-            font-weight: normal !important;
-            padding: 0 4px !important;
+            background-color: ${bgColor} !important;
+            color: ${textColor} !important;
+            ${type === 'unknown' ? `
+              border: none !important;
+              animation: none !important;
+              font-weight: normal !important;
+              padding: 0 4px !important;
+            ` : ''}
           }
         `
       }

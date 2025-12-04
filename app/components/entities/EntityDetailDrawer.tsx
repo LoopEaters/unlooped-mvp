@@ -4,6 +4,7 @@ import type { Database } from '@/types/supabase'
 import BaseDrawer from '@/app/components/common/BaseDrawer'
 import { getEntityTypeColor, defaultTheme } from '@/app/lib/theme'
 import { getRelativeTime } from '@/app/lib/util'
+import { highlightEntities } from '@/app/lib/utils/highlightEntities'
 import { useState } from 'react'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -15,6 +16,7 @@ interface EntityDetailDrawerProps {
   isOpen: boolean
   entity: Entity | null
   memos: Memo[]
+  entities?: Entity[]
   onClose: () => void
   onMemoClick?: (memoId: string) => void
 }
@@ -23,6 +25,7 @@ export default function EntityDetailDrawer({
   isOpen,
   entity,
   memos,
+  entities = [],
   onClose,
   onMemoClick,
 }: EntityDetailDrawerProps) {
@@ -74,12 +77,43 @@ export default function EntityDetailDrawer({
           >
             Type
           </h3>
-          <span
-            className={`inline-block px-3 py-1.5 ${typeColor.bg} ${typeColor.text} rounded-full text-sm font-medium`}
+          <div
+            className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium"
+            style={{
+              backgroundColor: defaultTheme.drawer.card.background,
+              border: `1px solid ${defaultTheme.drawer.card.border}`,
+              color: typeColor.hex,
+            }}
           >
             {entity.type || 'unknown'}
-          </span>
+          </div>
         </div>
+
+        {/* Description */}
+        {entity.description && (
+          <div>
+            <h3
+              className="text-xs uppercase tracking-wide mb-2"
+              style={{ color: defaultTheme.drawer.section.title }}
+            >
+              Description
+            </h3>
+            <div
+              className="rounded-lg p-4"
+              style={{
+                backgroundColor: defaultTheme.drawer.card.background,
+                border: `1px solid ${defaultTheme.drawer.card.border}`,
+              }}
+            >
+              <p
+                className="text-sm leading-relaxed whitespace-pre-wrap"
+                style={{ color: defaultTheme.drawer.section.text }}
+              >
+                {entity.description}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Connected Memos */}
         <div>
@@ -107,12 +141,12 @@ export default function EntityDetailDrawer({
                     border: `1px solid ${hoveredMemoId === memo.id ? defaultTheme.drawer.card.borderHover : defaultTheme.drawer.card.border}`,
                   }}
                 >
-                  <p
+                  <div
                     className="text-sm line-clamp-2 mb-2"
                     style={{ color: defaultTheme.drawer.section.text }}
                   >
-                    {memo.content}
-                  </p>
+                    {highlightEntities(memo.content, entities, entity?.id)}
+                  </div>
                   <span className="text-xs" style={{ color: defaultTheme.drawer.section.textMuted }}>
                     {memo.created_at ? getRelativeTime(memo.created_at) : 'Unknown date'}
                   </span>

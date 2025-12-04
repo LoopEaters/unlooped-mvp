@@ -8,7 +8,7 @@ import { useAppReady } from '@/app/hooks/useAppReady'
 import { useLayout } from '@/app/providers/SettingsProvider'
 import MemoCard from './MemoCard'
 import EntityDeleteModal from './EntityDeleteModal'
-import { getEntityTypeColor, getCurrentTheme } from '@/app/lib/theme'
+import { getEntityTypeColor, getCurrentTheme, defaultTheme } from '@/app/lib/theme'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -137,8 +137,8 @@ export default function MainContainer() {
     >
       {/* 로딩 바 (상단에 작게) */}
       {isLoadingOverlay && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500/20 z-50">
-          <div className="h-full bg-blue-500 animate-pulse" style={{ width: '60%' }}></div>
+        <div className="absolute top-0 left-0 right-0 h-1 z-50" style={{ backgroundColor: `${defaultTheme.ui.interactive.primary}33` }}>
+          <div className="h-full animate-pulse" style={{ width: '60%', backgroundColor: defaultTheme.ui.interactive.primary }}></div>
         </div>
       )}
 

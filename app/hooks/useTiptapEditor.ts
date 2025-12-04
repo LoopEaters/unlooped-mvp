@@ -13,9 +13,40 @@ import { CustomMention } from './tiptap/CustomMention'
 import { validateEntityNames, normalizeContentWithMentions } from '@/app/lib/utils/entityUtils'
 import { buildMentionAwareContentNodes } from '@/app/lib/utils/parseMemoContent'
 import { toast } from 'sonner'
+import { defaultTheme } from '@/app/lib/theme'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
+
+/**
+ * Hex 색상을 rgba로 변환
+ */
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+/**
+ * Hex 색상을 rgb로 변환
+ */
+function hexToRgb(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+/**
+ * RGB 값을 밝게 만들기 (20% 증가)
+ */
+function lightenRgb(hex: string, amount: number = 40): string {
+  const r = Math.min(255, parseInt(hex.slice(1, 3), 16) + amount)
+  const g = Math.min(255, parseInt(hex.slice(3, 5), 16) + amount)
+  const b = Math.min(255, parseInt(hex.slice(5, 7), 16) + amount)
+  return `rgb(${r}, ${g}, ${b})`
+}
 
 interface UseTiptapEditorOptions {
   onSubmitCallback?: () => void
@@ -363,84 +394,68 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
       `
     })
 
-    // 🎨 분류 완료된 entity: 확정된 색깔
+    // 🎨 분류 완료된 entity: 확정된 색깔 (theme.ts 색상 사용)
     Object.entries(pendingEntityTypes).forEach(([entityName, type]) => {
       // 분류 중이 아닌 것만 (분류 중이면 위의 스타일이 우선)
       if (classifyingEntities.has(entityName)) return
 
       const escapedName = entityName.replace(/"/g, '\\"')
 
+      let bgColor = ''
+      let hoverBgColor = ''
+      let textColor = ''
+      let borderColor = ''
+      let animName = ''
+      let animFastName = ''
+
       if (type === 'person') {
-        css += `
-          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
-            background-color: rgba(34, 197, 94, 0.2) !important;
-            color: rgb(34, 197, 94) !important;
-            border: 2px solid rgb(34, 197, 94) !important;
-            padding: 1px 5px !important;
-            animation: pulse-border-person 2s infinite ease-in-out !important;
-            font-weight: 500 !important;
-            cursor: pointer !important;
-          }
-          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:hover {
-            background-color: rgba(34, 197, 94, 0.3) !important;
-            animation: pulse-border-person-fast 1s infinite ease-in-out !important;
-          }
-          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:active {
-            transform: scale(0.95) !important;
-          }
-        `
+        const hex = defaultTheme.entityTypes.person.hex
+        bgColor = hexToRgba(hex, 0.2)
+        hoverBgColor = hexToRgba(hex, 0.3)
+        textColor = hex
+        borderColor = hex
+        animName = 'pulse-border-person'
+        animFastName = 'pulse-border-person-fast'
       } else if (type === 'project') {
-        css += `
-          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
-            background-color: rgba(168, 85, 247, 0.2) !important;
-            color: rgb(168, 85, 247) !important;
-            border: 2px solid rgb(168, 85, 247) !important;
-            padding: 1px 5px !important;
-            animation: pulse-border-project 2s infinite ease-in-out !important;
-            font-weight: 500 !important;
-            cursor: pointer !important;
-          }
-          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:hover {
-            background-color: rgba(168, 85, 247, 0.3) !important;
-            animation: pulse-border-project-fast 1s infinite ease-in-out !important;
-          }
-          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:active {
-            transform: scale(0.95) !important;
-          }
-        `
+        const hex = defaultTheme.entityTypes.project.hex
+        bgColor = hexToRgba(hex, 0.2)
+        hoverBgColor = hexToRgba(hex, 0.3)
+        textColor = hex
+        borderColor = hex
+        animName = 'pulse-border-project'
+        animFastName = 'pulse-border-project-fast'
       } else if (type === 'event') {
-        css += `
-          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
-            background-color: rgba(59, 130, 246, 0.2) !important;
-            color: rgb(59, 130, 246) !important;
-            border: 2px solid rgb(59, 130, 246) !important;
-            padding: 1px 5px !important;
-            animation: pulse-border-event 2s infinite ease-in-out !important;
-            font-weight: 500 !important;
-            cursor: pointer !important;
-          }
-          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:hover {
-            background-color: rgba(59, 130, 246, 0.3) !important;
-            animation: pulse-border-event-fast 1s infinite ease-in-out !important;
-          }
-          .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:active {
-            transform: scale(0.95) !important;
-          }
-        `
+        const hex = defaultTheme.entityTypes.event.hex
+        bgColor = hexToRgba(hex, 0.2)
+        hoverBgColor = hexToRgba(hex, 0.3)
+        textColor = hex
+        borderColor = hex
+        animName = 'pulse-border-event'
+        animFastName = 'pulse-border-event-fast'
       } else if (type === 'unknown') {
+        const hex = defaultTheme.entityTypes.unknown.hex
+        bgColor = hexToRgba(hex, 0.2)
+        hoverBgColor = hexToRgba(hex, 0.3)
+        textColor = hex
+        borderColor = hex
+        animName = 'pulse-border-unknown'
+        animFastName = 'pulse-border-unknown-fast'
+      }
+
+      if (bgColor) {
         css += `
           .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"] {
-            background-color: rgba(107, 114, 128, 0.2) !important;
-            color: rgb(107, 114, 128) !important;
-            border: 2px solid rgb(107, 114, 128) !important;
+            background-color: ${bgColor} !important;
+            color: ${textColor} !important;
+            border: 2px solid ${borderColor} !important;
             padding: 1px 5px !important;
-            animation: pulse-border-unknown 2s infinite ease-in-out !important;
+            animation: ${animName} 2s infinite ease-in-out !important;
             font-weight: 500 !important;
             cursor: pointer !important;
           }
           .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:hover {
-            background-color: rgba(107, 114, 128, 0.3) !important;
-            animation: pulse-border-unknown-fast 1s infinite ease-in-out !important;
+            background-color: ${hoverBgColor} !important;
+            animation: ${animFastName} 1s infinite ease-in-out !important;
           }
           .tiptap-editor .ProseMirror span[data-type="mention"][data-id="${escapedName}"]:active {
             transform: scale(0.95) !important;
@@ -449,98 +464,103 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
       }
     })
 
-    // 펄스 애니메이션 keyframes 추가
+    // 펄스 애니메이션 keyframes 추가 (theme.ts 색상 사용)
+    const personHex = defaultTheme.entityTypes.person.hex
+    const projectHex = defaultTheme.entityTypes.project.hex
+    const eventHex = defaultTheme.entityTypes.event.hex
+    const unknownHex = defaultTheme.entityTypes.unknown.hex
+
     css += `
       @keyframes pulse-opacity {
         0%, 100% { opacity: 0.5; }
         50% { opacity: 1; }
       }
 
-      /* Person 테두리 애니메이션 (초록색) */
+      /* Person 테두리 애니메이션 */
       @keyframes pulse-border-person {
         0%, 100% {
-          border-color: rgb(34, 197, 94);
-          box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+          border-color: ${hexToRgb(personHex)};
+          box-shadow: 0 0 0 0 ${hexToRgba(personHex, 0.4)};
         }
         50% {
-          border-color: rgb(74, 222, 128);
-          box-shadow: 0 0 0 3px rgba(34, 197, 94, 0);
+          border-color: ${lightenRgb(personHex, 40)};
+          box-shadow: 0 0 0 3px ${hexToRgba(personHex, 0)};
         }
       }
       @keyframes pulse-border-person-fast {
         0%, 100% {
-          border-color: rgb(74, 222, 128);
-          box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5);
+          border-color: ${lightenRgb(personHex, 40)};
+          box-shadow: 0 0 0 0 ${hexToRgba(personHex, 0.5)};
         }
         50% {
-          border-color: rgb(134, 239, 172);
-          box-shadow: 0 0 0 4px rgba(74, 222, 128, 0);
+          border-color: ${lightenRgb(personHex, 80)};
+          box-shadow: 0 0 0 4px ${hexToRgba(personHex, 0)};
         }
       }
 
-      /* Project 테두리 애니메이션 (보라색) */
+      /* Project 테두리 애니메이션 */
       @keyframes pulse-border-project {
         0%, 100% {
-          border-color: rgb(168, 85, 247);
-          box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
+          border-color: ${hexToRgb(projectHex)};
+          box-shadow: 0 0 0 0 ${hexToRgba(projectHex, 0.4)};
         }
         50% {
-          border-color: rgb(192, 132, 252);
-          box-shadow: 0 0 0 3px rgba(168, 85, 247, 0);
+          border-color: ${lightenRgb(projectHex, 40)};
+          box-shadow: 0 0 0 3px ${hexToRgba(projectHex, 0)};
         }
       }
       @keyframes pulse-border-project-fast {
         0%, 100% {
-          border-color: rgb(192, 132, 252);
-          box-shadow: 0 0 0 0 rgba(192, 132, 252, 0.5);
+          border-color: ${lightenRgb(projectHex, 40)};
+          box-shadow: 0 0 0 0 ${hexToRgba(projectHex, 0.5)};
         }
         50% {
-          border-color: rgb(216, 180, 254);
-          box-shadow: 0 0 0 4px rgba(192, 132, 252, 0);
+          border-color: ${lightenRgb(projectHex, 80)};
+          box-shadow: 0 0 0 4px ${hexToRgba(projectHex, 0)};
         }
       }
 
-      /* Event 테두리 애니메이션 (파란색) */
+      /* Event 테두리 애니메이션 */
       @keyframes pulse-border-event {
         0%, 100% {
-          border-color: rgb(59, 130, 246);
-          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+          border-color: ${hexToRgb(eventHex)};
+          box-shadow: 0 0 0 0 ${hexToRgba(eventHex, 0.4)};
         }
         50% {
-          border-color: rgb(96, 165, 250);
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0);
+          border-color: ${lightenRgb(eventHex, 40)};
+          box-shadow: 0 0 0 3px ${hexToRgba(eventHex, 0)};
         }
       }
       @keyframes pulse-border-event-fast {
         0%, 100% {
-          border-color: rgb(96, 165, 250);
-          box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.5);
+          border-color: ${lightenRgb(eventHex, 40)};
+          box-shadow: 0 0 0 0 ${hexToRgba(eventHex, 0.5)};
         }
         50% {
-          border-color: rgb(147, 197, 253);
-          box-shadow: 0 0 0 4px rgba(96, 165, 250, 0);
+          border-color: ${lightenRgb(eventHex, 80)};
+          box-shadow: 0 0 0 4px ${hexToRgba(eventHex, 0)};
         }
       }
 
-      /* Unknown 테두리 애니메이션 (회색) */
+      /* Unknown 테두리 애니메이션 */
       @keyframes pulse-border-unknown {
         0%, 100% {
-          border-color: rgb(107, 114, 128);
-          box-shadow: 0 0 0 0 rgba(107, 114, 128, 0.4);
+          border-color: ${hexToRgb(unknownHex)};
+          box-shadow: 0 0 0 0 ${hexToRgba(unknownHex, 0.4)};
         }
         50% {
-          border-color: rgb(156, 163, 175);
-          box-shadow: 0 0 0 3px rgba(107, 114, 128, 0);
+          border-color: ${lightenRgb(unknownHex, 40)};
+          box-shadow: 0 0 0 3px ${hexToRgba(unknownHex, 0)};
         }
       }
       @keyframes pulse-border-unknown-fast {
         0%, 100% {
-          border-color: rgb(156, 163, 175);
-          box-shadow: 0 0 0 0 rgba(156, 163, 175, 0.5);
+          border-color: ${lightenRgb(unknownHex, 40)};
+          box-shadow: 0 0 0 0 ${hexToRgba(unknownHex, 0.5)};
         }
         50% {
-          border-color: rgb(209, 213, 219);
-          box-shadow: 0 0 0 4px rgba(156, 163, 175, 0);
+          border-color: ${lightenRgb(unknownHex, 80)};
+          box-shadow: 0 0 0 4px ${hexToRgba(unknownHex, 0)};
         }
       }
     `

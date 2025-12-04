@@ -4,26 +4,45 @@ import type { Database } from '@/types/supabase'
 import BaseDrawer from '@/app/components/common/BaseDrawer'
 import { defaultTheme } from '@/app/lib/theme'
 import { useState } from 'react'
+import { EditorContent } from '@tiptap/react'
+import { useTiptapEditorForEdit } from '@/app/hooks/useTiptapEditorForEdit'
 
 type Memo = Database['public']['Tables']['memo']['Row']
 type Entity = Database['public']['Tables']['entity']['Row']
 
-interface MemoDetailSidebarProps {
+interface MemoDetailDrawerProps {
   isOpen: boolean
   memo: Memo | null
   entities: Entity[]
   onClose: () => void
+  userId?: string // userId 추가
+  allEntities?: Entity[] // 전체 entity 목록 (편집 시 필요)
 }
 
-export default function MemoDetailSidebar({
+export default function MemoDetailDrawer({
   isOpen,
   memo,
   entities,
   onClose,
-}: MemoDetailSidebarProps) {
-  const [isButtonHovered, setIsButtonHovered] = useState(false)
-
+  userId = '',
+  allEntities = [],
+}: MemoDetailDrawerProps) {
+  // React Hook 규칙: 조건문 전에 early return
   if (!memo) return null
+
+  const [saveButtonHovered, setSaveButtonHovered] = useState(false)
+  const [cancelButtonHovered, setCancelButtonHovered] = useState(false)
+
+  // Tiptap 에디터 훅 사용 (편집 모드)
+  const { editor, isSubmitting, handleUpdate } = useTiptapEditorForEdit({
+    memo,
+    onSuccess: onClose,
+  })
+
+  // Cancel handler
+  const handleCancel = () => {
+    onClose()
+  }
 
   const dateStr = memo.created_at
     ? new Date(memo.created_at).toLocaleString('ko-KR', {
@@ -45,26 +64,48 @@ export default function MemoDetailSidebar({
       })
     : null
 
+  // 에디터가 비어있거나 공백만 있는지 확인
+  const hasContent = editor?.getText().trim() || false
+
   return (
     <BaseDrawer
       isOpen={isOpen}
-      onClose={onClose}
-      title="Memo Details"
+      onClose={handleCancel}
+      title="Edit Memo"
       width="w-[500px]"
+      modal={false}
       footer={
-        <div className="px-6 py-4">
+        <div className="px-6 py-4 flex gap-3">
           <button
-            onMouseEnter={() => setIsButtonHovered(true)}
-            onMouseLeave={() => setIsButtonHovered(false)}
-            className="w-full px-4 py-2 rounded-lg transition-colors"
+            onClick={handleCancel}
+            onMouseEnter={() => setCancelButtonHovered(true)}
+            onMouseLeave={() => setCancelButtonHovered(false)}
+            disabled={isSubmitting}
+            className="flex-1 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
             style={{
-              backgroundColor: isButtonHovered
+              backgroundColor: cancelButtonHovered
+                ? defaultTheme.drawer.card.borderHover
+                : defaultTheme.drawer.card.background,
+              color: defaultTheme.drawer.section.text,
+              border: `1px solid ${defaultTheme.drawer.card.border}`,
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => handleUpdate()}
+            onMouseEnter={() => setSaveButtonHovered(true)}
+            onMouseLeave={() => setSaveButtonHovered(false)}
+            disabled={isSubmitting || !hasContent}
+            className="flex-1 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+            style={{
+              backgroundColor: saveButtonHovered
                 ? defaultTheme.drawer.button.secondary.bgHover
                 : defaultTheme.drawer.button.secondary.bg,
               color: defaultTheme.drawer.button.secondary.text,
             }}
           >
-            Edit Memo
+            {isSubmitting ? 'Saving...' : 'Save'}
           </button>
         </div>
       }
@@ -122,7 +163,7 @@ export default function MemoDetailSidebar({
           </div>
         </div>
 
-        {/* Content */}
+        {/* Content (Editable with Tiptap) */}
         <div>
           <h3
             className="text-xs uppercase tracking-wide mb-3"
@@ -131,18 +172,24 @@ export default function MemoDetailSidebar({
             Content
           </h3>
           <div
-            className="rounded-lg p-4"
+            className="w-full rounded-lg p-4 focus-within:ring-2 focus-within:ring-orange-500/50 transition-all"
             style={{
               backgroundColor: defaultTheme.drawer.card.background,
               border: `1px solid ${defaultTheme.drawer.card.border}`,
+              color: defaultTheme.drawer.section.text,
+              minHeight: '200px',
             }}
           >
-            <p
-              className="whitespace-pre-wrap leading-relaxed"
-              style={{ color: defaultTheme.drawer.section.text }}
-            >
-              {memo.content}
-            </p>
+            {!editor ? (
+              <div className="text-text-muted animate-pulse text-sm">
+                에디터 로딩 중...
+              </div>
+            ) : (
+              <EditorContent editor={editor} className="tiptap-editor" />
+            )}
+          </div>
+          <div className="text-xs text-text-muted/50 mt-2 px-1">
+            @로 엔티티 추가 • Tab/Space로 확정 • Ctrl+Enter로 저장
           </div>
         </div>
       </div>

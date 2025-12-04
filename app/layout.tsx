@@ -35,6 +35,9 @@ const sweet = localFont({
 export const metadata: Metadata = {
   title: 'Unlooped MVP',
   description: 'Unlooped MVP Project',
+  icons: {
+    icon: '/logo.png',
+  },
 }
 
 export default function RootLayout({

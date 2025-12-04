@@ -28,8 +28,8 @@
   --color-mention-project-bg: rgba(168, 85, 247, 0.2);
   --color-mention-person: #22c55e;
   --color-mention-person-bg: rgba(34, 197, 94, 0.2);
-  --color-mention-event: #3b82f6;
-  --color-mention-event-bg: rgba(59, 130, 246, 0.2);
+  --color-mention-event: #f59e0b;
+  --color-mention-event-bg: rgba(245, 158, 11, 0.2);
   --color-mention-unknown: #6b7280;
   --color-mention-unknown-bg: rgba(107, 114, 128, 0.2);
 
@@ -181,7 +181,7 @@ body[data-font-family="system"] {
 }
 
 .tiptap-editor .ProseMirror .mention[data-entity-type="event"]:hover {
-  background-color: rgba(59, 130, 246, 0.3);
+  background-color: rgba(245, 158, 11, 0.3);
   transform: scale(1.02);
 }
 
@@ -201,11 +201,11 @@ body[data-font-family="system"] {
 }
 
 /* ============================================================================
-   Drawer Animation (Notion-style)
+   Drawer Animation (Quick and clean)
    ============================================================================ */
 
-/* Drawer 슬라이드 인 애니메이션 (오른쪽에서 왼쪽으로) */
-@keyframes slide-in-right {
+/* Drawer 슬라이드 인 애니메이션 (빠르게) */
+@keyframes slideInFromRight {
   from {
     transform: translateX(100%);
   }
@@ -214,23 +214,51 @@ body[data-font-family="system"] {
   }
 }
 
-/* Drawer Content가 열릴 때 애니메이션 적용 */
+/* Drawer 슬라이드 아웃 애니메이션 (빠르게) */
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Drawer Content가 열릴 때 - 빠르고 부드럽게 */
 .drawer-content[data-state="open"] {
-  animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideInFromRight 0.2s ease-out;
 }
 
-/* Drawer Content가 닫힐 때 애니메이션 */
-@keyframes slide-out-right {
+/* Drawer Content가 닫힐 때 - 매우 빠르게 */
+.drawer-content[data-state="closed"] {
+  animation: slideOutToRight 0.15s ease-in;
+}
+
+/* Overlay 페이드 애니메이션 - 미세하게 */
+@keyframes fadeIn {
   from {
-    transform: translateX(0);
+    opacity: 0;
   }
   to {
-    transform: translateX(100%);
+    opacity: 1;
   }
 }
 
-.drawer-content[data-state="closed"] {
-  animation: slide-out-right 0.25s cubic-bezier(0.4, 0, 1, 1);
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+[data-radix-dialog-overlay][data-state="open"] {
+  animation: fadeIn 0.15s ease-out;
+}
+
+[data-radix-dialog-overlay][data-state="closed"] {
+  animation: fadeOut 0.1s ease-in;
 }
 
 /* ============================================================================

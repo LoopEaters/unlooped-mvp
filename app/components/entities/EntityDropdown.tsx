@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/app/lib/util'
+import { defaultTheme } from '@/app/lib/theme'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -48,8 +49,8 @@ export default function EntityDropdown({
               className={cn(
                 'px-4 py-2 cursor-pointer transition-colors',
                 index === selectedIndex
-                  ? 'bg-blue-500/20 text-white'
-                  : 'text-gray-300 hover:bg-bg-card'
+                  ? `${defaultTheme.ui.interactive.primaryBgLight} ${defaultTheme.ui.textPrimary}`
+                  : `${defaultTheme.ui.textSecondary} hover:bg-bg-card`
               )}
               onClick={() => onSelect(entity)}
               onMouseEnter={() => {
@@ -63,12 +64,12 @@ export default function EntityDropdown({
         </ul>
       ) : (
         <div className="px-4 py-3">
-          <div className="text-gray-400 text-sm mb-2">
+          <div className={`${defaultTheme.ui.textMuted} text-sm mb-2`}>
             일치하는 엔티티가 없습니다
           </div>
           <button
             onClick={() => onSelect(null)}
-            className="text-blue-400 text-sm hover:text-blue-300 transition-colors font-medium"
+            className={`${defaultTheme.ui.interactive.primaryText} text-sm hover:opacity-80 transition-opacity font-medium`}
           >
             새 엔티티 &apos;{search}&apos; 생성
           </button>
