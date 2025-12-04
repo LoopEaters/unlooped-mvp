@@ -119,7 +119,7 @@ export default function MemoEditDrawer({
       <button
         onClick={handleSave}
         disabled={!editor || !editor.getText().trim() || isSubmitting}
-        className="px-6 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        className={`px-6 py-2 ${defaultTheme.ui.interactive.primaryBg} text-white font-medium rounded-lg ${defaultTheme.ui.interactive.primaryBgHover} transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
       >
         {isSubmitting ? (
           <>

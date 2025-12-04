@@ -151,3 +151,69 @@ type EntityUpdate = Database['public']['Tables']['entity']['Update']
    npm run lint    # ESLint 실행
    ```
 
+## 색상 관리 및 테마 시스템
+
+프로젝트의 모든 색상은 `app/lib/theme.ts`에서 중앙 집중식으로 관리됩니다. **절대 하드코딩된 색상을 사용하지 마세요.**
+
+### Entity Type 색상 규칙
+
+**반드시 준수해야 하는 색상 규칙:**
+- **Person**: 초록색 (`#22C55E` / green-500)
+- **Project**: 보라색 (`#A855F7` / purple-500)
+- **Event**: 주황색 (`#F59E0B` / amber-500)
+- **Unknown**: 회색 (`#9CA3AF` / gray-400)
+
+### 색상 사용 예시
+
+```typescript
+import { defaultTheme, getEntityTypeColor } from '@/app/lib/theme'
+
+// 1. Entity 타입별 색상
+const entityColor = getEntityTypeColor(entity.type)
+// → { bg: 'bg-mention-person', text: 'text-mention-person', hex: '#22C55E' }
+
+// 2. UI 인터랙티브 색상
+${defaultTheme.ui.interactive.primaryText}        // text-blue-400
+${defaultTheme.ui.interactive.primaryBg}          // bg-blue-500
+${defaultTheme.ui.interactive.primaryBgLight}     // bg-blue-500/20
+${defaultTheme.ui.interactive.dangerText}         // text-red-400
+
+// 3. 텍스트 색상
+${defaultTheme.ui.textPrimary}     // text-white
+${defaultTheme.ui.textSecondary}   // text-gray-300
+${defaultTheme.ui.textMuted}       // text-gray-400
+
+// 4. Gray 팔레트
+${defaultTheme.ui.gray[400]}       // #9CA3AF
+${defaultTheme.ui.gray[700]}       // #374151
+
+// 5. 아이콘 색상
+style={{ color: defaultTheme.ui.iconColors.blue }}
+style={{ color: defaultTheme.ui.iconColors.orange }}
+```
+
+### 주의사항
+
+❌ **잘못된 예시 (하드코딩):**
+```tsx
+<div className="text-blue-400 bg-blue-500/20">
+<div className="hover:text-red-400">
+```
+
+✅ **올바른 예시 (Theme 사용):**
+```tsx
+<div className={`${defaultTheme.ui.interactive.primaryText} ${defaultTheme.ui.interactive.primaryBgLight}`}>
+<div className={defaultTheme.ui.interactive.dangerTextHover}>
+```
+
+### CSS 변수
+
+`app/globals.css`에서도 Entity Type 색상이 CSS 변수로 정의되어 있습니다:
+```css
+--color-mention-person: #22c55e;   /* 초록 */
+--color-mention-project: #a855f7;  /* 보라 */
+--color-mention-event: #f59e0b;    /* 주황 */
+```
+
+**중요:** CSS 파일을 수정할 때도 반드시 theme.ts와 일치하도록 유지하세요.
+

@@ -4,6 +4,7 @@ import { useEffect, useRef, useMemo, useState } from 'react'
 import { useMemos, useEntities } from '@/app/lib/queries'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
+import { defaultTheme } from '@/app/lib/theme'
 import MemoCardCompact from './MemoCardCompact'
 import type { Database } from '@/types/supabase'
 
@@ -135,9 +136,9 @@ export default function RightSidebar() {
 
         {/* 에러 상태 */}
         {isError && (
-          <div className="text-center text-red-400 text-xs mt-10 p-4 bg-red-500/10 rounded-md">
+          <div className={`text-center ${defaultTheme.ui.error.text} text-xs mt-10 p-4 ${defaultTheme.ui.error.bg} rounded-md`}>
             <p className="font-semibold mb-1">데이터를 불러올 수 없습니다</p>
-            <p className="text-[10px] text-gray-400">{error?.message || '알 수 없는 오류'}</p>
+            <p className={`text-[10px] ${defaultTheme.ui.textMuted}`}>{error?.message || '알 수 없는 오류'}</p>
           </div>
         )}
 
@@ -169,7 +170,7 @@ export default function RightSidebar() {
 
         {/* 빈 상태 */}
         {!isLoading && !isError && (!memos || memos.length === 0) && (
-          <div className="text-center text-gray-400 text-xs mt-10">
+          <div className={`text-center ${defaultTheme.ui.textMuted} text-xs mt-10`}>
             아직 메모가 없습니다
           </div>
         )}
@@ -180,7 +181,13 @@ export default function RightSidebar() {
       {showScrollToBottom && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-gray-700/90 hover:bg-gray-600/90 text-white shadow-lg transition-all duration-200 flex items-center justify-center backdrop-blur-sm border border-gray-600/50"
+          className={`absolute bottom-6 right-6 w-10 h-10 rounded-full text-white shadow-lg transition-all duration-200 flex items-center justify-center backdrop-blur-sm`}
+          style={{
+            backgroundColor: `${defaultTheme.ui.gray[700]}E6`,
+            borderColor: `${defaultTheme.ui.gray[600]}80`
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${defaultTheme.ui.gray[600]}E6`}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = `${defaultTheme.ui.gray[700]}E6`}
           aria-label="맨 아래로 스크롤"
         >
           <svg

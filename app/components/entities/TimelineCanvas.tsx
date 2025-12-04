@@ -49,13 +49,13 @@ export default function TimelineCanvas({
   onEntityClick,
 }: TimelineCanvasProps) {
   const [tooltipData, setTooltipData] = useState<{
-    memo: Memo
+    memoId: string
     x: number
     y: number
   } | null>(null)
 
   const [entityTooltipData, setEntityTooltipData] = useState<{
-    entity: Entity
+    entityId: string
     x: number
     y: number
   } | null>(null)
@@ -162,7 +162,7 @@ export default function TimelineCanvas({
               const stage = e.target.getStage()
               if (stage) stage.container().style.cursor = 'pointer'
               // Entity tooltip 표시
-              setEntityTooltipData({ entity, x, y: (range.minY + range.maxY) / 2 })
+              setEntityTooltipData({ entityId: entity.id, x, y: (range.minY + range.maxY) / 2 })
             }}
             onMouseLeave={(e) => {
               onEntityHover(null)
@@ -213,7 +213,7 @@ export default function TimelineCanvas({
                 onMemoHover(memo.id)
                 const stage = e.target.getStage()
                 if (stage) stage.container().style.cursor = 'pointer'
-                setTooltipData({ memo, x, y })
+                setTooltipData({ memoId: memo.id, x, y })
               }}
               onMouseLeave={(e) => {
                 onMemoHover(null)
@@ -324,7 +324,7 @@ export default function TimelineCanvas({
                 const centerX = (entityXs[0].x! + entityXs[entityXs.length - 1].x!) / 2
                 // 반원이 있으면 위쪽 여백 추가
                 const tooltipY = skippedEntities.length > 0 ? y - maxArcOffset - 23 : y
-                setTooltipData({ memo, x: centerX, y: tooltipY })
+                setTooltipData({ memoId: memo.id, x: centerX, y: tooltipY })
               }}
               onMouseLeave={(e) => {
                 onMemoHover(null)
@@ -414,7 +414,7 @@ export default function TimelineCanvas({
                 const stage = e.target.getStage()
                 if (stage) stage.container().style.cursor = 'pointer'
                 // Entity tooltip 표시
-                setEntityTooltipData({ entity, x, y: range.minY - totalHeight / 2 })
+                setEntityTooltipData({ entityId: entity.id, x, y: range.minY - totalHeight / 2 })
               }}
               onMouseLeave={(e) => {
                 onEntityHover(null)
@@ -497,28 +497,40 @@ export default function TimelineCanvas({
       })}
 
       {/* ===== Tooltips (최최상위) ===== */}
-      {tooltipData && (
-        <MemoTooltip
-          memo={tooltipData.memo}
-          x={tooltipData.x}
-          y={tooltipData.y}
-          canvasWidth={canvasWidth}
-          canvasHeight={canvasHeight}
-          entities={entities}
-          scale={scale}
-        />
-      )}
+      {tooltipData && (() => {
+        // memoId로 최신 memo 찾기 (React Query 캐시 업데이트 시 자동으로 최신 데이터 반영)
+        const currentMemo = memos.find(m => m.id === tooltipData.memoId)
+        if (!currentMemo) return null
 
-      {entityTooltipData && (
-        <EntityTooltip
-          entity={entityTooltipData.entity}
-          x={entityTooltipData.x}
-          y={entityTooltipData.y}
-          canvasWidth={canvasWidth}
-          canvasHeight={canvasHeight}
-          scale={scale}
-        />
-      )}
+        return (
+          <MemoTooltip
+            memo={currentMemo}
+            x={tooltipData.x}
+            y={tooltipData.y}
+            canvasWidth={canvasWidth}
+            canvasHeight={canvasHeight}
+            entities={entities}
+            scale={scale}
+          />
+        )
+      })()}
+
+      {entityTooltipData && (() => {
+        // entityId로 최신 entity 찾기 (React Query 캐시 업데이트 시 자동으로 최신 데이터 반영)
+        const currentEntity = entities.find(e => e.id === entityTooltipData.entityId)
+        if (!currentEntity) return null
+
+        return (
+          <EntityTooltip
+            entity={currentEntity}
+            x={entityTooltipData.x}
+            y={entityTooltipData.y}
+            canvasWidth={canvasWidth}
+            canvasHeight={canvasHeight}
+            scale={scale}
+          />
+        )
+      })()}
     </>
   )
 }
