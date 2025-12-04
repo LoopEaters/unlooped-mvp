@@ -10,7 +10,7 @@ import { useTiptapEditorForEdit } from '@/app/hooks/useTiptapEditorForEdit'
 type Memo = Database['public']['Tables']['memo']['Row']
 type Entity = Database['public']['Tables']['entity']['Row']
 
-interface MemoDetailSidebarProps {
+interface MemoDetailDrawerProps {
   isOpen: boolean
   memo: Memo | null
   entities: Entity[]
@@ -19,14 +19,14 @@ interface MemoDetailSidebarProps {
   allEntities?: Entity[] // 전체 entity 목록 (편집 시 필요)
 }
 
-export default function MemoDetailSidebar({
+export default function MemoDetailDrawer({
   isOpen,
   memo,
   entities,
   onClose,
   userId = '',
   allEntities = [],
-}: MemoDetailSidebarProps) {
+}: MemoDetailDrawerProps) {
   // React Hook 규칙: 조건문 전에 early return
   if (!memo) return null
 
@@ -73,6 +73,7 @@ export default function MemoDetailSidebar({
       onClose={handleCancel}
       title="Edit Memo"
       width="w-[500px]"
+      modal={false}
       footer={
         <div className="px-6 py-4 flex gap-3">
           <button

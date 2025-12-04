@@ -23,6 +23,21 @@ export default function EntityTooltip({ entity, x, y, canvasWidth, canvasHeight 
   // Type 색상
   const typeColor = getEntityTypeHexColor(entity.type)
 
+  // Type badge 너비 계산 (Canvas measureText로 정확하게)
+  const typeBadgeWidth = useMemo(() => {
+    const typeText = entity.type || 'unknown'
+    if (typeof document !== 'undefined') {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.font = '600 9px sans-serif' // Type 텍스트와 동일한 폰트
+        return ctx.measureText(typeText).width + 12 // 좌우 padding
+      }
+    }
+    // Fallback
+    return typeText.length * 7 + 12
+  }, [entity.type])
+
   // Description 텍스트 (없으면 기본 메시지)
   const description = entity.description || 'No description available'
   const maxDescriptionLength = 150
@@ -134,7 +149,7 @@ export default function EntityTooltip({ entity, x, y, canvasWidth, canvasHeight 
         <Rect
           x={padding}
           y={0}
-          width={entity.type ? entity.type.length * 7 + 12 : 60}
+          width={typeBadgeWidth}
           height={typeHeight}
           fill={typeColor}
           opacity={0.25}

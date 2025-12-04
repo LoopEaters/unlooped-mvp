@@ -24,8 +24,8 @@ export default function Home() {
         const filtered = prev.filter(id => id !== entityId)
         return [...filtered, entityId]
       })
-      // URL 파라미터 제거
-      router.replace('/')
+      // URL 파라미터 제거 (리렌더링 없이 조용히 변경)
+      window.history.replaceState(null, '', '/')
     }
 
     if (memoId) {
@@ -35,10 +35,10 @@ export default function Home() {
       setTimeout(() => {
         setHighlightedMemoId(null)
       }, 3000)
-      // URL 파라미터 제거
-      router.replace('/')
+      // URL 파라미터 제거 (리렌더링 없이 조용히 변경)
+      window.history.replaceState(null, '', '/')
     }
-  }, [searchParams, router, setFilteredEntityIds, setHighlightedMemoId])
+  }, [searchParams, setFilteredEntityIds, setHighlightedMemoId])
 
   return (
     <div className="h-screen flex flex-col bg-bg-primary">

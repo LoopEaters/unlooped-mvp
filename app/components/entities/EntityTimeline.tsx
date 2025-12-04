@@ -7,7 +7,7 @@ import { getTimeRange, optimizeEntityLayout, optimizeEntityLayoutCostBased, calc
 import { defaultTheme } from '@/app/lib/theme'
 import { useAuth } from '@/app/providers/AuthProvider'
 import TimelineCanvas from './TimelineCanvas'
-import MemoDetailSidebar from './MemoDetailSidebar'
+import MemoDetailDrawer from './MemoDetailDrawer'
 import EntityDetailDrawer from './EntityDetailDrawer'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -312,7 +312,7 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
       </div>
 
       {/* Memo Detail Drawer */}
-      <MemoDetailSidebar
+      <MemoDetailDrawer
         isOpen={!!selectedMemoId}
         memo={selectedMemo}
         entities={optimizedEntities.filter((e) => selectedMemo?.entityIds.includes(e.id))}
