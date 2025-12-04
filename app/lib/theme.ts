@@ -350,7 +350,7 @@ export const defaultTheme: ThemeColors = {
 
   drawer: {
     overlay: 'rgba(0, 0, 0, 0.5)', // bg-black/50
-    background: '#0F172A', // bg-primary
+    background: '#0A0F1E', // 더 어두운 배경
     border: '#1F2937', // border-main
     header: {
       title: '#FFFFFF', // text-white
@@ -363,7 +363,7 @@ export const defaultTheme: ThemeColors = {
       textMuted: '#9CA3AF', // text-gray-400
     },
     card: {
-      background: '#0F172A', // bg-primary
+      background: '#0F172A', // 카드는 약간 밝게 유지 (대비)
       border: '#1F2937', // border-main
       borderHover: '#6B7280', // hover:border-gray-500
     },
