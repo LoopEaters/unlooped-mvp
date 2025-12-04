@@ -193,10 +193,16 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
   const selectedMemo = memos.find((m) => m.id === selectedMemoId) || null
   const selectedEntity = optimizedEntities.find((e) => e.id === selectedEntityId) || null
 
-  // Memo 클릭 핸들러 (Entity drawer에서 사용)
-  const handleMemoClickFromEntity = (memoId: string) => {
+  // Memo 클릭 핸들러 (Entity drawer에서 사용 또는 Timeline에서 직접)
+  const handleMemoClick = (memoId: string) => {
     setSelectedEntityId(null) // Entity drawer 닫기
     setSelectedMemoId(memoId) // Memo drawer 열기
+  }
+
+  // Entity 클릭 핸들러
+  const handleEntityClick = (entityId: string) => {
+    setSelectedMemoId(null) // Memo drawer 닫기
+    setSelectedEntityId(entityId) // Entity drawer 열기
   }
 
   return (
@@ -301,10 +307,10 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
                 hoveredMemoId={hoveredMemoId}
                 selectedMemoId={selectedMemoId}
                 hoveredEntityId={hoveredEntityId}
-                onMemoClick={setSelectedMemoId}
+                onMemoClick={handleMemoClick}
                 onMemoHover={setHoveredMemoId}
                 onEntityHover={setHoveredEntityId}
-                onEntityClick={setSelectedEntityId}
+                onEntityClick={handleEntityClick}
               />
             </Layer>
           </Stage>
@@ -328,7 +334,7 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
         memos={memos}
         entities={optimizedEntities}
         onClose={() => setSelectedEntityId(null)}
-        onMemoClick={handleMemoClickFromEntity}
+        onMemoClick={handleMemoClick}
       />
     </div>
   )
