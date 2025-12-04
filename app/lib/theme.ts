@@ -86,6 +86,56 @@ export interface ThemeColors {
 
     // 버튼 hover
     buttonHover: string
+
+    // 인터랙티브 색상 (선택, hover 등)
+    interactive: {
+      primary: string           // 주요 인터랙티브 요소 (파란색)
+      primaryBg: string         // 주요 배경 (bg-blue-500)
+      primaryBgHover: string    // 주요 배경 hover (bg-blue-600)
+      primaryBgLight: string    // 주요 배경 연한 (bg-blue-500/20)
+      primaryText: string       // 주요 텍스트 (text-blue-400)
+
+      success: string           // 성공 (초록색)
+      successBg: string
+      successText: string
+
+      warning: string           // 경고 (노란색)
+      warningBg: string
+      warningText: string
+
+      danger: string            // 위험 (빨간색)
+      dangerBg: string
+      dangerText: string
+      dangerTextHover: string
+    }
+
+    // Gray 팔레트
+    gray: {
+      50: string
+      100: string
+      200: string
+      300: string
+      400: string
+      500: string
+      600: string
+      700: string
+      800: string
+      900: string
+    }
+
+    // 아이콘 색상
+    iconColors: {
+      default: string       // 기본 아이콘 색상
+      muted: string         // 흐린 아이콘
+      orange: string        // 오렌지 (아바타 등)
+      blue: string          // 파란색
+      yellow: string        // 노란색
+      green: string         // 초록색
+      purple: string        // 보라색
+      cyan: string          // 청록색
+      indigo: string        // 남색
+      red: string           // 빨간색
+    }
   }
 
   // Timeline 관련 색상
@@ -159,17 +209,17 @@ export const defaultTheme: ThemeColors = {
     person: {
       bg: 'bg-mention-person',
       text: 'text-mention-person',
-      hex: '#3B82F6', // blue-500 - 더 진한 파란색
+      hex: '#22C55E', // green-500 - 초록색
     },
     project: {
       bg: 'bg-mention-project',
       text: 'text-mention-project',
-      hex: '#10B981', // emerald-500 - 더 진한 초록색
+      hex: '#A855F7', // purple-500 - 보라색
     },
     event: {
       bg: 'bg-mention-event',
       text: 'text-mention-event',
-      hex: '#F59E0B', // amber-500
+      hex: '#F59E0B', // amber-500 - 주황색
     },
     unknown: {
       bg: 'bg-gray-400',
@@ -230,6 +280,56 @@ export const defaultTheme: ThemeColors = {
 
     // 버튼 hover
     buttonHover: 'hover:bg-gray-700',
+
+    // 인터랙티브 색상
+    interactive: {
+      primary: '#3B82F6',           // blue-500
+      primaryBg: 'bg-blue-500',
+      primaryBgHover: 'hover:bg-blue-600',
+      primaryBgLight: 'bg-blue-500/20',
+      primaryText: 'text-blue-400',
+
+      success: '#22C55E',           // green-500
+      successBg: 'bg-green-500',
+      successText: 'text-green-400',
+
+      warning: '#EAB308',           // yellow-500
+      warningBg: 'bg-yellow-500/30',
+      warningText: 'text-yellow-200',
+
+      danger: '#EF4444',            // red-500
+      dangerBg: 'bg-red-500/10',
+      dangerText: 'text-red-400',
+      dangerTextHover: 'hover:text-red-300',
+    },
+
+    // Gray 팔레트
+    gray: {
+      50: '#F9FAFB',
+      100: '#F3F4F6',
+      200: '#E5E7EB',
+      300: '#D1D5DB',
+      400: '#9CA3AF',
+      500: '#6B7280',
+      600: '#4B5563',
+      700: '#374151',
+      800: '#1F2937',
+      900: '#111827',
+    },
+
+    // 아이콘 색상
+    iconColors: {
+      default: '#FFFFFF',       // white
+      muted: '#9CA3AF',         // gray-400
+      orange: '#FB923C',        // orange-400
+      blue: '#60A5FA',          // blue-400
+      yellow: '#FACC15',        // yellow-400
+      green: '#4ADE80',         // green-400
+      purple: '#C084FC',        // purple-400
+      cyan: '#22D3EE',          // cyan-400
+      indigo: '#818CF8',        // indigo-400
+      red: '#F87171',           // red-400
+    },
   },
 
   timeline: {

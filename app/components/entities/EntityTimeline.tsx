@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { Stage, Layer } from 'react-konva'
 import type { Database } from '@/types/supabase'
-import { getTimeRange, optimizeEntityLayout, calculateCrossings, timestampToY, formatTimelineDate } from '@/app/lib/util'
+import { getTimeRange, optimizeEntityLayout, optimizeEntityLayoutCostBased, calculateCrossings, timestampToY, formatTimelineDate } from '@/app/lib/util'
 import { defaultTheme } from '@/app/lib/theme'
 import { useAuth } from '@/app/providers/AuthProvider'
 import TimelineCanvas from './TimelineCanvas'
@@ -36,7 +36,13 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
 
   // Entity 배치 최적화
   const optimizedEntities = useMemo(() => {
-    const optimized = optimizeEntityLayout(entities, memos)
+    // 비용 기반 최적화 (거리제곱 + 교차 패널티)로 시도
+    // 빠른 로컬서치(인접 스왑, 시간예산 250ms)
+    const optimized = optimizeEntityLayoutCostBased(entities, memos, {
+      lambda: 1.0,
+      maxPasses: 4,
+      timeBudgetMs: 250,
+    })
 
     // 디버깅: crossing 수 비교
     if (process.env.NODE_ENV === 'development') {

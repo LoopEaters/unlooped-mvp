@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import * as Avatar from '@radix-ui/react-avatar'
 import * as Popover from '@radix-ui/react-popover'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
@@ -21,6 +21,7 @@ type Memo = Database['public']['Tables']['memo']['Row']
 
 export default function Header() {
   const pathname = usePathname()
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -74,25 +75,15 @@ export default function Header() {
 
   // 검색 결과 선택 핸들러
   const handleSelectEntity = (entity: Entity) => {
-    // Entity 검색: MainContainer에 표시
-    // 이미 있으면 맨 뒤로 이동, 없으면 추가 (항상 맨 아래로)
-    setFilteredEntityIds(prev => {
-      const filtered = prev.filter(id => id !== entity.id)
-      return [...filtered, entity.id]
-    })
+    // Entity 검색: URL 파라미터로 홈페이지로 이동
+    router.push(`/?entity=${entity.id}`)
     setIsSearchOpen(false)
     setSearchQuery('') // 검색어 초기화
   }
 
   const handleSelectMemo = (memo: Memo) => {
-    // Memo 검색: RightSidebar에서 하이라이트
-    setHighlightedMemoId(memo.id)
-
-    // 3초 후 하이라이트 해제
-    setTimeout(() => {
-      setHighlightedMemoId(null)
-    }, 3000)
-
+    // Memo 검색: URL 파라미터로 홈페이지로 이동
+    router.push(`/?memo=${memo.id}`)
     setIsSearchOpen(false)
     setSearchQuery('') // 검색어 초기화
   }

@@ -3,6 +3,7 @@
 import { Group, Rect, Text } from 'react-konva'
 import type { Database } from '@/types/supabase'
 import { defaultTheme, getEntityTypeHexColor } from '@/app/lib/theme'
+import { useMemo } from 'react'
 
 type Memo = Database['public']['Tables']['memo']['Row']
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -71,13 +72,34 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
 
   const contentParts = parseContent(previewContent)
 
-  // 멘션된 entities 추출 (색상 표시용)
-  const mentionedEntities = contentParts
-    .filter(part => part.entityType)
-    .map(part => ({
-      text: part.text,
-      type: part.entityType!
+  // 멘션된 entities 추출 및 너비 계산
+  const mentionedEntitiesWithWidth = useMemo(() => {
+    const mentioned = contentParts
+      .filter(part => part.entityType)
+      .map(part => ({
+        text: part.text,
+        type: part.entityType!
+      }))
+
+    // Canvas measureText로 정확한 너비 계산
+    if (typeof document !== 'undefined') {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.font = '600 9px sans-serif'
+        return mentioned.map(mention => ({
+          ...mention,
+          width: ctx.measureText(mention.text).width + 12 // 좌우 padding
+        }))
+      }
+    }
+
+    // Fallback: 대략적인 계산
+    return mentioned.map(mention => ({
+      ...mention,
+      width: mention.text.length * 7 + 12
     }))
+  }, [contentParts])
 
   // 날짜 포맷
   const dateStr = memo.created_at
@@ -89,17 +111,22 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
       })
     : 'Unknown date'
 
-  // 텍스트 높이 계산 (더 정확하게, 여유있게)
+  // 텍스트 높이 계산 (Canvas measureText 사용)
   const contentWidth = maxWidth - padding * 2
   const fontSize = 13
   const lineHeight = 1.5
 
-  // 더 정확한 문자 너비 계산 (한글/영문 고려)
-  let totalCharWidth = 0
-  for (const char of previewContent) {
-    totalCharWidth += char.charCodeAt(0) > 127 ? fontSize * 0.9 : fontSize * 0.6
+  // Canvas measureText로 정확한 너비 계산
+  let contentActualWidth = contentWidth // fallback
+  if (typeof document !== 'undefined') {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (ctx) {
+      ctx.font = '13px sans-serif' // fontSize와 동일하게
+      contentActualWidth = ctx.measureText(previewContent).width
+    }
   }
-  const contentLines = Math.ceil(totalCharWidth / contentWidth)
+  const contentLines = Math.ceil(contentActualWidth / contentWidth)
   const contentHeight = contentLines * fontSize * lineHeight + 10 // 여유 공간 추가
 
   // 각 섹션 높이
@@ -108,7 +135,7 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
   const dividerMargin = 10
   const hintHeight = 12
   const spacing = 8
-  const mentionHeight = mentionedEntities.length > 0 ? (mentionedEntities.length * 20 + spacing + 14) : 0
+  const mentionHeight = mentionedEntitiesWithWidth.length > 0 ? (mentionedEntitiesWithWidth.length * 20 + spacing + 14) : 0
 
   const totalHeight =
     padding + // top padding
@@ -197,7 +224,7 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
       />
 
       {/* 멘션된 Entities */}
-      {mentionedEntities.length > 0 && (
+      {mentionedEntitiesWithWidth.length > 0 && (
         <>
           <Text
             x={padding}
@@ -207,16 +234,9 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
             fill={defaultTheme.tooltip.hint}
             fontStyle="600"
           />
-          {mentionedEntities.map((mention, i) => {
+          {mentionedEntitiesWithWidth.map((mention, i) => {
             const color = getEntityTypeHexColor(mention.type)
             const yPos = padding + dateHeight + dividerMargin * 2 + dividerHeight + contentHeight + spacing + 14 + i * 20
-
-            // 텍스트 너비 계산 (더 정확하게)
-            let textWidth = 0
-            for (const char of mention.text) {
-              textWidth += char.charCodeAt(0) > 127 ? 9 * 0.9 : 9 * 0.6
-            }
-            const boxWidth = textWidth + 12
 
             return (
               <Group key={`mention-${i}`}>
@@ -224,7 +244,7 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
                 <Rect
                   x={padding}
                   y={yPos}
-                  width={boxWidth}
+                  width={mention.width}
                   height={18}
                   fill={color}
                   opacity={0.15}

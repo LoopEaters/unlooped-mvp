@@ -366,17 +366,22 @@ export default function TimelineCanvas({
         const typeText = entity.type || 'unknown'
         const memoText = `${range.memoCount} ${range.memoCount === 1 ? 'memo' : 'memos'}`
 
-        // Entity name의 예상 줄 수 계산 (더 정확하게)
+        // Entity name의 예상 줄 수 계산 (Canvas measureText 사용)
         const fontSize = 11
         const textWidth = 80
         const lineHeight = fontSize * 1.5
 
-        // 더 정확한 문자 너비 계산 (영문 6px, 한글/특수문자 9px 가정)
-        let totalWidth = 0
-        for (const char of entity.name) {
-          totalWidth += char.charCodeAt(0) > 127 ? 9 : 6
+        // Canvas measureText로 정확한 너비 계산
+        let actualWidth = textWidth // fallback
+        if (typeof document !== 'undefined') {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            ctx.font = '600 11px sans-serif' // fontStyle과 fontSize 동일하게
+            actualWidth = ctx.measureText(entity.name).width
+          }
         }
-        const estimatedLines = Math.ceil(totalWidth / textWidth)
+        const estimatedLines = Math.ceil(actualWidth / textWidth)
         const actualLines = Math.min(Math.max(estimatedLines, 1), 3) // 최소 1줄, 최대 3줄
 
         // 배경 높이 계산 (padding 포함)
@@ -385,7 +390,7 @@ export default function TimelineCanvas({
 
         // 전체 높이 계산
         const badgeHeight = 16
-        const spacing = 1.5 // entity name과 badge 사이 간격 (더 좁게)
+        const spacing = 4.5 // entity name과 badge 사이 간격 (1.5 * 3)
         const totalHeight = nameBoxHeight + spacing + badgeHeight + 12 // 아래 여유 공간
 
         return (

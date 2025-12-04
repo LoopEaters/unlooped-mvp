@@ -3,6 +3,7 @@
 import { Group, Rect, Text } from 'react-konva'
 import type { Database } from '@/types/supabase'
 import { defaultTheme, getEntityTypeHexColor } from '@/app/lib/theme'
+import { useMemo } from 'react'
 
 type Entity = Database['public']['Tables']['entity']['Row']
 
@@ -30,17 +31,22 @@ export default function EntityTooltip({ entity, x, y, canvasWidth, canvasHeight 
       ? description.slice(0, maxDescriptionLength) + '...'
       : description
 
-  // 텍스트 높이 계산 (더 정확하게)
+  // 텍스트 높이 계산 (Canvas measureText 사용)
   const contentWidth = maxWidth - padding * 2
   const descFontSize = 12
   const lineHeight = 1.5
 
-  // Description 높이 계산
-  let totalCharWidth = 0
-  for (const char of previewDescription) {
-    totalCharWidth += char.charCodeAt(0) > 127 ? descFontSize * 0.9 : descFontSize * 0.6
+  // Description 높이 계산 (Canvas measureText로 정확하게)
+  let descActualWidth = contentWidth // fallback
+  if (typeof document !== 'undefined') {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (ctx) {
+      ctx.font = '12px sans-serif' // fontSize와 동일하게
+      descActualWidth = ctx.measureText(previewDescription).width
+    }
   }
-  const descLines = Math.ceil(totalCharWidth / contentWidth)
+  const descLines = Math.ceil(descActualWidth / contentWidth)
   const descHeight = descLines * descFontSize * lineHeight + 10
 
   // 각 섹션 높이
