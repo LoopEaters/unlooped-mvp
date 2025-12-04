@@ -99,6 +99,7 @@ export interface ThemeColors {
       majorLine: string     // 주요 시간 눈금 (강조)
     }
     memo: {
+      color: string         // Memo 색상 (기본)
       hoverOpacity: number  // Hover 시 투명도
       selectedOpacity: number // 선택 시 투명도
     }
@@ -158,12 +159,12 @@ export const defaultTheme: ThemeColors = {
     person: {
       bg: 'bg-mention-person',
       text: 'text-mention-person',
-      hex: '#60A5FA', // blue-400
+      hex: '#3B82F6', // blue-500 - 더 진한 파란색
     },
     project: {
       bg: 'bg-mention-project',
       text: 'text-mention-project',
-      hex: '#34D399', // emerald-400
+      hex: '#10B981', // emerald-500 - 더 진한 초록색
     },
     event: {
       bg: 'bg-mention-event',
@@ -241,6 +242,7 @@ export const defaultTheme: ThemeColors = {
       majorLine: '#4B5563', // gray-600
     },
     memo: {
+      color: '#F8FAFC', // slate-50 - 밝은 흰색 계열
       hoverOpacity: 0.9,
       selectedOpacity: 1,
     },

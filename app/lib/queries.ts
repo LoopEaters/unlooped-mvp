@@ -472,6 +472,7 @@ export function useCreateMemo(userId: string) {
       queryClient.invalidateQueries({ queryKey: ['memos', userId], exact: true });
       queryClient.invalidateQueries({ queryKey: ['memos', 'byEntity'] }); // byEntity는 prefix로
       queryClient.invalidateQueries({ queryKey: ['entities', userId], exact: true });
+      queryClient.invalidateQueries({ queryKey: ['timeline', userId], exact: true });
 
       toast.success('메모가 저장되었습니다.');
 
@@ -487,6 +488,7 @@ export function useCreateMemo(userId: string) {
               await updateEntityDescription(entityId);
               // 업데이트 완료 후 엔티티 캐시 무효화 (exact로)
               queryClient.invalidateQueries({ queryKey: ['entities', userId], exact: true });
+              queryClient.invalidateQueries({ queryKey: ['timeline', userId], exact: true });
             } catch (error) {
               console.error('AI 업데이트 실패 (조용히 무시)', error);
             }
@@ -517,6 +519,7 @@ export function useUpdateMemo(userId: string) {
       entityNames: string[];
       originalEntityIds: string[];
       pendingEntityTypes?: Record<string, string>;
+      createdAt?: string;
     }
   >({
     mutationFn: async ({
@@ -525,16 +528,24 @@ export function useUpdateMemo(userId: string) {
       entityNames,
       originalEntityIds,
       pendingEntityTypes = {},
+      createdAt,
     }) => {
       if (!userId) throw new Error('User not authenticated');
 
       // 1. Update memo content
+      const updateData: { content: string; updated_at: string; created_at?: string } = {
+        content,
+        updated_at: new Date().toISOString(),
+      };
+
+      // createdAt이 제공되면 업데이트
+      if (createdAt) {
+        updateData.created_at = createdAt;
+      }
+
       const { data: memo, error: memoError } = await supabase
         .from('memo')
-        .update({
-          content,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', memoId)
         .select()
         .single();
@@ -634,6 +645,7 @@ export function useUpdateMemo(userId: string) {
       queryClient.invalidateQueries({ queryKey: ['memos', userId], exact: true });
       queryClient.invalidateQueries({ queryKey: ['memos', 'byEntity'] });
       queryClient.invalidateQueries({ queryKey: ['entities', userId], exact: true });
+      queryClient.invalidateQueries({ queryKey: ['timeline', userId], exact: true });
 
       // Show appropriate success message
       if (result.orphanedEntityIds.length > 0) {

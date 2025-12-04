@@ -286,3 +286,262 @@ export function calculateCrossings(
   return crossings
 }
 
+// ==================== Cost-based Entity Layout ====================
+
+export interface CostLayoutOptions {
+  lambda?: number // crossing penalty weight
+  maxPasses?: number // number of adjacent-swap passes
+  timeBudgetMs?: number // time budget for local search
+}
+
+/**
+ * Cost-based entity ordering using a lightweight local search.
+ * Cost(order) = sum_{i<j} w_ij * (pos(i) - pos(j))^2 + lambda * crossings(order)
+ * - w_ij: number of shared memos between entity i and j
+ * - crossings: based on memo [minIdx, maxIdx] interval crossing heuristic
+ *
+ * Heuristic:
+ * - Seed with optimizeEntityLayout (connection-based greedy)
+ * - Perform adjacent-swap hill-climbing with efficient delta updates
+ */
+export function optimizeEntityLayoutCostBased<T extends { id: string; name: string }>(
+  entities: T[],
+  memos: Array<{ entityIds: string[] }>,
+  options: CostLayoutOptions = {}
+): T[] {
+  const n = entities.length
+  if (n <= 2) return entities
+
+  const lambda = options.lambda ?? 1.0
+  const maxPasses = options.maxPasses ?? 4
+  const timeBudgetMs = options.timeBudgetMs ?? 250
+
+  // Build weights w_ij from memos (shared memo counts)
+  const weights = new Map<string, Map<string, number>>()
+  entities.forEach((e) => weights.set(e.id, new Map()))
+  memos.forEach((m) => {
+    const ids = m.entityIds.filter((id) => weights.has(id))
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        const a = ids[i]
+        const b = ids[j]
+        const wa = weights.get(a)!
+        const wb = weights.get(b)!
+        wa.set(b, (wa.get(b) || 0) + 1)
+        wb.set(a, (wb.get(a) || 0) + 1)
+      }
+    }
+  })
+
+  // Seed order: use existing greedy optimizer
+  let order = optimizeEntityLayout(entities, memos)
+  let pos = new Map<string, number>()
+  order.forEach((e, i) => pos.set(e.id, i))
+
+  // Preprocess memos: filter to known ids and store per-entity membership
+  const memoEntities: string[][] = memos.map((m) => m.entityIds.filter((id) => pos.has(id)))
+  const memosOf = new Map<string, number[]>() // entityId -> memo indices
+  entities.forEach((e) => memosOf.set(e.id, []))
+  memoEntities.forEach((ids, mi) => {
+    ids.forEach((id) => {
+      const arr = memosOf.get(id)
+      if (arr) arr.push(mi)
+    })
+  })
+
+  // Helper: compute [minIdx, maxIdx] for memo
+  const memoMin = new Array<number>(memoEntities.length)
+  const memoMax = new Array<number>(memoEntities.length)
+  const recomputeMemoRange = (mi: number) => {
+    const ids = memoEntities[mi]
+    let minV = Infinity
+    let maxV = -Infinity
+    for (const id of ids) {
+      const p = pos.get(id)!
+      if (p < minV) minV = p
+      if (p > maxV) maxV = p
+    }
+    memoMin[mi] = isFinite(minV) ? minV : -1
+    memoMax[mi] = isFinite(maxV) ? maxV : -1
+  }
+  for (let i = 0; i < memoEntities.length; i++) recomputeMemoRange(i)
+
+  // Helper: crossing predicate with memo ranges
+  const crosses = (aMin: number, aMax: number, bMin: number, bMax: number) =>
+    (aMin < bMin && bMin < aMax && aMax < bMax) || (bMin < aMin && aMin < bMax && bMax < aMax)
+
+  // Compute initial costs
+  const distanceCost = () => {
+    let sum = 0
+    for (let i = 0; i < n; i++) {
+      const idI = order[i].id
+      const wi = weights.get(idI)!
+      wi.forEach((w, idJ) => {
+        const j = pos.get(idJ)!
+        if (i < j) {
+          const d = j - i
+          sum += w * d * d
+        }
+      })
+    }
+    return sum
+  }
+  const crossingCount = () => {
+    let c = 0
+    for (let i = 0; i < memoEntities.length; i++) {
+      if (memoEntities[i].length < 2) continue
+      for (let j = i + 1; j < memoEntities.length; j++) {
+        if (memoEntities[j].length < 2) continue
+        if (crosses(memoMin[i], memoMax[i], memoMin[j], memoMax[j])) c++
+      }
+    }
+    return c
+  }
+
+  let curDist = distanceCost()
+  let curCross = crossingCount()
+  let curCost = curDist + lambda * curCross
+
+  // Local search: adjacent swaps with delta updates
+  const startTime = Date.now()
+  const degMemo = (id: string) => memosOf.get(id)?.length || 0
+
+  const trySwap = (i: number) => {
+    const a = order[i]
+    const b = order[i + 1]
+    const posA = i
+    const posB = i + 1
+
+    // Distance delta: only pairs involving a or b
+    let deltaDist = 0
+    const contrib = (idX: string, oldPosX: number, newPosX: number) => {
+      const wx = weights.get(idX)!
+      let dSum = 0
+      wx.forEach((w, idY) => {
+        const py = pos.get(idY)!
+        if (idY === a.id || idY === b.id) return // handled separately via (a,b)
+        const oldD = Math.abs(oldPosX - py)
+        const newD = Math.abs(newPosX - py)
+        dSum += w * (newD * newD - oldD * oldD)
+      })
+      return dSum
+    }
+    deltaDist += contrib(a.id, posA, posB)
+    deltaDist += contrib(b.id, posB, posA)
+    // pair (a,b)
+    const wab = weights.get(a.id)!.get(b.id) || 0
+    if (wab) {
+      const oldD = posB - posA // 1
+      const newD = posA - posB // -1
+      deltaDist += wab * (newD * newD - oldD * oldD) // same here (1-1=0), but keep for generality
+    }
+
+    // Crossing delta: only pairs involving memos that include a or b
+    const affectedSet = new Set<number>()
+    for (const mi of memosOf.get(a.id) || []) affectedSet.add(mi)
+    for (const mi of memosOf.get(b.id) || []) affectedSet.add(mi)
+    if (affectedSet.size > 0) {
+      const affected = Array.from(affectedSet)
+
+      // Snapshot old mins/maxes for affected
+      const oldRanges = new Map<number, { min: number; max: number }>()
+      affected.forEach((mi) => oldRanges.set(mi, { min: memoMin[mi], max: memoMax[mi] }))
+
+      // Apply swap virtually to positions of a and b
+      // We won't mutate pos until we accept the move; recompute ranges on the fly
+      const newRange = (mi: number) => {
+        const ids = memoEntities[mi]
+        let minV = Infinity
+        let maxV = -Infinity
+        for (const id of ids) {
+          let p = pos.get(id)!
+          if (id === a.id) p = posB
+          else if (id === b.id) p = posA
+          if (p < minV) minV = p
+          if (p > maxV) maxV = p
+        }
+        return { min: minV, max: maxV }
+      }
+
+      // Collect pairs to evaluate (unique, unordered)
+      const pairKey = (x: number, y: number) => (x < y ? `${x},${y}` : `${y},${x}`)
+      const pairs = new Set<string>()
+      for (const mi of affected) {
+        for (let mj = 0; mj < memoEntities.length; mj++) {
+          if (mi === mj) continue
+          if (memoEntities[mj].length < 2) continue
+          pairs.add(pairKey(mi, mj))
+        }
+      }
+
+      let deltaCross = 0
+      pairs.forEach((key) => {
+        const [s1, s2] = key.split(',')
+        const i1 = parseInt(s1, 10)
+        const i2 = parseInt(s2, 10)
+        const aOld = oldRanges.has(i1) ? oldRanges.get(i1)! : { min: memoMin[i1], max: memoMax[i1] }
+        const bOld = oldRanges.has(i2) ? oldRanges.get(i2)! : { min: memoMin[i2], max: memoMax[i2] }
+        const oldC = crosses(aOld.min, aOld.max, bOld.min, bOld.max) ? 1 : 0
+
+        const aNew = oldRanges.has(i1) ? newRange(i1) : aOld
+        const bNew = oldRanges.has(i2) ? newRange(i2) : bOld
+        const newC = crosses(aNew.min, aNew.max, bNew.min, bNew.max) ? 1 : 0
+
+        deltaCross += newC - oldC
+      })
+
+      const delta = deltaDist + lambda * deltaCross
+      if (delta < 0) {
+        // Accept swap: mutate order, pos, and update ranges for affected memos
+        const tmp = order[i]
+        order[i] = order[i + 1]
+        order[i + 1] = tmp
+        pos.set(a.id, posB)
+        pos.set(b.id, posA)
+
+        // Update memo ranges for affected
+        affected.forEach((mi) => {
+          const r = newRange(mi)
+          memoMin[mi] = r.min
+          memoMax[mi] = r.max
+        })
+
+        curDist += deltaDist
+        curCross += deltaCross
+        curCost += delta
+        return true
+      }
+      return false
+    } else {
+      // No crossing change possible, only distance matters
+      if (deltaDist < 0) {
+        const tmp = order[i]
+        order[i] = order[i + 1]
+        order[i + 1] = tmp
+        pos.set(a.id, posB)
+        pos.set(b.id, posA)
+        curDist += deltaDist
+        curCost += deltaDist
+        return true
+      }
+      return false
+    }
+  }
+
+  // Perform passes until no improvement or time budget reached
+  for (let pass = 0; pass < maxPasses; pass++) {
+    let improved = false
+    for (let i = 0; i < n - 1; i++) {
+      if (Date.now() - startTime > timeBudgetMs) break
+      const ok = trySwap(i)
+      if (ok) {
+        improved = true
+        // allow backtracking one step to catch chains
+        if (i > 0) i -= 2
+      }
+    }
+    if (!improved || Date.now() - startTime > timeBudgetMs) break
+  }
+
+  return order
+}

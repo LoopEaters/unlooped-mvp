@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import * as Avatar from '@radix-ui/react-avatar'
 import * as Popover from '@radix-ui/react-popover'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
@@ -18,6 +20,7 @@ type Entity = Database['public']['Tables']['entity']['Row']
 type Memo = Database['public']['Tables']['memo']['Row']
 
 export default function Header() {
+  const pathname = usePathname()
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -110,9 +113,16 @@ export default function Header() {
 
   return (
     <Tooltip.Provider delayDuration={300}>
-      <header className="flex items-center justify-between px-6 py-3 bg-bg-primary border-b border-border-main">
+      <header className="flex items-center justify-between pr-6 pl-3 py-3 bg-bg-primary border-b border-border-main">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+          <Image
+            src="/logo.png"
+            alt="Unlooped Logo"
+            width={64}
+            height={64}
+            className="rounded -my-3"
+          />
           <h1 className="text-xl text-white font-light" style={{ fontFamily: 'var(--font-sweet)' }}>
             Unlooped
           </h1>
@@ -159,18 +169,42 @@ export default function Header() {
           <a href="#" className="text-gray-400 hover:text-white transition-colors">
             Dashboard
           </a>
-          <a href="#" className="text-gray-400 hover:text-white transition-colors">
+          <a
+            href="/"
+            className={`transition-colors ${
+              pathname === '/'
+                ? 'text-white cursor-default pointer-events-none'
+                : 'text-gray-400 hover:text-white'
+            }`}
+            onClick={(e) => {
+              if (pathname === '/') {
+                e.preventDefault()
+              }
+            }}
+          >
             Records
           </a>
-          <a href="/entities" className="text-gray-400 hover:text-white transition-colors">
+          <a
+            href="/entities"
+            className={`transition-colors ${
+              pathname === '/entities'
+                ? 'text-white cursor-default pointer-events-none'
+                : 'text-gray-400 hover:text-white'
+            }`}
+            onClick={(e) => {
+              if (pathname === '/entities') {
+                e.preventDefault()
+              }
+            }}
+          >
             Entities
           </a>
         </nav>
 
         {/* Icons */}
         <div className="flex items-center gap-2 ml-6">
-          {/* Notification with Popover */}
-          <Popover.Root>
+          {/* Notification with Popover - Temporarily disabled */}
+          {/* <Popover.Root>
             <Tooltip.Root>
               <Tooltip.Trigger asChild>
                 <Popover.Trigger asChild>
@@ -208,7 +242,7 @@ export default function Header() {
                 <Popover.Arrow className="fill-border-main" />
               </Popover.Content>
             </Popover.Portal>
-          </Popover.Root>
+          </Popover.Root> */}
 
           {/* Profile with Avatar and DropdownMenu */}
           <DropdownMenu.Root>
