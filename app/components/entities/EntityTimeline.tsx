@@ -34,6 +34,42 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
   const [scale, setScale] = useState(1)
   const [stagePosition, setStagePosition] = useState({ x: 0, y: 0 })
 
+  // Date scale 실시간 업데이트를 위한 RAF
+  const lastPositionRef = useRef({ x: 0, y: 0 })
+  const lastScaleRef = useRef(1)
+  useEffect(() => {
+    let rafId: number
+
+    const updateDateScale = () => {
+      if (stageRef.current) {
+        const stage = stageRef.current
+        const x = stage.x()
+        const y = stage.y()
+        const currentScale = stage.scaleX()
+
+        // 위치가 변경되었으면 state 업데이트
+        if (x !== lastPositionRef.current.x || y !== lastPositionRef.current.y) {
+          lastPositionRef.current = { x, y }
+          setStagePosition({ x, y })
+        }
+
+        // Scale이 변경되었으면 state 업데이트
+        if (currentScale !== lastScaleRef.current) {
+          lastScaleRef.current = currentScale
+          setScale(currentScale)
+        }
+      }
+
+      rafId = requestAnimationFrame(updateDateScale)
+    }
+
+    rafId = requestAnimationFrame(updateDateScale)
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId)
+    }
+  }, []) // 빈 dependency로 한 번만 설정
+
   // Entity 배치 최적화
   const optimizedEntities = useMemo(() => {
     // 비용 기반 최적화 (거리제곱 + 교차 패널티)로 시도
@@ -109,21 +145,28 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
     return () => resizeObserver.disconnect()
   }, [])
 
-  // Entity 중간을 화면 중앙에 배치 (초기 위치 설정)
+  // Entity 중간을 화면 중앙에 배치 (초기 위치 설정 - 한 번만 실행)
+  const initializedRef = useRef(false)
   useEffect(() => {
-    if (optimizedEntities.length === 0) return
+    if (initializedRef.current || optimizedEntities.length === 0 || !stageRef.current) return
 
-    // Entity들의 중간 지점 계산
+    // X축: Entity들의 중간 지점 계산
     const entityMiddleX = LEFT_PADDING + (optimizedEntities.length * 85) / 2
-
-    // 화면 중앙
     const viewportCenterX = dimensions.width / 2
-
-    // Stage 위치 = 화면 중앙 - Entity 중간
     const offsetX = viewportCenterX - entityMiddleX
 
-    setStagePosition({ x: offsetX, y: 0 })
-  }, [optimizedEntities.length, dimensions.width])
+    // Y축: 시간 범위의 중간 지점 계산
+    const timeMiddle = (timeRange.start + timeRange.end) / 2
+    const timeMiddleISO = new Date(timeMiddle).toISOString()
+    const timeMiddleY = timestampToY(timeMiddleISO, timeRange, canvasHeight, TOP_PADDING)
+    const viewportCenterY = dimensions.height / 2
+    const offsetY = viewportCenterY - timeMiddleY
+
+    // Stage를 직접 조작 (uncontrolled)
+    stageRef.current.scale({ x: 1, y: 1 })
+    stageRef.current.position({ x: offsetX, y: offsetY })
+    initializedRef.current = true
+  }, [optimizedEntities.length, dimensions.width, dimensions.height])
 
   // 위치 제한 (bounds)
   const clampPosition = (pos: { x: number; y: number }, currentScale: number) => {
@@ -185,8 +228,9 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
     // 위치 제한 적용
     const clampedPos = clampPosition(newPos, clampedScale)
 
-    setScale(clampedScale)
-    setStagePosition(clampedPos)
+    // Stage를 직접 조작 (RAF가 감지하여 React state 동기화)
+    stage.scale({ x: clampedScale, y: clampedScale })
+    stage.position(clampedPos)
   }
 
   // 선택된 memo와 entity 찾기
@@ -249,10 +293,6 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
             ref={stageRef}
             width={dimensions.width}
             height={dimensions.height}
-            scaleX={scale}
-            scaleY={scale}
-            x={stagePosition.x}
-            y={stagePosition.y}
             draggable
             dragBoundFunc={(pos) => {
               // 드래그 중 위치 제한 (경계 밖으로 못 나가게)
@@ -281,20 +321,6 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
               }
             }}
             onWheel={handleWheel}
-            onDragMove={(e) => {
-              // 드래그 중 실시간 위치 업데이트
-              setStagePosition({
-                x: e.target.x(),
-                y: e.target.y(),
-              })
-            }}
-            onDragEnd={(e) => {
-              // dragBoundFunc가 이미 경계를 적용했으므로 위치만 업데이트
-              setStagePosition({
-                x: e.target.x(),
-                y: e.target.y(),
-              })
-            }}
           >
             <Layer>
               <TimelineCanvas

@@ -6,6 +6,8 @@ import { getEntityTypeColor, defaultTheme } from '@/app/lib/theme'
 import { getRelativeTime } from '@/app/lib/util'
 import { highlightEntities } from '@/app/lib/utils/highlightEntities'
 import { useState } from 'react'
+import { useUpdateEntityType } from '@/app/lib/queries'
+import { useAuth } from '@/app/providers/AuthProvider'
 
 type Entity = Database['public']['Tables']['entity']['Row']
 type Memo = Database['public']['Tables']['memo']['Row'] & {
@@ -29,12 +31,24 @@ export default function EntityDetailDrawer({
   onClose,
   onMemoClick,
 }: EntityDetailDrawerProps) {
-  const [isButtonHovered, setIsButtonHovered] = useState(false)
+  const { user } = useAuth()
   const [hoveredMemoId, setHoveredMemoId] = useState<string | null>(null)
+  const updateEntityType = useUpdateEntityType()
 
   if (!entity) return null
 
   const typeColor = getEntityTypeColor(entity.type)
+
+  // Type 변경 핸들러
+  const handleTypeChange = (newType: 'person' | 'project' | 'event' | 'unknown') => {
+    if (!user?.id || newType === entity.type) return
+
+    updateEntityType.mutate({
+      entityId: entity.id,
+      type: newType,
+      userId: user.id,
+    })
+  }
   const relatedMemos = memos
     .filter((m) => m.entityIds.includes(entity.id))
     .sort((a, b) => {
@@ -50,23 +64,6 @@ export default function EntityDetailDrawer({
       title={entity.name}
       width="w-[500px]"
       modal={false}
-      footer={
-        <div className="px-6 py-4">
-          <button
-            onMouseEnter={() => setIsButtonHovered(true)}
-            onMouseLeave={() => setIsButtonHovered(false)}
-            className="w-full px-4 py-2 rounded-lg transition-colors"
-            style={{
-              backgroundColor: isButtonHovered
-                ? defaultTheme.drawer.button.primary.bgHover
-                : defaultTheme.drawer.button.primary.bg,
-              color: defaultTheme.drawer.button.primary.text,
-            }}
-          >
-            Edit Entity
-          </button>
-        </div>
-      }
     >
       <div className="px-6 py-4 space-y-6">
         {/* Entity Type */}
@@ -77,16 +74,30 @@ export default function EntityDetailDrawer({
           >
             Type
           </h3>
-          <div
-            className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium"
+          <select
+            value={entity.type || 'unknown'}
+            onChange={(e) => handleTypeChange(e.target.value as 'person' | 'project' | 'event' | 'unknown')}
+            disabled={updateEntityType.isPending}
+            className="w-full px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               backgroundColor: defaultTheme.drawer.card.background,
               border: `1px solid ${defaultTheme.drawer.card.border}`,
               color: typeColor.hex,
             }}
           >
-            {entity.type || 'unknown'}
-          </div>
+            <option value="person" style={{ backgroundColor: defaultTheme.drawer.background, color: defaultTheme.entityTypes.person.hex }}>
+              person
+            </option>
+            <option value="project" style={{ backgroundColor: defaultTheme.drawer.background, color: defaultTheme.entityTypes.project.hex }}>
+              project
+            </option>
+            <option value="event" style={{ backgroundColor: defaultTheme.drawer.background, color: defaultTheme.entityTypes.event.hex }}>
+              event
+            </option>
+            <option value="unknown" style={{ backgroundColor: defaultTheme.drawer.background, color: defaultTheme.entityTypes.unknown.hex }}>
+              unknown
+            </option>
+          </select>
         </div>
 
         {/* Description */}
