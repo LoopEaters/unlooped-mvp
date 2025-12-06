@@ -5,12 +5,14 @@ import { Inter, Noto_Sans_KR } from 'next/font/google'
 import localFont from 'next/font/local'
 import QueryProvider from './providers/QueryProvider'
 import { AuthProvider } from './providers/AuthProvider'
+import { ThemeProvider } from './providers/ThemeProvider'
 import { ToastProvider } from './providers/ToastProvider'
 import { EntityFilterProvider } from './providers/EntityFilterProvider'
 import { AIUpdateProvider } from './providers/AIUpdateProvider'
 import { SettingsProvider } from './providers/SettingsProvider'
 import LoginModal from './components/auth/LoginModal'
 import FontSettingsApplier from './components/common/FontSettingsApplier'
+import DevOnboardingButton from './components/common/DevOnboardingButton'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -48,20 +50,23 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${notoSansKr.variable} ${sweet.variable}`} suppressHydrationWarning>
       <body className="font-sans">
-        <AuthProvider>
+        <ThemeProvider defaultTheme="default">
           <QueryProvider>
-            <SettingsProvider>
-              <FontSettingsApplier />
-              <EntityFilterProvider>
-                <AIUpdateProvider>
-                  <ToastProvider />
-                  {children}
-                  <LoginModal />
-                </AIUpdateProvider>
-              </EntityFilterProvider>
-            </SettingsProvider>
+            <AuthProvider>
+              <SettingsProvider>
+                <FontSettingsApplier />
+                <EntityFilterProvider>
+                  <AIUpdateProvider>
+                    <ToastProvider />
+                    {children}
+                    <LoginModal />
+                    <DevOnboardingButton />
+                  </AIUpdateProvider>
+                </EntityFilterProvider>
+              </SettingsProvider>
+            </AuthProvider>
           </QueryProvider>
-        </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

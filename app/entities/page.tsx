@@ -4,6 +4,7 @@ import { useAuth } from '@/app/providers/AuthProvider'
 import { useTimelineData } from '@/app/lib/queries'
 import Header from '@/app/components/common/Header'
 import EntityTimeline from '@/app/components/entities/EntityTimeline'
+import { defaultTheme } from '@/app/lib/theme'
 
 export default function EntitiesPage() {
   const { userProfile } = useAuth()
@@ -27,7 +28,7 @@ export default function EntitiesPage() {
       <div className="flex flex-col h-screen bg-bg-primary">
         <Header />
         <div className="flex items-center justify-center flex-1">
-          <div className="text-red-400">Error loading timeline: {error?.message || 'Unknown error'}</div>
+          <div className={defaultTheme.ui.error.text}>Error loading timeline: {error?.message || 'Unknown error'}</div>
         </div>
       </div>
     )

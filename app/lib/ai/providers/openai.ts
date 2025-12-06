@@ -6,6 +6,7 @@ import { BaseAIProvider } from './base';
 import type { EntityClassificationResult } from '../types';
 import { EntityType } from '../types';
 import { ENTITY_CLASSIFICATION_PROMPT } from '../prompts/entity-classifier';
+import type { BulkImportParseResult } from '@/types/import';
 
 export class OpenAIProvider extends BaseAIProvider {
   name = 'OpenAI';
@@ -60,5 +61,12 @@ export class OpenAIProvider extends BaseAIProvider {
     if (normalized === 'person') return EntityType.PERSON;
     if (normalized === 'project') return EntityType.PROJECT;
     return EntityType.UNKNOWN;
+  }
+
+  /**
+   * Bulk import 파싱 (OpenAI는 현재 미지원)
+   */
+  async parseBulkImport(_text: string): Promise<BulkImportParseResult> {
+    throw new Error('Bulk import parsing is not supported for OpenAI provider. Please use Gemini instead.');
   }
 }

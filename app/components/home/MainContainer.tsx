@@ -6,9 +6,10 @@ import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { useAIUpdate } from '@/app/providers/AIUpdateProvider'
 import { useAppReady } from '@/app/hooks/useAppReady'
 import { useLayout } from '@/app/providers/SettingsProvider'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import MemoCard from './MemoCard'
 import EntityDeleteModal from './EntityDeleteModal'
-import { getEntityTypeColor, getCurrentTheme, defaultTheme } from '@/app/lib/theme'
+import { getEntityTypeColor } from '@/app/lib/theme'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -16,14 +17,12 @@ type Entity = Database['public']['Tables']['entity']['Row']
 // 빈 배열 상수화 - 참조 안정성 보장
 const EMPTY_ENTITIES: Entity[] = []
 
-// 테마 가져오기
-const theme = getCurrentTheme()
-
 export default function MainContainer() {
   const containerRef = useRef<HTMLDivElement>(null)
   const { isReady, user } = useAppReady()
   const { filteredEntityIds } = useEntityFilter()
   const { isFullWidth } = useLayout()
+  const { theme } = useTheme()
   const { data: entitiesData } = useEntities(user?.id)
 
   // 🔧 FIX: entities를 useMemo로 안정화하여 무한 렌더링 방지
@@ -137,8 +136,8 @@ export default function MainContainer() {
     >
       {/* 로딩 바 (상단에 작게) */}
       {isLoadingOverlay && (
-        <div className="absolute top-0 left-0 right-0 h-1 z-50" style={{ backgroundColor: `${defaultTheme.ui.interactive.primary}33` }}>
-          <div className="h-full animate-pulse" style={{ width: '60%', backgroundColor: defaultTheme.ui.interactive.primary }}></div>
+        <div className="absolute top-0 left-0 right-0 h-1 z-50" style={{ backgroundColor: `${theme.ui.interactive.primary}33` }}>
+          <div className="h-full animate-pulse" style={{ width: '60%', backgroundColor: theme.ui.interactive.primary }}></div>
         </div>
       )}
 
@@ -207,6 +206,7 @@ const EntitySection = memo(function EntitySection({
   userId?: string
   isLast?: boolean
 }) {
+  const { theme } = useTheme()
   const { data: memos = [], isLoading, isError, error } = useMemosByEntity(entityId)
   const { isEntityUpdating } = useAIUpdate()
   const updateEntityType = useUpdateEntityType()

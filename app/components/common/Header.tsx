@@ -8,13 +8,14 @@ import * as Avatar from '@radix-ui/react-avatar'
 import * as Popover from '@radix-ui/react-popover'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as Tooltip from '@radix-ui/react-tooltip'
-import { Search, Bell, Settings, LogOut, UserCircle, User, Keyboard, HelpCircle } from 'lucide-react'
+import { Search, Bell, Settings, LogOut, UserCircle, User, Keyboard, HelpCircle, Palette } from 'lucide-react'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
 import { useSearchEntities, useSearchMemos } from '@/app/lib/queries'
-import { defaultTheme } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import SearchResults from './SearchResults'
 import SettingsDrawer from './SettingsDrawer'
+import ProfileDrawer from './ProfileDrawer'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -27,9 +28,11 @@ export default function Header() {
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const { userProfile, signOut, isLoading } = useAuth()
+  const { userProfile, signOut, isLoading, setShowOnboarding } = useAuth()
   const { setFilteredEntityIds, setHighlightedMemoId } = useEntityFilter()
+  const { theme, themeName, toggleTheme } = useTheme()
 
   // 디바운싱: 300ms 후에 debouncedQuery 업데이트
   useEffect(() => {
@@ -125,7 +128,7 @@ export default function Header() {
           <Popover.Root open={isSearchOpen} onOpenChange={setIsSearchOpen}>
             <Popover.Trigger asChild>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: defaultTheme.ui.gray[400] }} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: theme.ui.gray[400] }} />
                 <input
                   type="text"
                   placeholder="Search records..."
@@ -158,15 +161,12 @@ export default function Header() {
 
         {/* Navigation */}
         <nav className="flex items-center gap-6 ml-auto">
-          <a href="#" className={`${defaultTheme.ui.textMuted} hover:text-white transition-colors`}>
-            Dashboard
-          </a>
           <a
             href="/"
             className={`transition-colors ${
               pathname === '/'
                 ? 'text-white cursor-default pointer-events-none'
-                : `${defaultTheme.ui.textMuted} hover:text-white`
+                : `${theme.ui.textMuted} hover:text-white`
             }`}
             onClick={(e) => {
               if (pathname === '/') {
@@ -181,7 +181,7 @@ export default function Header() {
             className={`transition-colors ${
               pathname === '/entities'
                 ? 'text-white cursor-default pointer-events-none'
-                : `${defaultTheme.ui.textMuted} hover:text-white`
+                : `${theme.ui.textMuted} hover:text-white`
             }`}
             onClick={(e) => {
               if (pathname === '/entities') {
@@ -190,6 +190,21 @@ export default function Header() {
             }}
           >
             Entities
+          </a>
+          <a
+            href="/import"
+            className={`transition-colors ${
+              pathname === '/import'
+                ? 'text-white cursor-default pointer-events-none'
+                : `${theme.ui.textMuted} hover:text-white`
+            }`}
+            onClick={(e) => {
+              if (pathname === '/import') {
+                e.preventDefault()
+              }
+            }}
+          >
+            Import
           </a>
         </nav>
 
@@ -200,7 +215,7 @@ export default function Header() {
             <Tooltip.Root>
               <Tooltip.Trigger asChild>
                 <Popover.Trigger asChild>
-                  <button className={`p-2 ${defaultTheme.ui.textMuted} hover:text-white transition-colors rounded-lg hover:bg-bg-secondary`}>
+                  <button className={`p-2 ${theme.ui.textMuted} hover:text-white transition-colors rounded-lg hover:bg-bg-secondary`}>
                     <Bell className="w-5 h-5" />
                   </button>
                 </Popover.Trigger>
@@ -221,13 +236,13 @@ export default function Header() {
                 <div className="space-y-3">
                   <h3 className="text-white font-semibold text-sm">Notifications</h3>
                   <div className="space-y-2">
-                    <div className={`p-2 bg-bg-primary rounded ${defaultTheme.ui.buttonHover} cursor-pointer transition-colors`}>
+                    <div className={`p-2 bg-bg-primary rounded ${theme.ui.buttonHover} cursor-pointer transition-colors`}>
                       <p className="text-white text-sm">New record added to Project Phoenix</p>
-                      <p className={`${defaultTheme.ui.textMuted} text-xs mt-1`}>2 hours ago</p>
+                      <p className={`${theme.ui.textMuted} text-xs mt-1`}>2 hours ago</p>
                     </div>
-                    <div className={`p-2 bg-bg-primary rounded ${defaultTheme.ui.buttonHover} cursor-pointer transition-colors`}>
+                    <div className={`p-2 bg-bg-primary rounded ${theme.ui.buttonHover} cursor-pointer transition-colors`}>
                       <p className="text-white text-sm">Entity linked to record</p>
-                      <p className={`${defaultTheme.ui.textMuted} text-xs mt-1`}>5 hours ago</p>
+                      <p className={`${theme.ui.textMuted} text-xs mt-1`}>5 hours ago</p>
                     </div>
                   </div>
                 </div>
@@ -243,13 +258,13 @@ export default function Header() {
                 {isLoading ? (
                   <div className="w-9 h-9 rounded-full bg-gray-600 animate-pulse" />
                 ) : (
-                  <Avatar.Root className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden hover:ring-2 transition-all" style={{ backgroundColor: defaultTheme.ui.iconColors.orange, '--tw-ring-color': defaultTheme.ui.iconColors.orange } as React.CSSProperties}>
+                  <Avatar.Root className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden hover:ring-2 transition-all" style={{ backgroundColor: theme.ui.iconColors.orange, '--tw-ring-color': theme.ui.iconColors.orange } as React.CSSProperties}>
                     <Avatar.Image
                       src={userProfile?.profile?.avatar_url || undefined}
                       alt={getDisplayName()}
                       className="w-full h-full object-cover"
                     />
-                    <Avatar.Fallback className="w-full h-full flex items-center justify-center text-white font-medium" style={{ backgroundColor: defaultTheme.ui.iconColors.orange }}>
+                    <Avatar.Fallback className="w-full h-full flex items-center justify-center text-white font-medium" style={{ backgroundColor: theme.ui.iconColors.orange }}>
                       {getInitials()}
                     </Avatar.Fallback>
                   </Avatar.Root>
@@ -264,33 +279,50 @@ export default function Header() {
               >
                 <div className="px-3 py-2 mb-1">
                   <p className="text-sm font-medium text-white">{getDisplayName()}</p>
-                  <p className={`text-xs ${defaultTheme.ui.textMuted} truncate`}>{userProfile?.email}</p>
+                  <p className={`text-xs ${theme.ui.textMuted} truncate`}>{userProfile?.email}</p>
                 </div>
 
                 <DropdownMenu.Separator className="h-px bg-border-main my-1" />
 
-                <DropdownMenu.Item className={`flex items-center gap-2 px-3 py-2 text-sm ${defaultTheme.ui.textSecondary} hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none`}>
+                <DropdownMenu.Item
+                  className={`flex items-center gap-2 px-3 py-2 text-sm ${theme.ui.textSecondary} hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none`}
+                  onSelect={() => setIsProfileOpen(true)}
+                >
                   <UserCircle className="w-4 h-4" />
                   <span>My Profile</span>
                 </DropdownMenu.Item>
                 <DropdownMenu.Item
-                  className={`flex items-center gap-2 px-3 py-2 text-sm ${defaultTheme.ui.textSecondary} hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none`}
+                  className={`flex items-center gap-2 px-3 py-2 text-sm ${theme.ui.textSecondary} hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none`}
+                  onSelect={() => setShowOnboarding(true)}
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  <span>기능 소개</span>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  className={`flex items-center gap-2 px-3 py-2 text-sm ${theme.ui.textSecondary} hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none`}
                   onSelect={() => setIsSettingsOpen(true)}
                 >
                   <Settings className="w-4 h-4" />
                   <span>Settings</span>
                 </DropdownMenu.Item>
-                <DropdownMenu.Item className={`flex items-center gap-2 px-3 py-2 text-sm ${defaultTheme.ui.textSecondary} hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none`}>
+                <DropdownMenu.Item
+                  className={`flex items-center gap-2 px-3 py-2 text-sm ${theme.ui.textSecondary} hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none`}
+                  onSelect={toggleTheme}
+                >
+                  <Palette className="w-4 h-4" />
+                  <span>Theme: {themeName === 'default' ? 'Default' : 'Claude'}</span>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item className={`flex items-center gap-2 px-3 py-2 text-sm ${theme.ui.textSecondary} hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none`}>
                   <Keyboard className="w-4 h-4" />
                   <span>Keyboard Shortcuts</span>
                 </DropdownMenu.Item>
-                <DropdownMenu.Item className={`flex items-center gap-2 px-3 py-2 text-sm ${defaultTheme.ui.textSecondary} hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none`}>
+                <DropdownMenu.Item className={`flex items-center gap-2 px-3 py-2 text-sm ${theme.ui.textSecondary} hover:text-white hover:bg-bg-primary rounded cursor-pointer outline-none`}>
                   <HelpCircle className="w-4 h-4" />
                   <span>Help</span>
                 </DropdownMenu.Item>
                 <DropdownMenu.Separator className="h-px bg-border-main my-1" />
                 <DropdownMenu.Item
-                  className={`flex items-center gap-2 px-3 py-2 text-sm ${defaultTheme.ui.interactive.dangerText} ${defaultTheme.ui.interactive.dangerTextHover} hover:bg-bg-primary rounded cursor-pointer outline-none disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`flex items-center gap-2 px-3 py-2 text-sm ${theme.ui.interactive.dangerText} ${theme.ui.interactive.dangerTextHover} hover:bg-bg-primary rounded cursor-pointer outline-none disabled:opacity-50 disabled:cursor-not-allowed`}
                   onSelect={handleLogout}
                   disabled={isLoggingOut}
                 >
@@ -302,6 +334,9 @@ export default function Header() {
           </DropdownMenu.Root>
         </div>
       </header>
+
+      {/* Profile Drawer */}
+      <ProfileDrawer isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
       {/* Settings Drawer */}
       <SettingsDrawer isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />

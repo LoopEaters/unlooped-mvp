@@ -3,7 +3,7 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { ReactNode, useState } from 'react'
-import { defaultTheme } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 
 interface BaseDrawerProps {
   isOpen: boolean
@@ -24,6 +24,7 @@ export default function BaseDrawer({
   width = 'w-[600px]',
   modal = true,
 }: BaseDrawerProps) {
+  const { theme } = useTheme()
   const [isCloseHovered, setIsCloseHovered] = useState(false)
 
   return (
@@ -33,7 +34,7 @@ export default function BaseDrawer({
         {modal && (
           <Dialog.Overlay
             className="fixed inset-0 backdrop-blur-sm z-40"
-            style={{ backgroundColor: defaultTheme.drawer.overlay }}
+            style={{ backgroundColor: theme.drawer.overlay }}
           />
         )}
 
@@ -41,19 +42,19 @@ export default function BaseDrawer({
         <Dialog.Content
           className={`drawer-content fixed right-0 top-0 h-full ${width} z-50 shadow-xl flex flex-col`}
           style={{
-            backgroundColor: defaultTheme.drawer.background,
-            borderLeft: `1px solid ${defaultTheme.drawer.border}`,
+            backgroundColor: theme.drawer.background,
+            borderLeft: `1px solid ${theme.drawer.border}`,
           }}
           onEscapeKeyDown={modal ? onClose : undefined}
         >
           {/* Header */}
           <div
             className="flex items-center justify-between p-4"
-            style={{ borderBottom: `1px solid ${defaultTheme.drawer.border}` }}
+            style={{ borderBottom: `1px solid ${theme.drawer.border}` }}
           >
             <Dialog.Title
               className="text-lg font-semibold"
-              style={{ color: defaultTheme.drawer.header.title }}
+              style={{ color: theme.drawer.header.title }}
             >
               {title}
             </Dialog.Title>
@@ -64,8 +65,8 @@ export default function BaseDrawer({
               className="p-1.5 transition-colors rounded-md"
               style={{
                 color: isCloseHovered
-                  ? defaultTheme.drawer.header.closeButtonHover
-                  : defaultTheme.drawer.header.closeButton,
+                  ? theme.drawer.header.closeButtonHover
+                  : theme.drawer.header.closeButton,
                 backgroundColor: isCloseHovered ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
               }}
               title="닫기"
@@ -79,7 +80,7 @@ export default function BaseDrawer({
 
           {/* Footer (optional) */}
           {footer && (
-            <div style={{ borderTop: `1px solid ${defaultTheme.drawer.border}` }}>{footer}</div>
+            <div style={{ borderTop: `1px solid ${theme.drawer.border}` }}>{footer}</div>
           )}
         </Dialog.Content>
       </Dialog.Portal>

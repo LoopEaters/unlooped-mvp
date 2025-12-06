@@ -2,7 +2,8 @@
 
 import type { Database } from '@/types/supabase'
 import BaseDrawer from '@/app/components/common/BaseDrawer'
-import { getEntityTypeColor, defaultTheme } from '@/app/lib/theme'
+import { getEntityTypeColor } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import { getRelativeTime } from '@/app/lib/util'
 import { highlightEntities } from '@/app/lib/utils/highlightEntities'
 import { useState } from 'react'
@@ -31,6 +32,7 @@ export default function EntityDetailDrawer({
   onClose,
   onMemoClick,
 }: EntityDetailDrawerProps) {
+  const { theme } = useTheme()
   const { user } = useAuth()
   const [hoveredMemoId, setHoveredMemoId] = useState<string | null>(null)
   const updateEntityType = useUpdateEntityType()
@@ -70,7 +72,7 @@ export default function EntityDetailDrawer({
         <div>
           <h3
             className="text-xs uppercase tracking-wide mb-2"
-            style={{ color: defaultTheme.drawer.section.title }}
+            style={{ color: theme.drawer.section.title }}
           >
             Type
           </h3>
@@ -80,21 +82,21 @@ export default function EntityDetailDrawer({
             disabled={updateEntityType.isPending}
             className="w-full px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              backgroundColor: defaultTheme.drawer.card.background,
-              border: `1px solid ${defaultTheme.drawer.card.border}`,
+              backgroundColor: theme.drawer.card.background,
+              border: `1px solid ${theme.drawer.card.border}`,
               color: typeColor.hex,
             }}
           >
-            <option value="person" style={{ backgroundColor: defaultTheme.drawer.background, color: defaultTheme.entityTypes.person.hex }}>
+            <option value="person" style={{ backgroundColor: theme.drawer.background, color: theme.entityTypes.person.hex }}>
               person
             </option>
-            <option value="project" style={{ backgroundColor: defaultTheme.drawer.background, color: defaultTheme.entityTypes.project.hex }}>
+            <option value="project" style={{ backgroundColor: theme.drawer.background, color: theme.entityTypes.project.hex }}>
               project
             </option>
-            <option value="event" style={{ backgroundColor: defaultTheme.drawer.background, color: defaultTheme.entityTypes.event.hex }}>
+            <option value="event" style={{ backgroundColor: theme.drawer.background, color: theme.entityTypes.event.hex }}>
               event
             </option>
-            <option value="unknown" style={{ backgroundColor: defaultTheme.drawer.background, color: defaultTheme.entityTypes.unknown.hex }}>
+            <option value="unknown" style={{ backgroundColor: theme.drawer.background, color: theme.entityTypes.unknown.hex }}>
               unknown
             </option>
           </select>
@@ -105,20 +107,20 @@ export default function EntityDetailDrawer({
           <div>
             <h3
               className="text-xs uppercase tracking-wide mb-2"
-              style={{ color: defaultTheme.drawer.section.title }}
+              style={{ color: theme.drawer.section.title }}
             >
               Description
             </h3>
             <div
               className="rounded-lg p-4"
               style={{
-                backgroundColor: defaultTheme.drawer.card.background,
-                border: `1px solid ${defaultTheme.drawer.card.border}`,
+                backgroundColor: theme.drawer.card.background,
+                border: `1px solid ${theme.drawer.card.border}`,
               }}
             >
               <p
                 className="text-sm leading-relaxed whitespace-pre-wrap"
-                style={{ color: defaultTheme.drawer.section.text }}
+                style={{ color: theme.drawer.section.text }}
               >
                 {entity.description}
               </p>
@@ -130,13 +132,13 @@ export default function EntityDetailDrawer({
         <div>
           <h3
             className="text-xs uppercase tracking-wide mb-3"
-            style={{ color: defaultTheme.drawer.section.title }}
+            style={{ color: theme.drawer.section.title }}
           >
             Connected Memos ({relatedMemos.length})
           </h3>
           <div className="space-y-2">
             {relatedMemos.length === 0 ? (
-              <p className="text-sm" style={{ color: defaultTheme.drawer.section.textMuted }}>
+              <p className="text-sm" style={{ color: theme.drawer.section.textMuted }}>
                 No memos connected to this entity.
               </p>
             ) : (
@@ -148,17 +150,17 @@ export default function EntityDetailDrawer({
                   onMouseLeave={() => setHoveredMemoId(null)}
                   className="rounded-lg p-3 cursor-pointer transition-colors"
                   style={{
-                    backgroundColor: defaultTheme.drawer.card.background,
-                    border: `1px solid ${hoveredMemoId === memo.id ? defaultTheme.drawer.card.borderHover : defaultTheme.drawer.card.border}`,
+                    backgroundColor: theme.drawer.card.background,
+                    border: `1px solid ${hoveredMemoId === memo.id ? theme.drawer.card.borderHover : theme.drawer.card.border}`,
                   }}
                 >
                   <div
                     className="text-sm line-clamp-2 mb-2"
-                    style={{ color: defaultTheme.drawer.section.text }}
+                    style={{ color: theme.drawer.section.text }}
                   >
                     {highlightEntities(memo.content, entities, entity?.id)}
                   </div>
-                  <span className="text-xs" style={{ color: defaultTheme.drawer.section.textMuted }}>
+                  <span className="text-xs" style={{ color: theme.drawer.section.textMuted }}>
                     {memo.created_at ? getRelativeTime(memo.created_at) : 'Unknown date'}
                   </span>
                 </div>

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { Stage, Layer } from 'react-konva'
 import type { Database } from '@/types/supabase'
 import { getTimeRange, optimizeEntityLayout, optimizeEntityLayoutCostBased, calculateCrossings, timestampToY, formatTimelineDate } from '@/app/lib/util'
-import { defaultTheme } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import { useAuth } from '@/app/providers/AuthProvider'
 import TimelineCanvas from './TimelineCanvas'
 import MemoDetailDrawer from './MemoDetailDrawer'
@@ -22,6 +22,7 @@ interface EntityTimelineProps {
 
 export default function EntityTimeline({ entities, memos }: EntityTimelineProps) {
   const { userProfile } = useAuth()
+  const { theme } = useTheme()
   const containerRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<any>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -275,7 +276,7 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
                 <span
                   className="font-medium text-xs"
                   style={{
-                    color: defaultTheme.timeline.timeScale.text,
+                    color: theme.timeline.timeScale.text,
                   }}
                 >
                   {formatTimelineDate(mark.timestamp, mark.totalRange)}

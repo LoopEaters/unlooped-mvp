@@ -153,7 +153,14 @@ type EntityUpdate = Database['public']['Tables']['entity']['Update']
 
 ## 색상 관리 및 테마 시스템
 
-프로젝트의 모든 색상은 `app/lib/theme.ts`에서 중앙 집중식으로 관리됩니다. **절대 하드코딩된 색상을 사용하지 마세요.**
+### 🎨 멀티 테마 지원
+
+프로젝트는 **여러 테마를 지원**하는 확장 가능한 시스템을 갖추고 있습니다:
+- **default**: 기존 다크 테마
+- **claude**: Claude 웹사이트 스타일 (세련된 디자인)
+- **custom**: 사용자 정의 테마 (향후 확장)
+
+모든 색상은 `app/lib/theme.ts`에서 중앙 집중식으로 관리되며, **절대 하드코딩된 색상을 사용하지 마세요.**
 
 ### Entity Type 색상 규칙
 
@@ -163,33 +170,75 @@ type EntityUpdate = Database['public']['Tables']['entity']['Update']
 - **Event**: 주황색 (`#F59E0B` / amber-500)
 - **Unknown**: 회색 (`#9CA3AF` / gray-400)
 
-### 색상 사용 예시
+### 🚀 빠른 사용법
+
+#### 컴포넌트에서 테마 사용
+
+```typescript
+'use client'
+
+import { useTheme } from '@/app/providers/ThemeProvider'
+import { getEntityTypeColor } from '@/app/lib/theme'
+
+export default function MyComponent() {
+  // 현재 테마 가져오기
+  const { theme, themeName, setTheme, toggleTheme } = useTheme()
+
+  // 1. Tailwind 클래스로 사용
+  return (
+    <div className={theme.ui.textPrimary}>
+      {/* Entity 타입별 색상 */}
+      <span style={{ color: getEntityTypeColor('person', theme).hex }}>
+        Person
+      </span>
+
+      {/* 테마 전환 버튼 */}
+      <button onClick={toggleTheme}>
+        Toggle Theme (현재: {themeName})
+      </button>
+
+      {/* 특정 테마로 전환 */}
+      <button onClick={() => setTheme('claude')}>
+        Claude 스타일로 변경
+      </button>
+    </div>
+  )
+}
+```
+
+#### 기존 방식 (여전히 작동)
 
 ```typescript
 import { defaultTheme, getEntityTypeColor } from '@/app/lib/theme'
 
-// 1. Entity 타입별 색상
-const entityColor = getEntityTypeColor(entity.type)
-// → { bg: 'bg-mention-person', text: 'text-mention-person', hex: '#22C55E' }
+// 정적으로 사용 (테마 전환 불가)
+<div className={defaultTheme.ui.interactive.primaryText}>
+```
 
-// 2. UI 인터랙티브 색상
-${defaultTheme.ui.interactive.primaryText}        // text-blue-400
-${defaultTheme.ui.interactive.primaryBg}          // bg-blue-500
-${defaultTheme.ui.interactive.primaryBgLight}     // bg-blue-500/20
-${defaultTheme.ui.interactive.dangerText}         // text-red-400
+### Claude 스타일 테마 특징
 
-// 3. 텍스트 색상
-${defaultTheme.ui.textPrimary}     // text-white
-${defaultTheme.ui.textSecondary}   // text-gray-300
-${defaultTheme.ui.textMuted}       // text-gray-400
+Claude 테마는 다음과 같은 추가 기능을 제공합니다:
 
-// 4. Gray 팔레트
-${defaultTheme.ui.gray[400]}       // #9CA3AF
-${defaultTheme.ui.gray[700]}       // #374151
+```typescript
+const { theme } = useTheme()
 
-// 5. 아이콘 색상
-style={{ color: defaultTheme.ui.iconColors.blue }}
-style={{ color: defaultTheme.ui.iconColors.orange }}
+// 1. 그라데이션 효과
+{theme.claude && (
+  <div style={{ background: theme.claude.gradient.primary }}>
+    Purple-Blue Gradient
+  </div>
+)}
+
+// 2. 글로우 효과
+const projectColor = getEntityTypeColor('project', theme)
+{projectColor.glow && (
+  <div style={{ boxShadow: `0 0 30px ${projectColor.glow}` }}>
+    Glowing Project
+  </div>
+)}
+
+// 3. 더 깊은 다크 배경
+theme.ui.primaryBg  // '#0A0E17' (Claude) vs 'bg-bg-primary' (Default)
 ```
 
 ### 주의사항
@@ -200,10 +249,11 @@ style={{ color: defaultTheme.ui.iconColors.orange }}
 <div className="hover:text-red-400">
 ```
 
-✅ **올바른 예시 (Theme 사용):**
+✅ **올바른 예시 (Theme Hook 사용):**
 ```tsx
-<div className={`${defaultTheme.ui.interactive.primaryText} ${defaultTheme.ui.interactive.primaryBgLight}`}>
-<div className={defaultTheme.ui.interactive.dangerTextHover}>
+const { theme } = useTheme()
+<div className={`${theme.ui.interactive.primaryText} ${theme.ui.interactive.primaryBgLight}`}>
+<div className={theme.ui.interactive.dangerTextHover}>
 ```
 
 ### CSS 변수
@@ -216,4 +266,10 @@ style={{ color: defaultTheme.ui.iconColors.orange }}
 ```
 
 **중요:** CSS 파일을 수정할 때도 반드시 theme.ts와 일치하도록 유지하세요.
+
+### 📚 더 알아보기
+
+- **docs/theme-quick-start.md** - 테마 시스템 빠른 시작 가이드
+- **docs/design-system-claude-style.md** - Claude 스타일 디자인 시스템
+- **docs/claude-style-components-examples.md** - Claude 스타일 컴포넌트 예제
 

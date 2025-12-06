@@ -3,7 +3,8 @@
 import { Line, Circle, Text, Group, Rect, Path } from 'react-konva'
 import type { Database } from '@/types/supabase'
 import { timestampToY, formatTimelineDate } from '@/app/lib/util'
-import { getEntityTypeHexColor, defaultTheme } from '@/app/lib/theme'
+import { getEntityTypeHexColor } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import { useState } from 'react'
 import MemoTooltip from './MemoTooltip'
 import EntityTooltip from './EntityTooltip'
@@ -48,6 +49,7 @@ export default function TimelineCanvas({
   onEntityHover,
   onEntityClick,
 }: TimelineCanvasProps) {
+  const { theme } = useTheme()
   const [tooltipData, setTooltipData] = useState<{
     memoId: string
     x: number
@@ -128,8 +130,8 @@ export default function TimelineCanvas({
           ]}
           stroke={
             mark.isMajor
-              ? defaultTheme.timeline.timeScale.majorLine
-              : defaultTheme.timeline.timeScale.line
+              ? theme.timeline.timeScale.majorLine
+              : theme.timeline.timeScale.line
           }
           strokeWidth={(mark.isMajor ? 1.5 : 0.5) / scale} // scale에 따라 조정
           dash={mark.isMajor ? undefined : [4 / scale, 4 / scale]}
@@ -150,7 +152,7 @@ export default function TimelineCanvas({
           <Line
             key={`entity-line-${entity.id}`}
             points={[x, range.minY, x, range.maxY]}
-            stroke={isHovered ? defaultTheme.timeline.entityLineActive : color}
+            stroke={isHovered ? theme.timeline.entityLineActive : color}
             strokeWidth={(isHovered ? 3 : 2) / scale} // scale에 따라 조정
             opacity={isHovered ? 0.9 : 0.5}
             shadowBlur={(isHovered ? 12 : 0) / scale} // Hover 시 빛나는 효과
@@ -189,7 +191,7 @@ export default function TimelineCanvas({
           const x = entityXPositions[entityId]
           if (x === undefined) return null
 
-          const color = defaultTheme.timeline.memo.color
+          const color = theme.timeline.memo.color
 
           return (
             <Circle
@@ -200,9 +202,9 @@ export default function TimelineCanvas({
               fill={color}
               opacity={
                 isSelected
-                  ? defaultTheme.timeline.memo.selectedOpacity
+                  ? theme.timeline.memo.selectedOpacity
                   : isHovered
-                    ? defaultTheme.timeline.memo.hoverOpacity
+                    ? theme.timeline.memo.hoverOpacity
                     : 0.8
               }
               shadowBlur={(isSelected ? 12 : isHovered ? 8 : 0) / scale}
@@ -233,7 +235,7 @@ export default function TimelineCanvas({
 
         if (entityXs.length < 2) return null
 
-        const color = defaultTheme.timeline.memo.color
+        const color = theme.timeline.memo.color
 
         // 중간에 건너뛰는 entity 찾기
         const firstIndex = entities.findIndex((e) => e.id === entityXs[0].id)
@@ -308,9 +310,9 @@ export default function TimelineCanvas({
               strokeWidth={(isSelected ? 3 : isHovered ? 2.5 : 2) / scale} // scale에 따라 조정
               opacity={
                 isSelected
-                  ? defaultTheme.timeline.memo.selectedOpacity
+                  ? theme.timeline.memo.selectedOpacity
                   : isHovered
-                    ? defaultTheme.timeline.memo.hoverOpacity
+                    ? theme.timeline.memo.hoverOpacity
                     : 0.7
               }
               shadowBlur={(isSelected ? 10 : isHovered ? 6 : 0) / scale}
@@ -343,9 +345,9 @@ export default function TimelineCanvas({
                 fill={color}
                 opacity={
                   isSelected
-                    ? defaultTheme.timeline.memo.selectedOpacity
+                    ? theme.timeline.memo.selectedOpacity
                     : isHovered
-                      ? defaultTheme.timeline.memo.hoverOpacity
+                      ? theme.timeline.memo.hoverOpacity
                       : 0.8
                 }
               />

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { cn } from '@/app/lib/util'
-import { defaultTheme } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -36,6 +36,7 @@ export default function SearchResults({
   onClose,
 }: SearchResultsProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const { theme } = useTheme()
 
   // Entity를 이름 매치 우선으로 정렬
   const sortedEntities = useMemo(() => {
@@ -94,7 +95,7 @@ export default function SearchResults({
   if (isLoading) {
     return (
       <div className="p-4">
-        <div className={`${defaultTheme.ui.textMuted} text-sm`}>검색 중...</div>
+        <div className={`${theme.ui.textMuted} text-sm`}>검색 중...</div>
       </div>
     )
   }
@@ -103,7 +104,7 @@ export default function SearchResults({
   if (entities.length === 0 && memos.length === 0) {
     return (
       <div className="p-4">
-        <div className={`${defaultTheme.ui.textMuted} text-sm`}>
+        <div className={`${theme.ui.textMuted} text-sm`}>
           &quot;{query}&quot;에 대한 검색 결과가 없습니다
         </div>
       </div>
@@ -135,7 +136,7 @@ export default function SearchResults({
       <span>
         {parts.map((part, index) =>
           regex.test(part) ? (
-            <mark key={index} className={`${defaultTheme.ui.interactive.warningBg} ${defaultTheme.ui.interactive.warningText} px-0.5 rounded`}>
+            <mark key={index} className={`${theme.ui.interactive.warningBg} ${theme.ui.interactive.warningText} px-0.5 rounded`}>
               {part}
             </mark>
           ) : (
@@ -174,7 +175,7 @@ export default function SearchResults({
       {/* Entity 섹션 */}
       {sortedEntities.length > 0 && (
         <div className="mb-2">
-          <div className="px-3 py-1 text-xs font-semibold uppercase" style={{ color: defaultTheme.ui.gray[500] }}>
+          <div className="px-3 py-1 text-xs font-semibold uppercase" style={{ color: theme.ui.gray[500] }}>
             Entities
           </div>
           {sortedEntities.map((entity) => {
@@ -187,8 +188,8 @@ export default function SearchResults({
                 className={cn(
                   'w-full px-3 py-2 text-left transition-colors',
                   isSelected
-                    ? `${defaultTheme.ui.interactive.primaryBgLight} ${defaultTheme.ui.textPrimary}`
-                    : `${defaultTheme.ui.textSecondary} hover:bg-bg-card`
+                    ? `${theme.ui.interactive.primaryBgLight} ${theme.ui.textPrimary}`
+                    : `${theme.ui.textSecondary} hover:bg-bg-card`
                 )}
                 onClick={() => onSelectEntity(entity)}
                 onMouseEnter={() => setSelectedIndex(index)}
@@ -205,7 +206,7 @@ export default function SearchResults({
                   <span className="font-medium">{highlightText(entity.name, query)}</span>
                 </div>
                 {entity.description && (
-                  <div className={`text-xs ${defaultTheme.ui.textMuted} mt-1 line-clamp-1`}>
+                  <div className={`text-xs ${theme.ui.textMuted} mt-1 line-clamp-1`}>
                     {highlightText(entity.description, query)}
                   </div>
                 )}
@@ -218,7 +219,7 @@ export default function SearchResults({
       {/* Memo 섹션 */}
       {memos.length > 0 && (
         <div>
-          <div className="px-3 py-1 text-xs font-semibold uppercase" style={{ color: defaultTheme.ui.gray[500] }}>
+          <div className="px-3 py-1 text-xs font-semibold uppercase" style={{ color: theme.ui.gray[500] }}>
             Memos
           </div>
           {memos.map((memo) => {
@@ -231,8 +232,8 @@ export default function SearchResults({
                 className={cn(
                   'w-full px-3 py-2 text-left transition-colors',
                   isSelected
-                    ? `${defaultTheme.ui.interactive.primaryBgLight} ${defaultTheme.ui.textPrimary}`
-                    : `${defaultTheme.ui.textSecondary} hover:bg-bg-card`
+                    ? `${theme.ui.interactive.primaryBgLight} ${theme.ui.textPrimary}`
+                    : `${theme.ui.textSecondary} hover:bg-bg-card`
                 )}
                 onClick={() => onSelectMemo(memo)}
                 onMouseEnter={() => setSelectedIndex(index)}
@@ -240,7 +241,7 @@ export default function SearchResults({
                 <div className="text-sm line-clamp-2">
                   {highlightText(truncateContent(memo.content), query)}
                 </div>
-                <div className={`text-xs ${defaultTheme.ui.textMuted} mt-1`}>
+                <div className={`text-xs ${theme.ui.textMuted} mt-1`}>
                   {formatDate(memo.created_at)}
                 </div>
               </button>

@@ -5,7 +5,7 @@ import { Edit2, Trash2 } from 'lucide-react'
 import { highlightEntities } from '@/app/lib/utils/highlightEntities'
 import { getRelativeTime } from '@/app/lib/util'
 import { useDeleteMemoWithOrphanedEntities } from '@/app/lib/queries'
-import { defaultTheme } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import MemoEditDrawer from './MemoEditDrawer'
 import MemoDeleteModal from './MemoDeleteModal'
 import type { Database } from '@/types/supabase'
@@ -24,6 +24,7 @@ export default function MemoCard({ memo, entities = [], currentEntityId, userId 
   const [isHovered, setIsHovered] = useState(false)
   const [showEditDrawer, setShowEditDrawer] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const { theme } = useTheme()
 
   const deleteMemo = useDeleteMemoWithOrphanedEntities(userId || '')
 
@@ -54,7 +55,7 @@ export default function MemoCard({ memo, entities = [], currentEntityId, userId 
                 e.stopPropagation()
                 setShowEditDrawer(true)
               }}
-              className={`p-0.5 text-text-muted ${defaultTheme.ui.interactive.primaryText} transition-colors`}
+              className={`p-0.5 text-text-muted ${theme.ui.interactive.primaryText} transition-colors`}
               title="편집"
             >
               <Edit2 className="w-3 h-3" />
@@ -64,7 +65,7 @@ export default function MemoCard({ memo, entities = [], currentEntityId, userId 
                 e.stopPropagation()
                 setShowDeleteModal(true)
               }}
-              className={`p-0.5 text-text-muted ${defaultTheme.ui.interactive.dangerTextHover} transition-colors`}
+              className={`p-0.5 text-text-muted ${theme.ui.interactive.dangerTextHover} transition-colors`}
               title="삭제"
             >
               <Trash2 className="w-3 h-3" />

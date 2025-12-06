@@ -2,6 +2,7 @@
 
 import * as Dialog from '@radix-ui/react-dialog'
 import { AlertTriangle } from 'lucide-react'
+import { useTheme } from '@/app/providers/ThemeProvider'
 
 interface MemoDeleteModalProps {
   isOpen: boolean
@@ -18,6 +19,8 @@ export default function MemoDeleteModal({
   memoContent,
   isDeleting,
 }: MemoDeleteModalProps) {
+  const { theme } = useTheme()
+
   // 메모 미리보기 (처음 50자만)
   const memoPreview = memoContent.length > 50
     ? memoContent.substring(0, 50) + '...'
@@ -37,8 +40,8 @@ export default function MemoDeleteModal({
         >
           {/* Icon + Title */}
           <div className="flex items-start gap-3 mb-4">
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
+            <div className={`flex-shrink-0 w-10 h-10 rounded-full ${theme.ui.delete.bg} flex items-center justify-center`}>
+              <AlertTriangle className={`w-5 h-5 ${theme.ui.delete.text}`} />
             </div>
             <div className="flex-1">
               <Dialog.Title className="text-lg font-semibold text-white mb-1">
@@ -58,8 +61,8 @@ export default function MemoDeleteModal({
           </div>
 
           {/* Warning */}
-          <div className="bg-red-500/10 border border-red-500/20 rounded-md p-3 mb-6">
-            <p className="text-xs text-red-400">
+          <div className={`${theme.ui.delete.bg} border border-red-500/20 rounded-md p-3 mb-6`}>
+            <p className={`text-xs ${theme.ui.delete.text}`}>
               ⚠️ 이 작업은 되돌릴 수 없습니다.
             </p>
           </div>
@@ -76,7 +79,8 @@ export default function MemoDeleteModal({
             <button
               onClick={onConfirm}
               disabled={isDeleting}
-              className="px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              style={{ backgroundColor: theme.ui.interactive.danger }}
+              className="px-4 py-2 text-white font-medium rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isDeleting ? (
                 <>

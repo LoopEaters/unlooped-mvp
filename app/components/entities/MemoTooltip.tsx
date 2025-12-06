@@ -2,7 +2,8 @@
 
 import { Group, Rect, Text } from 'react-konva'
 import type { Database } from '@/types/supabase'
-import { defaultTheme, getEntityTypeHexColor } from '@/app/lib/theme'
+import { getEntityTypeHexColor } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import { useMemo } from 'react'
 
 type Memo = Database['public']['Tables']['memo']['Row']
@@ -19,6 +20,7 @@ interface MemoTooltipProps {
 }
 
 export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 1000, entities = [], scale = 1 }: MemoTooltipProps) {
+  const { theme } = useTheme()
   const maxWidth = 320
   const padding = 16
   const maxContentLength = 200
@@ -180,13 +182,13 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
       <Rect
         width={maxWidth}
         height={finalHeight}
-        fill={defaultTheme.tooltip.background}
+        fill={theme.tooltip.background}
         cornerRadius={10}
         shadowBlur={16}
-        shadowColor={defaultTheme.tooltip.shadow}
+        shadowColor={theme.tooltip.shadow}
         shadowOpacity={0.5}
         shadowOffsetY={4}
-        stroke={defaultTheme.tooltip.border}
+        stroke={theme.tooltip.border}
         strokeWidth={1}
       />
 
@@ -196,7 +198,7 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
         y={padding}
         text={dateStr}
         fontSize={11}
-        fill={defaultTheme.tooltip.title}
+        fill={theme.tooltip.title}
         fontStyle="500"
         width={contentWidth}
       />
@@ -207,7 +209,7 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
         y={padding + dateHeight + dividerMargin}
         width={contentWidth}
         height={dividerHeight}
-        fill={defaultTheme.tooltip.divider}
+        fill={theme.tooltip.divider}
         opacity={0.8}
       />
 
@@ -217,7 +219,7 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
         y={padding + dateHeight + dividerMargin * 2 + dividerHeight}
         text={previewContent}
         fontSize={fontSize}
-        fill={defaultTheme.tooltip.text}
+        fill={theme.tooltip.text}
         width={contentWidth}
         lineHeight={lineHeight}
         wrap="word"
@@ -231,7 +233,7 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
             y={padding + dateHeight + dividerMargin * 2 + dividerHeight + contentHeight + spacing}
             text="Mentions:"
             fontSize={10}
-            fill={defaultTheme.tooltip.hint}
+            fill={theme.tooltip.hint}
             fontStyle="600"
           />
           {mentionedEntitiesWithWidth.map((mention, i) => {
@@ -273,7 +275,7 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
         y={finalHeight - padding - hintHeight}
         text="Click to see full details →"
         fontSize={10}
-        fill={defaultTheme.tooltip.hint}
+        fill={theme.tooltip.hint}
         fontStyle="italic"
         width={contentWidth}
       />

@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/app/lib/util'
-import { defaultTheme } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -30,6 +30,8 @@ export default function EntityDropdown({
   onSelect,
   isOpen,
 }: EntityDropdownProps) {
+  const { theme } = useTheme()
+
   if (!isOpen || !search) return null
 
   // search로 시작하는 entity 필터링
@@ -49,8 +51,8 @@ export default function EntityDropdown({
               className={cn(
                 'px-4 py-2 cursor-pointer transition-colors',
                 index === selectedIndex
-                  ? `${defaultTheme.ui.interactive.primaryBgLight} ${defaultTheme.ui.textPrimary}`
-                  : `${defaultTheme.ui.textSecondary} hover:bg-bg-card`
+                  ? `${theme.ui.interactive.primaryBgLight} ${theme.ui.textPrimary}`
+                  : `${theme.ui.textSecondary} hover:bg-bg-card`
               )}
               onClick={() => onSelect(entity)}
               onMouseEnter={() => {
@@ -64,12 +66,12 @@ export default function EntityDropdown({
         </ul>
       ) : (
         <div className="px-4 py-3">
-          <div className={`${defaultTheme.ui.textMuted} text-sm mb-2`}>
+          <div className={`${theme.ui.textMuted} text-sm mb-2`}>
             일치하는 엔티티가 없습니다
           </div>
           <button
             onClick={() => onSelect(null)}
-            className={`${defaultTheme.ui.interactive.primaryText} text-sm hover:opacity-80 transition-opacity font-medium`}
+            className={`${theme.ui.interactive.primaryText} text-sm hover:opacity-80 transition-opacity font-medium`}
           >
             새 엔티티 &apos;{search}&apos; 생성
           </button>

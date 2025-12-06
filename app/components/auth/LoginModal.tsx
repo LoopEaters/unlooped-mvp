@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useAuth } from '@/app/providers/AuthProvider';
+import { useTheme } from '@/app/providers/ThemeProvider';
 import { isProduction } from '@/app/lib/util';
 
 export default function LoginModal() {
@@ -14,6 +15,7 @@ export default function LoginModal() {
     signInWithGoogle,
     session,
   } = useAuth();
+  const { theme } = useTheme();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -93,7 +95,7 @@ export default function LoginModal() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
+              <div className={`${theme.ui.error.bg} ${theme.ui.error.text} p-3 rounded-md text-sm`}>
                 {error}
               </div>
             )}
@@ -184,7 +186,7 @@ export default function LoginModal() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              className={`w-full ${theme.ui.interactive.primaryBg} text-white py-2 px-4 rounded-md ${theme.ui.interactive.primaryBgHover} disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors`}
             >
               {isLoading
                 ? '처리 중...'
@@ -200,7 +202,7 @@ export default function LoginModal() {
                   setIsSignUp(!isSignUp);
                   setError('');
                 }}
-                className="text-sm text-blue-600 hover:underline"
+                className={`text-sm ${theme.ui.interactive.primaryText} hover:underline`}
               >
                 {isSignUp
                   ? '이미 계정이 있으신가요? 로그인'

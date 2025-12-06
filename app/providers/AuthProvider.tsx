@@ -6,6 +6,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/app/lib/supabase/client';
 import { Tables } from '@/types/supabase';
 import { signOutAction } from '@/app/lib/actions/auth';
+import OnboardingModal from '@/app/components/onboarding/OnboardingModal';
 
 // Supabase Auth User + users 테이블 정보 합친 타입
 export type UserProfile = User & {
@@ -22,8 +23,11 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithGithub: () => Promise<void>;
   signOut: () => Promise<void>;
+  refetchProfile: () => Promise<void>;
   showLoginModal: boolean;
   setShowLoginModal: (show: boolean) => void;
+  showOnboarding: boolean;
+  setShowOnboarding: (show: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // users 테이블에서 프로필 정보 가져오기 (없으면 자동 생성)
   const fetchUserProfile = async (authUser: User) => {
@@ -160,6 +165,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           ...session.user,
           profile,
         });
+
+        // 온보딩 체크 (최초 로그인 사용자)
+        if (profile && !profile.onboarding_completed) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🎉 [AuthProvider] 최초 로그인 - 온보딩 모달 표시');
+          }
+          setShowOnboarding(true);
+        }
 
         // 아바타 동기화 (추가 백그라운드)
         syncSocialAvatar(session.user, profile).then((updatedAvatarUrl) => {
@@ -295,6 +308,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/');
   }, [router]);
 
+  const refetchProfile = useCallback(async () => {
+    if (!user) {
+      console.warn('⚠️ [refetchProfile] User not authenticated');
+      return;
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 [refetchProfile] 프로필 새로고침 시작');
+    }
+
+    const profile = await fetchUserProfile(user);
+    setUserProfile({
+      ...user,
+      profile,
+    });
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ [refetchProfile] 완료');
+    }
+  }, [user]);
+
   const value = useMemo(
     () => ({
       user,
@@ -306,8 +340,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signInWithGoogle,
       signInWithGithub,
       signOut,
+      refetchProfile,
       showLoginModal,
       setShowLoginModal,
+      showOnboarding,
+      setShowOnboarding,
     }),
     [
       user,
@@ -319,11 +356,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signInWithGoogle,
       signInWithGithub,
       signOut,
+      refetchProfile,
       showLoginModal,
+      showOnboarding,
     ]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+
+      {/* OnboardingModal */}
+      {showOnboarding && userProfile?.profile && (
+        <OnboardingModal
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          userId={userProfile.profile.id}
+        />
+      )}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
