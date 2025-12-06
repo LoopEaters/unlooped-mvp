@@ -47,9 +47,9 @@ export function ThemeProvider({ children, defaultTheme: initialTheme = 'default'
     }
   }
 
-  // 테마 토글 (default ↔ claude)
+  // 테마 토글 (default ↔ claude-dark)
   const toggleTheme = () => {
-    const newTheme = themeName === 'default' ? 'claude' : 'default'
+    const newTheme = themeName === 'default' ? 'claude-dark' : 'default'
     setTheme(newTheme)
   }
 

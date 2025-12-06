@@ -88,32 +88,47 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
             {/* 테마 */}
             <div>
               <label className="text-sm mb-2 block" style={{ color: theme.ui.textMuted }}>테마 스타일</label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => setTheme('default')}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors border"
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2.5 rounded-lg transition-colors border"
                   style={{
                     backgroundColor: themeName === 'default' ? theme.ui.interactive.primary : theme.ui.secondaryBg,
                     borderColor: themeName === 'default' ? theme.ui.interactive.primary : theme.ui.gray[600],
                   }}
                 >
                   <Monitor className="w-4 h-4" />
-                  <span className="text-sm" style={{ color: theme.ui.textPrimary }}>Default</span>
+                  <span className="text-xs" style={{ color: theme.ui.textPrimary }}>Default</span>
                 </button>
                 <button
-                  onClick={() => setTheme('claude')}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors border"
+                  onClick={() => setTheme('claude-light')}
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2.5 rounded-lg transition-colors border"
                   style={{
-                    backgroundColor: themeName === 'claude' ? theme.ui.interactive.primary : theme.ui.secondaryBg,
-                    borderColor: themeName === 'claude' ? theme.ui.interactive.primary : theme.ui.gray[600],
+                    backgroundColor: themeName === 'claude-light' ? theme.ui.interactive.primary : theme.ui.secondaryBg,
+                    borderColor: themeName === 'claude-light' ? theme.ui.interactive.primary : theme.ui.gray[600],
                   }}
                 >
                   <Palette className="w-4 h-4" />
-                  <span className="text-sm" style={{ color: theme.ui.textPrimary }}>Claude</span>
+                  <span className="text-xs" style={{ color: theme.ui.textPrimary }}>Light</span>
+                </button>
+                <button
+                  onClick={() => setTheme('claude-dark')}
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2.5 rounded-lg transition-colors border"
+                  style={{
+                    backgroundColor: themeName === 'claude-dark' ? theme.ui.interactive.primary : theme.ui.secondaryBg,
+                    borderColor: themeName === 'claude-dark' ? theme.ui.interactive.primary : theme.ui.gray[600],
+                  }}
+                >
+                  <Palette className="w-4 h-4" />
+                  <span className="text-xs" style={{ color: theme.ui.textPrimary }}>Dark</span>
                 </button>
               </div>
               <p className="text-xs mt-2" style={{ color: theme.ui.textMuted }}>
-                {themeName === 'default' ? 'Default 다크 테마가 적용되었습니다.' : 'Claude 스타일 테마가 적용되었습니다. (그라데이션, 글로우 효과)'}
+                {themeName === 'default'
+                  ? 'Default 다크 테마가 적용되었습니다.'
+                  : themeName === 'claude-light'
+                  ? 'Claude 라이트 테마가 적용되었습니다. (따뜻한 베이지 톤)'
+                  : 'Claude 다크 테마가 적용되었습니다. (따뜻한 브라운 톤)'}
               </p>
             </div>
 

@@ -11,7 +11,7 @@
 // 테마 타입 정의
 // ============================================================================
 
-export type ThemeName = 'default' | 'claude' | 'custom'
+export type ThemeName = 'default' | 'claude-light' | 'claude-dark' | 'custom'
 
 export interface ThemeColors {
   name: ThemeName
@@ -473,180 +473,181 @@ export const defaultTheme: ThemeColors = {
 }
 
 /**
- * Claude 스타일 테마
+ * Claude Light 테마 (따뜻한 라이트 모드)
+ * 실제 claude.ai 색상 기반
  */
-export const claudeTheme: ThemeColors = {
-  name: 'claude',
-  displayName: 'Claude Style',
+export const claudeLightTheme: ThemeColors = {
+  name: 'claude-light',
+  displayName: 'Claude Light',
 
   entityTypes: {
     person: {
-      bg: '#10B981',
-      text: '#10B981',
-      hex: '#10B981', // emerald-500
-      light: '#34D399', // emerald-400
-      glow: 'rgba(16, 185, 129, 0.2)',
+      bg: '#52A675',
+      text: '#52A675',
+      hex: '#52A675', // 따뜻한 초록
+      light: '#6FBB8E',
+      glow: 'rgba(82, 166, 117, 0.2)',
     },
     project: {
-      bg: '#A78BFA',
-      text: '#A78BFA',
-      hex: '#A78BFA', // purple-400
-      light: '#C4B5FD', // purple-300
-      glow: 'rgba(167, 139, 250, 0.2)',
+      bg: '#9B6FA6',
+      text: '#9B6FA6',
+      hex: '#9B6FA6', // 따뜻한 퍼플
+      light: '#B088BB',
+      glow: 'rgba(155, 111, 166, 0.2)',
     },
     event: {
-      bg: '#F59E0B',
-      text: '#F59E0B',
-      hex: '#F59E0B', // amber-500
-      light: '#FBBF24', // amber-400
-      glow: 'rgba(245, 158, 11, 0.2)',
+      bg: '#E07B53',
+      text: '#E07B53',
+      hex: '#E07B53', // 따뜻한 오렌지
+      light: '#E69570',
+      glow: 'rgba(224, 123, 83, 0.2)',
     },
     unknown: {
-      bg: '#9CA3AF',
-      text: '#9CA3AF',
-      hex: '#9CA3AF',
-      light: '#CBD5E1',
-      glow: 'rgba(156, 163, 175, 0.2)',
+      bg: '#938C7F',
+      text: '#938C7F',
+      hex: '#938C7F', // 따뜻한 그레이
+      light: '#A8A199',
+      glow: 'rgba(147, 140, 127, 0.2)',
     },
   },
 
   mention: {
     normal: {
-      bgOpacity: '20',
+      bgOpacity: '15',
     },
     emphasized: {
-      bgOpacity: '40',
+      bgOpacity: '30',
     },
   },
 
   ui: {
-    // 배경 (더 깊은 다크 톤)
-    primaryBg: '#0A0E17',
-    secondaryBg: '#141821',
-    tertiaryBg: '#1C2029',
-    elevatedBg: '#242938',
-    cardBg: '#141821',
-    cardBgHover: '#1C2029',
-    stickyMetadataBg: 'rgba(10, 14, 23, 0.95)',
+    // 배경 (따뜻한 베이지/크림 톤)
+    primaryBg: '#F5F3EF', // 메인 배경
+    secondaryBg: '#ECE9E3', // 약간 어두운 배경
+    tertiaryBg: '#E3DFD7', // 더 어두운 배경
+    elevatedBg: '#FFFFFF', // 떠있는 요소
+    cardBg: '#FFFFFF', // 카드 배경
+    cardBgHover: '#FAF8F5', // 카드 hover
+    stickyMetadataBg: 'rgba(255, 255, 255, 0.95)',
 
-    // 텍스트 (Claude 스타일 - 부드러운 흰색)
-    textPrimary: '#F8FAFC',
-    textSecondary: '#CBD5E1',
-    textMuted: '#94A3B8',
-    textPlaceholder: '#64748B',
+    // 텍스트 (따뜻한 브라운 톤)
+    textPrimary: '#2D2A26', // 진한 브라운
+    textSecondary: '#5C574F', // 중간 브라운
+    textMuted: '#938C7F', // 옅은 브라운/그레이
+    textPlaceholder: '#B3ADA3',
 
     // 테두리
-    border: 'rgba(255, 255, 255, 0.1)',
-    borderSubtle: 'rgba(255, 255, 255, 0.05)',
-    borderStrong: 'rgba(255, 255, 255, 0.15)',
+    border: '#D4CFC6',
+    borderSubtle: '#E8E4DC',
+    borderStrong: '#B3ADA3',
 
     // 상태별 색상
     loading: {
-      bg: '#141821',
+      bg: '#ECE9E3',
     },
     error: {
-      text: '#f87171',
-      bg: 'rgba(239, 68, 68, 0.1)',
+      text: '#C14343',
+      bg: 'rgba(193, 67, 67, 0.1)',
     },
     aiProcessing: {
-      text: '#C084FC',
-      bg: 'rgba(168, 85, 247, 0.1)',
+      text: '#9B6FA6',
+      bg: 'rgba(155, 111, 166, 0.1)',
     },
     delete: {
-      text: '#f87171',
-      bg: 'rgba(239, 68, 68, 0.1)',
-      bgHover: 'rgba(239, 68, 68, 0.1)',
+      text: '#C14343',
+      bg: 'rgba(193, 67, 67, 0.1)',
+      bgHover: 'rgba(193, 67, 67, 0.15)',
     },
 
     // 검색 하이라이트
     searchHighlight: {
-      borderColor: '#A78BFA',
-      borderColorLight: '#C4B5FD',
-      shadowColor: 'rgba(167, 139, 250, 0.6)',
+      borderColor: '#CC785C',
+      borderColorLight: '#E39774',
+      shadowColor: 'rgba(204, 120, 92, 0.4)',
     },
 
     // 버튼 hover
-    buttonHover: 'rgba(255, 255, 255, 0.05)',
+    buttonHover: 'rgba(0, 0, 0, 0.05)',
 
     // 인터랙티브 색상
     interactive: {
-      primary: '#A78BFA', // purple-400
-      primaryBg: 'linear-gradient(to right, #A855F7, #3B82F6)',
-      primaryBgHover: '#8B5CF6',
-      primaryBgLight: 'rgba(168, 85, 247, 0.2)',
-      primaryText: '#C084FC',
+      primary: '#CC785C', // 코랄 accent
+      primaryBg: '#CC785C',
+      primaryBgHover: '#B86A4F',
+      primaryBgLight: 'rgba(204, 120, 92, 0.1)',
+      primaryText: '#B86A4F',
 
-      success: '#10B981',
-      successBg: '#10B981',
-      successText: '#34D399',
+      success: '#52A675',
+      successBg: '#52A675',
+      successText: '#3D7D59',
 
-      warning: '#F59E0B',
-      warningBg: 'rgba(245, 158, 11, 0.3)',
-      warningText: '#FCD34D',
+      warning: '#E07B53',
+      warningBg: 'rgba(224, 123, 83, 0.15)',
+      warningText: '#C66942',
 
-      danger: '#EF4444',
-      dangerBg: 'rgba(239, 68, 68, 0.1)',
-      dangerText: '#f87171',
-      dangerTextHover: '#fca5a5',
+      danger: '#C14343',
+      dangerBg: 'rgba(193, 67, 67, 0.1)',
+      dangerText: '#C14343',
+      dangerTextHover: '#A33636',
     },
 
-    // Gray 팔레트 (Slate 계열)
+    // Gray 팔레트 (따뜻한 톤)
     gray: {
-      50: '#F8FAFC',
-      100: '#F1F5F9',
-      200: '#E2E8F0',
-      300: '#CBD5E1',
-      400: '#94A3B8',
-      500: '#64748B',
-      600: '#475569',
-      700: '#334155',
-      800: '#1E293B',
-      900: '#0F172A',
+      50: '#FAF8F5',
+      100: '#F5F3EF',
+      200: '#ECE9E3',
+      300: '#D4CFC6',
+      400: '#B3ADA3',
+      500: '#938C7F',
+      600: '#756F64',
+      700: '#5C574F',
+      800: '#433F38',
+      900: '#2D2A26',
     },
 
     // 아이콘 색상
     iconColors: {
-      default: '#F8FAFC',
-      muted: '#94A3B8',
-      orange: '#FB923C',
-      blue: '#60A5FA',
-      yellow: '#FACC15',
-      green: '#10B981',
-      purple: '#A78BFA',
-      cyan: '#22D3EE',
-      indigo: '#818CF8',
-      red: '#F87171',
+      default: '#2D2A26',
+      muted: '#938C7F',
+      orange: '#E07B53',
+      blue: '#6B9FC7',
+      yellow: '#D9A850',
+      green: '#52A675',
+      purple: '#9B6FA6',
+      cyan: '#5BAAA5',
+      indigo: '#7B85C2',
+      red: '#C14343',
     },
   },
 
   // Claude 스타일 확장
   claude: {
     gradient: {
-      primary: 'linear-gradient(135deg, #A78BFA 0%, #60A5FA 100%)',
-      card: 'linear-gradient(to bottom right, #141821 0%, #1C2029 100%)',
-      glow: 'linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(96, 165, 250, 0.1) 100%)',
+      primary: 'linear-gradient(135deg, #CC785C 0%, #E39774 100%)',
+      card: 'linear-gradient(to bottom right, #FFFFFF 0%, #FAF8F5 100%)',
+      glow: 'linear-gradient(135deg, rgba(204, 120, 92, 0.08) 0%, rgba(227, 151, 116, 0.08) 100%)',
     },
 
     accent: {
       purple: {
-        base: '#A78BFA', // purple-400
-        light: '#C4B5FD', // purple-300
-        dark: '#8B5CF6', // purple-500
-        glow: 'rgba(167, 139, 250, 0.3)',
+        base: '#9B6FA6',
+        light: '#B088BB',
+        dark: '#85608F',
+        glow: 'rgba(155, 111, 166, 0.2)',
       },
       blue: {
-        base: '#60A5FA', // blue-400
-        light: '#93C5FD', // blue-300
-        dark: '#3B82F6', // blue-500
-        glow: 'rgba(96, 165, 250, 0.3)',
+        base: '#6B9FC7',
+        light: '#8AB5D4',
+        dark: '#5789B3',
+        glow: 'rgba(107, 159, 199, 0.2)',
       },
     },
 
     shadow: {
-      sm: '0 2px 8px rgba(0, 0, 0, 0.2)',
-      md: '0 4px 16px rgba(0, 0, 0, 0.3)',
-      lg: '0 8px 32px rgba(0, 0, 0, 0.4)',
-      glow: '0 0 40px rgba(167, 139, 250, 0.3)',
+      sm: '0 1px 3px rgba(45, 42, 38, 0.1)',
+      md: '0 4px 12px rgba(45, 42, 38, 0.12)',
+      lg: '0 8px 24px rgba(45, 42, 38, 0.15)',
+      glow: '0 0 30px rgba(204, 120, 92, 0.2)',
     },
 
     borderRadius: {
@@ -662,62 +663,312 @@ export const claudeTheme: ThemeColors = {
   },
 
   timeline: {
-    background: '#0A0E17',
-    entityLine: '#334155',
-    entityLineActive: '#475569',
+    background: '#F5F3EF',
+    entityLine: '#D4CFC6',
+    entityLineActive: '#B3ADA3',
     timeScale: {
-      text: '#94A3B8',
-      line: '#334155',
-      majorLine: '#475569',
+      text: '#938C7F',
+      line: '#E8E4DC',
+      majorLine: '#D4CFC6',
     },
     memo: {
-      color: '#F8FAFC',
-      hoverOpacity: 0.95,
+      color: '#2D2A26',
+      hoverOpacity: 0.9,
       selectedOpacity: 1,
     },
   },
 
   drawer: {
-    overlay: 'rgba(0, 0, 0, 0.7)',
-    background: '#0A0E17',
-    border: '#1C2029',
+    overlay: 'rgba(45, 42, 38, 0.5)',
+    background: '#FFFFFF',
+    border: '#E8E4DC',
     header: {
-      title: '#F8FAFC',
-      closeButton: '#94A3B8',
-      closeButtonHover: '#F8FAFC',
+      title: '#2D2A26',
+      closeButton: '#938C7F',
+      closeButtonHover: '#2D2A26',
     },
     section: {
-      title: '#94A3B8',
-      text: '#F8FAFC',
-      textMuted: '#94A3B8',
+      title: '#938C7F',
+      text: '#2D2A26',
+      textMuted: '#938C7F',
     },
     card: {
-      background: '#141821',
-      border: '#1C2029',
-      borderHover: '#64748B',
+      background: '#FAF8F5',
+      border: '#E8E4DC',
+      borderHover: '#CC785C',
     },
     button: {
       primary: {
-        bg: '#A78BFA',
-        bgHover: '#8B5CF6',
+        bg: '#CC785C',
+        bgHover: '#B86A4F',
         text: '#FFFFFF',
       },
       secondary: {
-        bg: '#60A5FA',
-        bgHover: '#3B82F6',
+        bg: '#9B6FA6',
+        bgHover: '#85608F',
         text: '#FFFFFF',
       },
     },
   },
 
   tooltip: {
-    background: '#0A0E17',
-    border: '#1C2029',
-    shadow: 'rgba(0, 0, 0, 0.6)',
-    divider: '#1C2029',
-    title: '#94A3B8',
-    text: '#F8FAFC',
-    hint: '#64748B',
+    background: '#2D2A26',
+    border: '#433F38',
+    shadow: 'rgba(45, 42, 38, 0.3)',
+    divider: '#433F38',
+    title: '#B3ADA3',
+    text: '#F5F3EF',
+    hint: '#938C7F',
+  },
+}
+
+/**
+ * Claude Dark 테마 (따뜻한 다크 모드)
+ * 실제 claude.ai 다크모드 색상 기반
+ */
+export const claudeDarkTheme: ThemeColors = {
+  name: 'claude-dark',
+  displayName: 'Claude Dark',
+
+  entityTypes: {
+    person: {
+      bg: '#52A675',
+      text: '#52A675',
+      hex: '#52A675', // 따뜻한 초록
+      light: '#6FBB8E',
+      glow: 'rgba(82, 166, 117, 0.25)',
+    },
+    project: {
+      bg: '#9B6FA6',
+      text: '#9B6FA6',
+      hex: '#9B6FA6', // 따뜻한 퍼플
+      light: '#B088BB',
+      glow: 'rgba(155, 111, 166, 0.25)',
+    },
+    event: {
+      bg: '#E07B53',
+      text: '#E07B53',
+      hex: '#E07B53', // 따뜻한 오렌지
+      light: '#E69570',
+      glow: 'rgba(224, 123, 83, 0.25)',
+    },
+    unknown: {
+      bg: '#938C7F',
+      text: '#938C7F',
+      hex: '#938C7F', // 따뜻한 그레이
+      light: '#A8A199',
+      glow: 'rgba(147, 140, 127, 0.25)',
+    },
+  },
+
+  mention: {
+    normal: {
+      bgOpacity: '20',
+    },
+    emphasized: {
+      bgOpacity: '35',
+    },
+  },
+
+  ui: {
+    // 배경 (따뜻한 다크 브라운)
+    primaryBg: '#1C1915', // 메인 배경
+    secondaryBg: '#2D2A26', // 약간 밝은 배경
+    tertiaryBg: '#38342F', // 더 밝은 배경
+    elevatedBg: '#433F38', // 떠있는 요소
+    cardBg: '#2D2A26', // 카드 배경
+    cardBgHover: '#38342F', // 카드 hover
+    stickyMetadataBg: 'rgba(28, 25, 21, 0.95)',
+
+    // 텍스트 (따뜻한 크림/베이지 톤)
+    textPrimary: '#F5F3EF', // 밝은 크림
+    textSecondary: '#C9C3B9', // 중간 베이지
+    textMuted: '#938C7F', // 옅은 그레이/브라운
+    textPlaceholder: '#756F64',
+
+    // 테두리
+    border: '#4A4540',
+    borderSubtle: '#38342F',
+    borderStrong: '#5C574F',
+
+    // 상태별 색상
+    loading: {
+      bg: '#2D2A26',
+    },
+    error: {
+      text: '#E89393',
+      bg: 'rgba(232, 147, 147, 0.12)',
+    },
+    aiProcessing: {
+      text: '#B088BB',
+      bg: 'rgba(155, 111, 166, 0.12)',
+    },
+    delete: {
+      text: '#E89393',
+      bg: 'rgba(232, 147, 147, 0.12)',
+      bgHover: 'rgba(232, 147, 147, 0.18)',
+    },
+
+    // 검색 하이라이트
+    searchHighlight: {
+      borderColor: '#E39774',
+      borderColorLight: '#EEAB8D',
+      shadowColor: 'rgba(227, 151, 116, 0.4)',
+    },
+
+    // 버튼 hover
+    buttonHover: 'rgba(255, 255, 255, 0.05)',
+
+    // 인터랙티브 색상
+    interactive: {
+      primary: '#E39774', // 밝은 코랄 accent
+      primaryBg: '#E39774',
+      primaryBgHover: '#EEAB8D',
+      primaryBgLight: 'rgba(227, 151, 116, 0.15)',
+      primaryText: '#EEAB8D',
+
+      success: '#6FBB8E',
+      successBg: '#6FBB8E',
+      successText: '#8BCBA2',
+
+      warning: '#E69570',
+      warningBg: 'rgba(230, 149, 112, 0.15)',
+      warningText: '#EEAB8D',
+
+      danger: '#E89393',
+      dangerBg: 'rgba(232, 147, 147, 0.12)',
+      dangerText: '#E89393',
+      dangerTextHover: '#F0ABAB',
+    },
+
+    // Gray 팔레트 (따뜻한 톤)
+    gray: {
+      50: '#F5F3EF',
+      100: '#ECE9E3',
+      200: '#D4CFC6',
+      300: '#B3ADA3',
+      400: '#938C7F',
+      500: '#756F64',
+      600: '#5C574F',
+      700: '#4A4540',
+      800: '#38342F',
+      900: '#2D2A26',
+    },
+
+    // 아이콘 색상
+    iconColors: {
+      default: '#F5F3EF',
+      muted: '#938C7F',
+      orange: '#E69570',
+      blue: '#8AB5D4',
+      yellow: '#E6C177',
+      green: '#6FBB8E',
+      purple: '#B088BB',
+      cyan: '#7BC4BF',
+      indigo: '#9BA3D4',
+      red: '#E89393',
+    },
+  },
+
+  // Claude 스타일 확장
+  claude: {
+    gradient: {
+      primary: 'linear-gradient(135deg, #E39774 0%, #EEAB8D 100%)',
+      card: 'linear-gradient(to bottom right, #2D2A26 0%, #38342F 100%)',
+      glow: 'linear-gradient(135deg, rgba(227, 151, 116, 0.1) 0%, rgba(238, 171, 141, 0.1) 100%)',
+    },
+
+    accent: {
+      purple: {
+        base: '#B088BB',
+        light: '#C4A0CE',
+        dark: '#9B6FA6',
+        glow: 'rgba(176, 136, 187, 0.25)',
+      },
+      blue: {
+        base: '#8AB5D4',
+        light: '#A3C5DE',
+        dark: '#6B9FC7',
+        glow: 'rgba(138, 181, 212, 0.25)',
+      },
+    },
+
+    shadow: {
+      sm: '0 2px 8px rgba(0, 0, 0, 0.3)',
+      md: '0 4px 16px rgba(0, 0, 0, 0.4)',
+      lg: '0 8px 32px rgba(0, 0, 0, 0.5)',
+      glow: '0 0 40px rgba(227, 151, 116, 0.3)',
+    },
+
+    borderRadius: {
+      sm: '0.25rem',
+      base: '0.5rem',
+      md: '0.75rem',
+      lg: '1rem',
+      xl: '1.5rem',
+      '2xl': '2rem',
+      '3xl': '3rem',
+      full: '9999px',
+    },
+  },
+
+  timeline: {
+    background: '#1C1915',
+    entityLine: '#4A4540',
+    entityLineActive: '#5C574F',
+    timeScale: {
+      text: '#938C7F',
+      line: '#38342F',
+      majorLine: '#4A4540',
+    },
+    memo: {
+      color: '#F5F3EF',
+      hoverOpacity: 0.95,
+      selectedOpacity: 1,
+    },
+  },
+
+  drawer: {
+    overlay: 'rgba(0, 0, 0, 0.6)',
+    background: '#1C1915',
+    border: '#38342F',
+    header: {
+      title: '#F5F3EF',
+      closeButton: '#938C7F',
+      closeButtonHover: '#F5F3EF',
+    },
+    section: {
+      title: '#938C7F',
+      text: '#F5F3EF',
+      textMuted: '#938C7F',
+    },
+    card: {
+      background: '#2D2A26',
+      border: '#38342F',
+      borderHover: '#E39774',
+    },
+    button: {
+      primary: {
+        bg: '#E39774',
+        bgHover: '#EEAB8D',
+        text: '#1C1915',
+      },
+      secondary: {
+        bg: '#B088BB',
+        bgHover: '#C4A0CE',
+        text: '#1C1915',
+      },
+    },
+  },
+
+  tooltip: {
+    background: '#2D2A26',
+    border: '#38342F',
+    shadow: 'rgba(0, 0, 0, 0.5)',
+    divider: '#38342F',
+    title: '#938C7F',
+    text: '#F5F3EF',
+    hint: '#756F64',
   },
 }
 
@@ -726,7 +977,8 @@ export const claudeTheme: ThemeColors = {
  */
 export const themes: Record<ThemeName, ThemeColors> = {
   default: defaultTheme,
-  claude: claudeTheme,
+  'claude-light': claudeLightTheme,
+  'claude-dark': claudeDarkTheme,
   custom: defaultTheme, // 향후 사용자 정의 테마로 확장
 }
 
