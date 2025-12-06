@@ -1,6 +1,6 @@
 'use client'
 
-import { defaultTheme } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import { Calendar, Hash, CheckCircle } from 'lucide-react'
 import type { BulkImportParseResult } from '@/types/import'
 
@@ -13,57 +13,100 @@ interface ParsePreviewProps {
 }
 
 export default function ParsePreview({ result, onBack, onExecute, isLoading, error }: ParsePreviewProps) {
+  const { theme } = useTheme()
+
   return (
     <div className="space-y-4">
       {/* 통계 요약 */}
       <div className="grid grid-cols-3 gap-4">
-        <div className={`${defaultTheme.ui.cardBg} border ${defaultTheme.ui.border} rounded-lg p-4`}>
+        <div
+          className="rounded-lg p-4 border"
+          style={{
+            backgroundColor: theme.ui.cardBg,
+            borderColor: theme.ui.border,
+          }}
+        >
           <div className="flex items-center gap-2 mb-2">
-            <Calendar className={`w-4 h-4 ${defaultTheme.ui.textMuted}`} />
-            <span className={`${defaultTheme.ui.textMuted} text-sm`}>메모 개수</span>
+            <Calendar className="w-4 h-4" style={{ color: theme.ui.textMuted }} />
+            <span className="text-sm" style={{ color: theme.ui.textMuted }}>
+              메모 개수
+            </span>
           </div>
-          <p className={`${defaultTheme.ui.textPrimary} text-2xl font-semibold`}>
+          <p className="text-2xl font-semibold" style={{ color: theme.ui.textPrimary }}>
             {result.stats.totalMemos}개
           </p>
         </div>
 
-        <div className={`${defaultTheme.ui.cardBg} border ${defaultTheme.ui.border} rounded-lg p-4`}>
+        <div
+          className="rounded-lg p-4 border"
+          style={{
+            backgroundColor: theme.ui.cardBg,
+            borderColor: theme.ui.border,
+          }}
+        >
           <div className="flex items-center gap-2 mb-2">
-            <Hash className={`w-4 h-4 ${defaultTheme.ui.textMuted}`} />
-            <span className={`${defaultTheme.ui.textMuted} text-sm`}>Entity 개수</span>
+            <Hash className="w-4 h-4" style={{ color: theme.ui.textMuted }} />
+            <span className="text-sm" style={{ color: theme.ui.textMuted }}>
+              Entity 개수
+            </span>
           </div>
-          <p className={`${defaultTheme.ui.textPrimary} text-2xl font-semibold`}>
+          <p className="text-2xl font-semibold" style={{ color: theme.ui.textPrimary }}>
             {result.stats.uniqueEntities}개
           </p>
         </div>
 
-        <div className={`${defaultTheme.ui.cardBg} border ${defaultTheme.ui.border} rounded-lg p-4`}>
+        <div
+          className="rounded-lg p-4 border"
+          style={{
+            backgroundColor: theme.ui.cardBg,
+            borderColor: theme.ui.border,
+          }}
+        >
           <div className="flex items-center gap-2 mb-2">
-            <Calendar className={`w-4 h-4 ${defaultTheme.ui.textMuted}`} />
-            <span className={`${defaultTheme.ui.textMuted} text-sm`}>날짜 범위</span>
+            <Calendar className="w-4 h-4" style={{ color: theme.ui.textMuted }} />
+            <span className="text-sm" style={{ color: theme.ui.textMuted }}>
+              날짜 범위
+            </span>
           </div>
-          <p className={`${defaultTheme.ui.textPrimary} text-sm font-medium`}>
+          <p className="text-sm font-medium" style={{ color: theme.ui.textPrimary }}>
             {result.stats.dateRange[0]} ~ {result.stats.dateRange[1]}
           </p>
         </div>
       </div>
 
       {/* 메모 미리보기 */}
-      <div className={`${defaultTheme.ui.cardBg} border ${defaultTheme.ui.border} rounded-lg p-4`}>
-        <h3 className={`${defaultTheme.ui.textPrimary} font-medium mb-3`}>파싱 결과 미리보기</h3>
+      <div
+        className="rounded-lg p-4 border"
+        style={{
+          backgroundColor: theme.ui.cardBg,
+          borderColor: theme.ui.border,
+        }}
+      >
+        <h3 className="font-medium mb-3" style={{ color: theme.ui.textPrimary }}>
+          파싱 결과 미리보기
+        </h3>
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {result.memos.map((memo, idx) => (
             <div
               key={idx}
-              className={`${defaultTheme.ui.secondaryBg} border ${defaultTheme.ui.borderSubtle} rounded-lg p-3`}
+              className="rounded-lg p-3 border"
+              style={{
+                backgroundColor: theme.ui.secondaryBg,
+                borderColor: theme.ui.borderSubtle,
+              }}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className={`${defaultTheme.ui.textMuted} text-xs`}>{memo.date}</span>
-                <span className={`${defaultTheme.ui.textMuted} text-xs`}>
+                <span className="text-xs" style={{ color: theme.ui.textMuted }}>
+                  {memo.date}
+                </span>
+                <span className="text-xs" style={{ color: theme.ui.textMuted }}>
                   {memo.entities.length}개 Entity
                 </span>
               </div>
-              <p className={`${defaultTheme.ui.textSecondary} text-sm line-clamp-2`}>
+              <p
+                className="text-sm line-clamp-2"
+                style={{ color: theme.ui.textSecondary }}
+              >
                 {memo.content}
               </p>
               {memo.entities.length > 0 && (
@@ -71,7 +114,11 @@ export default function ParsePreview({ result, onBack, onExecute, isLoading, err
                   {memo.entities.map((entity, eidx) => (
                     <span
                       key={eidx}
-                      className={`${defaultTheme.ui.interactive.primaryBgLight} ${defaultTheme.ui.interactive.primaryText} px-2 py-0.5 rounded text-xs`}
+                      className="px-2 py-0.5 rounded text-xs"
+                      style={{
+                        backgroundColor: theme.ui.interactive.primaryBgLight,
+                        color: theme.ui.interactive.primaryText,
+                      }}
                     >
                       @{entity}
                     </span>
@@ -85,8 +132,14 @@ export default function ParsePreview({ result, onBack, onExecute, isLoading, err
 
       {/* 에러 메시지 */}
       {error && (
-        <div className={`${defaultTheme.ui.error.bg} border border-red-500/20 rounded-lg p-3`}>
-          <p className={defaultTheme.ui.error.text}>{error}</p>
+        <div
+          className="rounded-lg p-3 border"
+          style={{
+            backgroundColor: theme.ui.error.bg,
+            borderColor: `${theme.ui.error.text}33`,
+          }}
+        >
+          <p style={{ color: theme.ui.error.text }}>{error}</p>
         </div>
       )}
 
@@ -95,14 +148,42 @@ export default function ParsePreview({ result, onBack, onExecute, isLoading, err
         <button
           onClick={onBack}
           disabled={isLoading}
-          className={`px-6 py-2 ${defaultTheme.ui.secondaryBg} ${defaultTheme.ui.buttonHover} ${defaultTheme.ui.textSecondary} rounded-lg transition-colors disabled:opacity-50`}
+          className="px-6 py-2 rounded-lg transition-colors disabled:opacity-50"
+          style={{
+            backgroundColor: theme.ui.secondaryBg,
+            color: theme.ui.textSecondary,
+          }}
+          onMouseEnter={(e) => {
+            if (!e.currentTarget.disabled) {
+              e.currentTarget.style.opacity = '0.8'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!e.currentTarget.disabled) {
+              e.currentTarget.style.opacity = '1'
+            }
+          }}
         >
           뒤로
         </button>
         <button
           onClick={onExecute}
           disabled={isLoading}
-          className={`px-6 py-2 ${defaultTheme.ui.interactive.primaryBg} ${defaultTheme.ui.interactive.primaryBgHover} text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2`}
+          className="px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+          style={{
+            backgroundColor: theme.ui.interactive.primaryBg,
+            color: '#ffffff',
+          }}
+          onMouseEnter={(e) => {
+            if (!e.currentTarget.disabled) {
+              e.currentTarget.style.backgroundColor = theme.ui.interactive.primaryBgHover
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!e.currentTarget.disabled) {
+              e.currentTarget.style.backgroundColor = theme.ui.interactive.primaryBg
+            }
+          }}
         >
           {isLoading ? (
             <>

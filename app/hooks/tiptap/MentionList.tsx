@@ -77,40 +77,66 @@ export const MentionList = forwardRef<any, MentionListProps>((props, ref) => {
 
   if (props.items.length === 0) {
     return (
-      <div className={`${theme.ui.cardBg} ${theme.ui.border} rounded-lg shadow-lg p-2 min-w-[200px]`}>
-        <div className={`${theme.ui.textMuted} text-sm px-3 py-2`}>결과 없음</div>
+      <div
+        className="rounded-lg shadow-lg p-2 min-w-[200px] border"
+        style={{
+          backgroundColor: theme.ui.cardBg,
+          borderColor: theme.ui.border,
+        }}
+      >
+        <div className="text-sm px-3 py-2" style={{ color: theme.ui.textMuted }}>
+          결과 없음
+        </div>
       </div>
     )
   }
 
   return (
-    <div className={`${theme.ui.cardBg} ${theme.ui.border} rounded-lg shadow-lg overflow-hidden min-w-[200px]`}>
+    <div
+      className="rounded-lg shadow-lg overflow-hidden min-w-[200px] border"
+      style={{
+        backgroundColor: theme.ui.cardBg,
+        borderColor: theme.ui.border,
+      }}
+    >
       {props.items.map((item, index) => {
         // 새 entity인지 확인
         const isNewEntity = item.id.startsWith('new-')
 
         // Entity type별 색상 (테마 시스템 사용)
         const entityColor = getEntityTypeColor(item.type, theme)
+        const isSelected = index === selectedIndex
 
         return (
           <button
             key={item.id}
-            className={`
-              w-full px-3 py-2 text-left text-sm transition-colors
-              ${
-                index === selectedIndex
-                  ? `${theme.ui.interactive.primaryBgLight} ${theme.ui.textPrimary}`
-                  : `${theme.ui.textSecondary} ${theme.ui.buttonHover}`
+            className="w-full px-3 py-2 text-left text-sm transition-colors"
+            style={{
+              backgroundColor: isSelected ? theme.ui.interactive.primaryBgLight : 'transparent',
+              color: isSelected ? theme.ui.textPrimary : theme.ui.textSecondary,
+            }}
+            onMouseEnter={(e) => {
+              setSelectedIndex(index)
+              if (!isSelected) {
+                e.currentTarget.style.backgroundColor = theme.ui.buttonHover
               }
-            `}
+            }}
+            onMouseLeave={(e) => {
+              if (!isSelected) {
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }
+            }}
             onClick={() => selectItem(index)}
-            onMouseEnter={() => setSelectedIndex(index)}
           >
             <span style={{ color: entityColor.hex }}>@{item.name}</span>
             {isNewEntity ? (
-              <span className={`${theme.ui.textMuted} text-xs ml-2`}>(새로 생성)</span>
+              <span className="text-xs ml-2" style={{ color: theme.ui.textMuted }}>
+                (새로 생성)
+              </span>
             ) : item.type ? (
-              <span className={`${theme.ui.textMuted} text-xs ml-2`}>({item.type})</span>
+              <span className="text-xs ml-2" style={{ color: theme.ui.textMuted }}>
+                ({item.type})
+              </span>
             ) : null}
           </button>
         )

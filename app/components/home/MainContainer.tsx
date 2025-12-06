@@ -132,7 +132,8 @@ export default function MainContainer() {
   return (
     <div
       ref={containerRef}
-      className={`flex-1 overflow-y-auto ${theme.ui.primaryBg} relative`}
+      className="flex-1 overflow-y-auto relative"
+      style={{ backgroundColor: theme.ui.primaryBg }}
     >
       {/* 로딩 바 (상단에 작게) */}
       {isLoadingOverlay && (
@@ -146,8 +147,8 @@ export default function MainContainer() {
         {/* 헤더 (entity 없을 때만 표시, 위쪽 고정) */}
         {accumulatedEntityIds.length === 0 && (
           <div className="pt-6 pb-4 flex-shrink-0">
-            <h2 className={`text-lg font-semibold ${theme.ui.textPrimary}`}>Entity 추천</h2>
-            <p className={`text-xs ${theme.ui.textSecondary} mt-1`}>
+            <h2 className="text-lg font-semibold" style={{ color: theme.ui.textPrimary }}>Entity 추천</h2>
+            <p className="text-xs mt-1" style={{ color: theme.ui.textSecondary }}>
               아래 입력창에서 @로 엔티티를 언급하면 관련 메모가 표시됩니다
             </p>
           </div>
@@ -179,7 +180,7 @@ export default function MainContainer() {
         ) : (
           /* 기본 상태 - 중앙 배치 */
           <div className="flex items-center justify-center flex-1">
-            <div className={`text-center ${theme.ui.textPlaceholder}`}>
+            <div className="text-center" style={{ color: theme.ui.textPlaceholder }}>
               <p className="text-lg">@로 엔티티를 언급해보세요</p>
               <p className="text-sm mt-2">관련된 과거 메모들이 여기에 표시됩니다</p>
             </div>
@@ -218,7 +219,7 @@ const EntitySection = memo(function EntitySection({
 
   const entity = entities.find((e) => e.id === entityId)
   const isUpdating = isEntityUpdating(entityId)
-  const entityColor = getEntityTypeColor(entity?.type)
+  const entityColor = getEntityTypeColor(entity?.type, theme)
 
   // 메모를 역순으로 정렬 (최신이 아래)
   const sortedMemos = useMemo(() => {
@@ -284,20 +285,29 @@ const EntitySection = memo(function EntitySection({
   }
 
   return (
-    <div className={`relative pt-6 border-b ${theme.ui.border} last:border-b-0`}>
+    <div
+      className="relative pt-6 border-b last:border-b-0"
+      style={{ borderColor: theme.ui.border }}
+    >
       {/* 로딩 상태 */}
       {isLoading && (
         <div className="space-y-3 mb-20 pl-6">
-          <div className={`${theme.ui.loading.bg} h-20 rounded-lg animate-pulse`}></div>
-          <div className={`${theme.ui.loading.bg} h-20 rounded-lg animate-pulse`}></div>
+          <div className="h-20 rounded-lg animate-pulse" style={{ backgroundColor: theme.ui.loading.bg }}></div>
+          <div className="h-20 rounded-lg animate-pulse" style={{ backgroundColor: theme.ui.loading.bg }}></div>
         </div>
       )}
 
       {/* 에러 상태 */}
       {isError && (
-        <div className={`text-center ${theme.ui.error.text} text-sm py-6 ${theme.ui.error.bg} rounded-md mb-20 ml-6`}>
+        <div
+          className="text-center text-sm py-6 rounded-md mb-20 ml-6"
+          style={{
+            color: theme.ui.error.text,
+            backgroundColor: theme.ui.error.bg,
+          }}
+        >
           <p className="font-semibold mb-1">데이터를 불러올 수 없습니다</p>
-          <p className={`text-xs ${theme.ui.textPlaceholder}`}>{error?.message || '알 수 없는 오류'}</p>
+          <p className="text-xs" style={{ color: theme.ui.textPlaceholder }}>{error?.message || '알 수 없는 오류'}</p>
         </div>
       )}
 
@@ -308,7 +318,10 @@ const EntitySection = memo(function EntitySection({
           {hiddenMemosCount > 0 && (
             <button
               onClick={handleLoadMore}
-              className={`text-xs ${theme.ui.textMuted} hover:${theme.ui.textSecondary} transition-colors`}
+              className="text-xs transition-colors"
+              style={{ color: theme.ui.textMuted }}
+              onMouseEnter={(e) => e.currentTarget.style.color = theme.ui.textSecondary}
+              onMouseLeave={(e) => e.currentTarget.style.color = theme.ui.textMuted}
             >
               이전 메모 +{hiddenMemosCount}개 더보기
             </button>
@@ -328,13 +341,19 @@ const EntitySection = memo(function EntitySection({
 
       {/* 빈 상태 */}
       {!isLoading && !isError && memos.length === 0 && (
-        <div className={`text-center ${theme.ui.textPlaceholder} text-sm py-6 mb-20 ml-6`}>
-          <p className={theme.ui.textPlaceholder}>이 엔티티와 관련된 메모가 아직 없습니다</p>
+        <div
+          className="text-center text-sm py-6 mb-20 ml-6"
+          style={{ color: theme.ui.textPlaceholder }}
+        >
+          <p>이 엔티티와 관련된 메모가 아직 없습니다</p>
         </div>
       )}
 
       {/* Entity 메타데이터 (Sticky Bottom) */}
-      <div className={`sticky bottom-0 ${theme.ui.stickyMetadataBg} backdrop-blur-sm pt-3 pb-3 z-10`}>
+      <div
+        className="sticky bottom-0 backdrop-blur-sm pt-3 pb-3 z-10"
+        style={{ backgroundColor: theme.ui.stickyMetadataBg }}
+      >
         <div className="flex items-center justify-between gap-4">
           {/* 왼쪽: Entity 정보 */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -342,7 +361,17 @@ const EntitySection = memo(function EntitySection({
             <div className="relative flex-shrink-0">
               <button
                 onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
-                className={`px-3 py-1.5 rounded-lg ${entityColor.bg}/20 ${entityColor.text} font-medium text-sm hover:bg-${entityColor.bg.replace('bg-', '')}/40 hover:shadow-md hover:scale-105 transition-all whitespace-nowrap cursor-pointer`}
+                className="px-3 py-1.5 rounded-lg font-medium text-sm hover:shadow-md hover:scale-105 transition-all whitespace-nowrap cursor-pointer"
+                style={{
+                  backgroundColor: `${entityColor.hex}33`,
+                  color: entityColor.hex,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = `${entityColor.hex}66`
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = `${entityColor.hex}33`
+                }}
                 title="클릭하여 타입 변경"
               >
                 @{entityName}
@@ -358,49 +387,107 @@ const EntitySection = memo(function EntitySection({
                   ></div>
 
                   {/* 드롭다운 메뉴 */}
-                  <div className={`absolute top-full left-0 mt-2 z-50 flex items-center gap-2 ${theme.ui.cardBg} px-3 py-2 rounded-lg border ${theme.ui.border} shadow-xl min-w-max`}>
-                    <span className={`text-xs ${theme.ui.textPlaceholder} mr-1`}>타입:</span>
+                  <div
+                    className="absolute top-full left-0 mt-2 z-50 flex items-center gap-2 px-3 py-2 rounded-lg border shadow-xl min-w-max"
+                    style={{
+                      backgroundColor: theme.ui.cardBg,
+                      borderColor: theme.ui.border,
+                    }}
+                  >
+                    <span className="text-xs mr-1" style={{ color: theme.ui.textPlaceholder }}>타입:</span>
                     <button
                       onClick={() => handleTypeChange('person')}
-                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
-                        entity?.type === 'person'
-                          ? `${theme.entityTypes.person.bg}/20 ${theme.entityTypes.person.text} hover:bg-${theme.entityTypes.person.bg.replace('bg-', '')}/40`
-                          : `${theme.ui.textPlaceholder} ${theme.ui.buttonHover}`
-                      }`}
+                      className="px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer"
+                      style={{
+                        backgroundColor: entity?.type === 'person' ? `${theme.entityTypes.person.hex}33` : 'transparent',
+                        color: entity?.type === 'person' ? theme.entityTypes.person.hex : theme.ui.textPlaceholder,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (entity?.type === 'person') {
+                          e.currentTarget.style.backgroundColor = `${theme.entityTypes.person.hex}66`
+                        } else {
+                          e.currentTarget.style.backgroundColor = theme.ui.buttonHover
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (entity?.type === 'person') {
+                          e.currentTarget.style.backgroundColor = `${theme.entityTypes.person.hex}33`
+                        } else {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                        }
+                      }}
                       disabled={updateEntityType.isPending}
                     >
                       Person
                     </button>
                     <button
                       onClick={() => handleTypeChange('project')}
-                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
-                        entity?.type === 'project'
-                          ? `${theme.entityTypes.project.bg}/20 ${theme.entityTypes.project.text} hover:bg-${theme.entityTypes.project.bg.replace('bg-', '')}/40`
-                          : `${theme.ui.textPlaceholder} ${theme.ui.buttonHover}`
-                      }`}
+                      className="px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer"
+                      style={{
+                        backgroundColor: entity?.type === 'project' ? `${theme.entityTypes.project.hex}33` : 'transparent',
+                        color: entity?.type === 'project' ? theme.entityTypes.project.hex : theme.ui.textPlaceholder,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (entity?.type === 'project') {
+                          e.currentTarget.style.backgroundColor = `${theme.entityTypes.project.hex}66`
+                        } else {
+                          e.currentTarget.style.backgroundColor = theme.ui.buttonHover
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (entity?.type === 'project') {
+                          e.currentTarget.style.backgroundColor = `${theme.entityTypes.project.hex}33`
+                        } else {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                        }
+                      }}
                       disabled={updateEntityType.isPending}
                     >
                       Project
                     </button>
                     <button
                       onClick={() => handleTypeChange('unknown')}
-                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
-                        entity?.type === 'unknown' || !entity?.type
-                          ? `${theme.entityTypes.unknown.bg}/20 ${theme.entityTypes.unknown.text} hover:bg-${theme.entityTypes.unknown.bg.replace('bg-', '')}/40`
-                          : `${theme.ui.textPlaceholder} ${theme.ui.buttonHover}`
-                      }`}
+                      className="px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer"
+                      style={{
+                        backgroundColor: (entity?.type === 'unknown' || !entity?.type) ? `${theme.entityTypes.unknown.hex}33` : 'transparent',
+                        color: (entity?.type === 'unknown' || !entity?.type) ? theme.entityTypes.unknown.hex : theme.ui.textPlaceholder,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (entity?.type === 'unknown' || !entity?.type) {
+                          e.currentTarget.style.backgroundColor = `${theme.entityTypes.unknown.hex}66`
+                        } else {
+                          e.currentTarget.style.backgroundColor = theme.ui.buttonHover
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (entity?.type === 'unknown' || !entity?.type) {
+                          e.currentTarget.style.backgroundColor = `${theme.entityTypes.unknown.hex}33`
+                        } else {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                        }
+                      }}
                       disabled={updateEntityType.isPending}
                     >
                       Unknown
                     </button>
 
                     {/* 구분선 */}
-                    <div className={`w-px h-4 ${theme.ui.border} mx-1`}></div>
+                    <div className="w-px h-4 mx-1" style={{ backgroundColor: theme.ui.border }}></div>
 
                     {/* 삭제 버튼 */}
                     <button
                       onClick={handleDeleteClick}
-                      className={`px-2.5 py-1 rounded text-xs font-medium ${theme.ui.delete.text} ${theme.ui.delete.bgHover} transition-colors cursor-pointer`}
+                      className="px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer"
+                      style={{
+                        color: theme.ui.delete.text,
+                        backgroundColor: 'transparent',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.ui.delete.bgHover
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent'
+                      }}
                       disabled={updateEntityType.isPending}
                       title="엔티티 삭제"
                     >
@@ -413,7 +500,7 @@ const EntitySection = memo(function EntitySection({
 
             {/* Description (오른쪽) - 남은 공간 차지 */}
             {entity?.description && (
-              <p className={`text-sm ${theme.ui.textPlaceholder} flex-1 min-w-0`}>
+              <p className="text-sm flex-1 min-w-0" style={{ color: theme.ui.textPlaceholder }}>
                 {entity.description}
               </p>
             )}
@@ -423,7 +510,13 @@ const EntitySection = memo(function EntitySection({
           <div className="flex items-center gap-2 flex-shrink-0">
             {/* AI 업데이트 중 표시 */}
             {isUpdating && (
-              <span className={`flex items-center gap-1.5 px-2 py-1 rounded-md ${theme.ui.aiProcessing.bg} ${theme.ui.aiProcessing.text} text-xs animate-pulse`}>
+              <span
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs animate-pulse"
+                style={{
+                  backgroundColor: theme.ui.aiProcessing.bg,
+                  color: theme.ui.aiProcessing.text,
+                }}
+              >
                 <svg
                   className="animate-spin h-3 w-3"
                   xmlns="http://www.w3.org/2000/svg"

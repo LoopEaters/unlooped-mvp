@@ -39,6 +39,7 @@ export default function MemoDetailDrawer({
   const { editor, isSubmitting, handleUpdate } = useTiptapEditorForEdit({
     memo,
     onSuccess: onClose,
+    theme,
   })
 
   // Cancel handler

@@ -32,7 +32,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-8 border-t" style={{ borderColor: theme.ui.border }}>
         <div className="max-w-6xl mx-auto px-6 text-center">
-          <p className={theme.ui.textMuted}>
+          <p style={{ color: theme.ui.textMuted }}>
             © 2025 Unlooped. All rights reserved.
           </p>
         </div>

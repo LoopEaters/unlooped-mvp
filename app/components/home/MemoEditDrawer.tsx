@@ -42,6 +42,7 @@ export default function MemoEditDrawer({
     memo,
     onSuccess: onClose,
     createdAt,
+    theme,
   })
 
   const handleSave = () => {
@@ -225,7 +226,7 @@ export default function MemoEditDrawer({
               </p>
             ) : (
               connectedEntities.map((entity) => {
-                const typeColor = getEntityTypeColor(entity.type)
+                const typeColor = getEntityTypeColor(entity.type, theme)
                 return (
                   <div
                     key={entity.id}

@@ -288,7 +288,8 @@ export default function EntityTimeline({ entities, memos }: EntityTimelineProps)
         {/* Konva Canvas - 드래그 가능 + 휠 줌 */}
         <div
           ref={containerRef}
-          className="w-full h-full bg-bg-secondary overflow-hidden"
+          className="w-full h-full overflow-hidden"
+          style={{ backgroundColor: theme.timeline.background }}
         >
           <Stage
             ref={stageRef}

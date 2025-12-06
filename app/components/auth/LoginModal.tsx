@@ -95,7 +95,13 @@ export default function LoginModal() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className={`${theme.ui.error.bg} ${theme.ui.error.text} p-3 rounded-md text-sm`}>
+              <div
+                className="p-3 rounded-md text-sm"
+                style={{
+                  backgroundColor: theme.ui.error.bg,
+                  color: theme.ui.error.text,
+                }}
+              >
                 {error}
               </div>
             )}
@@ -186,7 +192,21 @@ export default function LoginModal() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full ${theme.ui.interactive.primaryBg} text-white py-2 px-4 rounded-md ${theme.ui.interactive.primaryBgHover} disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors`}
+              className="w-full py-2 px-4 rounded-md disabled:cursor-not-allowed transition-colors"
+              style={{
+                backgroundColor: isLoading ? '#9CA3AF' : theme.ui.interactive.primaryBg,
+                color: '#ffffff',
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = theme.ui.interactive.primaryBgHover
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = theme.ui.interactive.primaryBg
+                }
+              }}
             >
               {isLoading
                 ? '처리 중...'
@@ -202,7 +222,8 @@ export default function LoginModal() {
                   setIsSignUp(!isSignUp);
                   setError('');
                 }}
-                className={`text-sm ${theme.ui.interactive.primaryText} hover:underline`}
+                className="text-sm hover:underline"
+                style={{ color: theme.ui.interactive.primaryText }}
               >
                 {isSignUp
                   ? '이미 계정이 있으신가요? 로그인'

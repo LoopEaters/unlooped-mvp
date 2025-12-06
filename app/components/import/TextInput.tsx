@@ -1,6 +1,6 @@
 'use client'
 
-import { defaultTheme } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import { FileText } from 'lucide-react'
 
 interface TextInputProps {
@@ -12,15 +12,34 @@ interface TextInputProps {
 }
 
 export default function TextInput({ value, onChange, onParse, isLoading, error }: TextInputProps) {
+  const { theme } = useTheme()
+
   return (
     <div className="space-y-4">
       {/* 안내 문구 */}
-      <div className={`${defaultTheme.ui.cardBg} border ${defaultTheme.ui.border} rounded-lg p-4`}>
+      <div
+        className="rounded-lg p-4 border"
+        style={{
+          backgroundColor: theme.ui.cardBg,
+          borderColor: theme.ui.border,
+        }}
+      >
         <div className="flex items-start gap-3">
-          <FileText className={`w-5 h-5 ${defaultTheme.ui.textMuted} mt-0.5`} />
+          <FileText
+            className="w-5 h-5 mt-0.5"
+            style={{ color: theme.ui.textMuted }}
+          />
           <div>
-            <h3 className={`${defaultTheme.ui.textPrimary} font-medium mb-1`}>사용 방법</h3>
-            <ul className={`${defaultTheme.ui.textMuted} text-sm space-y-1 list-disc list-inside`}>
+            <h3
+              className="font-medium mb-1"
+              style={{ color: theme.ui.textPrimary }}
+            >
+              사용 방법
+            </h3>
+            <ul
+              className="text-sm space-y-1 list-disc list-inside"
+              style={{ color: theme.ui.textMuted }}
+            >
               <li>자유 형식으로 메모를 붙여넣으세요</li>
               <li>AI가 자동으로 날짜와 Entity를 인식합니다</li>
               <li>@ 기호로 Entity를 표시하면 더 정확합니다</li>
@@ -43,14 +62,34 @@ export default function TextInput({ value, onChange, onParse, isLoading, error }
 
 2024-01-16
 @회의에서 새로운 아이디어가 나왔다."
-        className={`w-full h-96 px-4 py-3 ${defaultTheme.ui.cardBg} border ${defaultTheme.ui.border} ${defaultTheme.ui.textPrimary} rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500`}
-        style={{ fontFamily: 'monospace' }}
+        className="w-full h-96 px-4 py-3 rounded-lg resize-none border"
+        style={{
+          backgroundColor: theme.ui.cardBg,
+          borderColor: theme.ui.border,
+          color: theme.ui.textPrimary,
+          fontFamily: 'monospace',
+          outline: 'none',
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor = theme.ui.interactive.primary
+          e.currentTarget.style.boxShadow = `0 0 0 2px ${theme.ui.interactive.primary}33`
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor = theme.ui.border
+          e.currentTarget.style.boxShadow = 'none'
+        }}
       />
 
       {/* 에러 메시지 */}
       {error && (
-        <div className={`${defaultTheme.ui.error.bg} border border-red-500/20 rounded-lg p-3`}>
-          <p className={defaultTheme.ui.error.text}>{error}</p>
+        <div
+          className="rounded-lg p-3 border"
+          style={{
+            backgroundColor: theme.ui.error.bg,
+            borderColor: `${theme.ui.error.text}33`,
+          }}
+        >
+          <p style={{ color: theme.ui.error.text }}>{error}</p>
         </div>
       )}
 
@@ -59,7 +98,21 @@ export default function TextInput({ value, onChange, onParse, isLoading, error }
         <button
           onClick={onParse}
           disabled={!value.trim() || isLoading}
-          className={`px-6 py-2 ${defaultTheme.ui.interactive.primaryBg} ${defaultTheme.ui.interactive.primaryBgHover} text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
+          className="px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          style={{
+            backgroundColor: theme.ui.interactive.primaryBg,
+            color: '#ffffff',
+          }}
+          onMouseEnter={(e) => {
+            if (!e.currentTarget.disabled) {
+              e.currentTarget.style.backgroundColor = theme.ui.interactive.primaryBgHover
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!e.currentTarget.disabled) {
+              e.currentTarget.style.backgroundColor = theme.ui.interactive.primaryBg
+            }
+          }}
         >
           {isLoading ? (
             <>

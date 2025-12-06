@@ -16,12 +16,22 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
 
   const footer = (
     <div className="flex items-center justify-between p-4">
-      <div className={`text-xs ${theme.ui.textMuted}`}>
+      <div className="text-xs" style={{ color: theme.ui.textMuted }}>
         버전 1.0.0-beta
       </div>
       <button
         onClick={onClose}
-        className={`px-4 py-2 ${theme.ui.textPrimary} ${theme.ui.interactive.primaryBg} ${theme.ui.interactive.primaryBgHover} transition-colors rounded-lg`}
+        className="px-4 py-2 transition-colors rounded-lg"
+        style={{
+          color: theme.ui.textPrimary,
+          backgroundColor: theme.ui.interactive.primaryBg,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = theme.ui.interactive.primaryBgHover
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = theme.ui.interactive.primaryBg
+        }}
       >
         닫기
       </button>
@@ -40,13 +50,13 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
         <section>
           <div className="flex items-center gap-2 mb-3">
             <Maximize2 className="w-5 h-5" style={{ color: theme.ui.iconColors.indigo }} />
-            <h3 className={`text-base font-semibold ${theme.ui.textPrimary}`}>레이아웃</h3>
+            <h3 className="text-base font-semibold" style={{ color: theme.ui.textPrimary }}>레이아웃</h3>
           </div>
-          <div className={`${theme.ui.cardBg} rounded-lg p-4`}>
+          <div className="rounded-lg p-4" style={{ backgroundColor: theme.ui.cardBg }}>
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${theme.ui.textPrimary}`}>전체 너비 사용</p>
-                <p className={`text-xs ${theme.ui.textMuted} mt-0.5`}>
+                <p className="text-sm" style={{ color: theme.ui.textPrimary }}>전체 너비 사용</p>
+                <p className="text-xs mt-0.5" style={{ color: theme.ui.textMuted }}>
                   화면 전체 너비를 사용합니다. 끄면 중앙에 콘텐츠가 배치됩니다.
                 </p>
               </div>
@@ -72,49 +82,51 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
         <section>
           <div className="flex items-center gap-2 mb-3">
             <Palette className="w-5 h-5" style={{ color: theme.ui.iconColors.blue }} />
-            <h3 className={`text-base font-semibold ${theme.ui.textPrimary}`}>외관</h3>
+            <h3 className="text-base font-semibold" style={{ color: theme.ui.textPrimary }}>외관</h3>
           </div>
-          <div className={`${theme.ui.cardBg} rounded-lg p-4 space-y-4`}>
+          <div className="rounded-lg p-4 space-y-4" style={{ backgroundColor: theme.ui.cardBg }}>
             {/* 테마 */}
             <div>
-              <label className={`text-sm ${theme.ui.textMuted} mb-2 block`}>테마 스타일</label>
+              <label className="text-sm mb-2 block" style={{ color: theme.ui.textMuted }}>테마 스타일</label>
               <div className="flex gap-2">
                 <button
                   onClick={() => setTheme('default')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors ${theme.ui.border}`}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors border"
                   style={{
                     backgroundColor: themeName === 'default' ? theme.ui.interactive.primary : theme.ui.secondaryBg,
                     borderColor: themeName === 'default' ? theme.ui.interactive.primary : theme.ui.gray[600],
                   }}
                 >
                   <Monitor className="w-4 h-4" />
-                  <span className={`text-sm ${theme.ui.textPrimary}`}>Default</span>
+                  <span className="text-sm" style={{ color: theme.ui.textPrimary }}>Default</span>
                 </button>
                 <button
                   onClick={() => setTheme('claude')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors ${theme.ui.border}`}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors border"
                   style={{
                     backgroundColor: themeName === 'claude' ? theme.ui.interactive.primary : theme.ui.secondaryBg,
                     borderColor: themeName === 'claude' ? theme.ui.interactive.primary : theme.ui.gray[600],
                   }}
                 >
                   <Palette className="w-4 h-4" />
-                  <span className={`text-sm ${theme.ui.textPrimary}`}>Claude</span>
+                  <span className="text-sm" style={{ color: theme.ui.textPrimary }}>Claude</span>
                 </button>
               </div>
-              <p className={`text-xs ${theme.ui.textMuted} mt-2`}>
+              <p className="text-xs mt-2" style={{ color: theme.ui.textMuted }}>
                 {themeName === 'default' ? 'Default 다크 테마가 적용되었습니다.' : 'Claude 스타일 테마가 적용되었습니다. (그라데이션, 글로우 효과)'}
               </p>
             </div>
 
             {/* 폰트 크기 - 실제 기능 */}
             <div>
-              <label className={`text-sm ${theme.ui.textMuted} mb-2 block`}>폰트 크기</label>
+              <label className="text-sm mb-2 block" style={{ color: theme.ui.textMuted }}>폰트 크기</label>
               <select
                 value={fontSize}
                 onChange={(e) => setFontSize(e.target.value as any)}
-                className={`w-full px-3 py-2 ${theme.ui.secondaryBg} ${theme.ui.textPrimary} ${theme.ui.border} rounded-lg focus:outline-none`}
+                className="w-full px-3 py-2 rounded-lg focus:outline-none border"
                 style={{
+                  backgroundColor: theme.ui.secondaryBg,
+                  color: theme.ui.textPrimary,
                   borderColor: theme.ui.gray[500],
                 }}
               >
@@ -127,12 +139,14 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
 
             {/* 폰트 종류 - 실제 기능 */}
             <div>
-              <label className={`text-sm ${theme.ui.textMuted} mb-2 block`}>폰트</label>
+              <label className="text-sm mb-2 block" style={{ color: theme.ui.textMuted }}>폰트</label>
               <select
                 value={fontFamily}
                 onChange={(e) => setFontFamily(e.target.value as any)}
-                className={`w-full px-3 py-2 ${theme.ui.secondaryBg} ${theme.ui.textPrimary} ${theme.ui.border} rounded-lg focus:outline-none`}
+                className="w-full px-3 py-2 rounded-lg focus:outline-none border"
                 style={{
+                  backgroundColor: theme.ui.secondaryBg,
+                  color: theme.ui.textPrimary,
                   borderColor: theme.ui.gray[500],
                 }}
               >
@@ -145,8 +159,8 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
             {/* 컴팩트 모드 */}
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${theme.ui.textPrimary}`}>컴팩트 모드</p>
-                <p className={`text-xs ${theme.ui.textMuted} mt-0.5`}>더 많은 콘텐츠를 한 화면에 표시</p>
+                <p className="text-sm" style={{ color: theme.ui.textPrimary }}>컴팩트 모드</p>
+                <p className="text-xs mt-0.5" style={{ color: theme.ui.textMuted }}>더 많은 콘텐츠를 한 화면에 표시</p>
               </div>
               <button
                 className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
@@ -165,13 +179,13 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
         <section>
           <div className="flex items-center gap-2 mb-3">
             <Bell className="w-5 h-5" style={{ color: theme.ui.iconColors.yellow }} />
-            <h3 className={`text-base font-semibold ${theme.ui.textPrimary}`}>알림</h3>
+            <h3 className="text-base font-semibold" style={{ color: theme.ui.textPrimary }}>알림</h3>
           </div>
-          <div className={`${theme.ui.cardBg} rounded-lg p-4 space-y-4`}>
+          <div className="rounded-lg p-4 space-y-4" style={{ backgroundColor: theme.ui.cardBg }}>
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${theme.ui.textPrimary}`}>데스크톱 알림</p>
-                <p className={`text-xs ${theme.ui.textMuted} mt-0.5`}>브라우저 알림 받기</p>
+                <p className="text-sm" style={{ color: theme.ui.textPrimary }}>데스크톱 알림</p>
+                <p className="text-xs mt-0.5" style={{ color: theme.ui.textMuted }}>브라우저 알림 받기</p>
               </div>
               <button
                 className="relative inline-flex h-6 w-11 items-center rounded-full"
@@ -186,8 +200,8 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
 
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${theme.ui.textPrimary}`}>이메일 알림</p>
-                <p className={`text-xs ${theme.ui.textMuted} mt-0.5`}>중요한 업데이트 이메일 수신</p>
+                <p className="text-sm" style={{ color: theme.ui.textPrimary }}>이메일 알림</p>
+                <p className="text-xs mt-0.5" style={{ color: theme.ui.textMuted }}>중요한 업데이트 이메일 수신</p>
               </div>
               <button
                 className="relative inline-flex h-6 w-11 items-center rounded-full"
@@ -202,8 +216,8 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
 
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${theme.ui.textPrimary}`}>사운드</p>
-                <p className={`text-xs ${theme.ui.textMuted} mt-0.5`}>알림 사운드 재생</p>
+                <p className="text-sm" style={{ color: theme.ui.textPrimary }}>사운드</p>
+                <p className="text-xs mt-0.5" style={{ color: theme.ui.textMuted }}>알림 사운드 재생</p>
               </div>
               <button
                 className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
@@ -222,16 +236,43 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
         <section>
           <div className="flex items-center gap-2 mb-3">
             <Database className="w-5 h-5" style={{ color: theme.ui.iconColors.green }} />
-            <h3 className={`text-base font-semibold ${theme.ui.textPrimary}`}>데이터 및 저장소</h3>
+            <h3 className="text-base font-semibold" style={{ color: theme.ui.textPrimary }}>데이터 및 저장소</h3>
           </div>
-          <div className={`${theme.ui.cardBg} rounded-lg p-4 space-y-3`}>
-            <button className={`w-full text-left px-3 py-2 text-sm ${theme.ui.textPrimary} ${theme.ui.buttonHover} rounded transition-colors`}>
+          <div className="rounded-lg p-4 space-y-3" style={{ backgroundColor: theme.ui.cardBg }}>
+            <button
+              className="w-full text-left px-3 py-2 text-sm rounded transition-colors"
+              style={{ color: theme.ui.textPrimary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.ui.buttonHover
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
               캐시 데이터 삭제
             </button>
-            <button className={`w-full text-left px-3 py-2 text-sm ${theme.ui.textPrimary} ${theme.ui.buttonHover} rounded transition-colors`}>
+            <button
+              className="w-full text-left px-3 py-2 text-sm rounded transition-colors"
+              style={{ color: theme.ui.textPrimary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.ui.buttonHover
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
               데이터 내보내기
             </button>
-            <button className={`w-full text-left px-3 py-2 text-sm ${theme.ui.textPrimary} ${theme.ui.buttonHover} rounded transition-colors`}>
+            <button
+              className="w-full text-left px-3 py-2 text-sm rounded transition-colors"
+              style={{ color: theme.ui.textPrimary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.ui.buttonHover
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
               데이터 가져오기
             </button>
           </div>
@@ -241,13 +282,13 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
         <section>
           <div className="flex items-center gap-2 mb-3">
             <Shield className="w-5 h-5" style={{ color: theme.ui.iconColors.purple }} />
-            <h3 className={`text-base font-semibold ${theme.ui.textPrimary}`}>개인정보 및 보안</h3>
+            <h3 className="text-base font-semibold" style={{ color: theme.ui.textPrimary }}>개인정보 및 보안</h3>
           </div>
-          <div className={`${theme.ui.cardBg} rounded-lg p-4 space-y-4`}>
+          <div className="rounded-lg p-4 space-y-4" style={{ backgroundColor: theme.ui.cardBg }}>
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${theme.ui.textPrimary}`}>2단계 인증</p>
-                <p className={`text-xs ${theme.ui.textMuted} mt-0.5`}>추가 보안 레이어 활성화</p>
+                <p className="text-sm" style={{ color: theme.ui.textPrimary }}>2단계 인증</p>
+                <p className="text-xs mt-0.5" style={{ color: theme.ui.textMuted }}>추가 보안 레이어 활성화</p>
               </div>
               <button
                 className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
@@ -260,11 +301,29 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
               </button>
             </div>
 
-            <button className={`w-full text-left px-3 py-2 text-sm ${theme.ui.textPrimary} ${theme.ui.buttonHover} rounded transition-colors`}>
+            <button
+              className="w-full text-left px-3 py-2 text-sm rounded transition-colors"
+              style={{ color: theme.ui.textPrimary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.ui.buttonHover
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
               비밀번호 변경
             </button>
 
-            <button className={`w-full text-left px-3 py-2 text-sm ${theme.ui.textPrimary} ${theme.ui.buttonHover} rounded transition-colors`}>
+            <button
+              className="w-full text-left px-3 py-2 text-sm rounded transition-colors"
+              style={{ color: theme.ui.textPrimary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.ui.buttonHover
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
               활성 세션 관리
             </button>
           </div>
@@ -274,14 +333,16 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
         <section>
           <div className="flex items-center gap-2 mb-3">
             <Globe className="w-5 h-5" style={{ color: theme.ui.iconColors.cyan }} />
-            <h3 className={`text-base font-semibold ${theme.ui.textPrimary}`}>언어 및 지역</h3>
+            <h3 className="text-base font-semibold" style={{ color: theme.ui.textPrimary }}>언어 및 지역</h3>
           </div>
-          <div className={`${theme.ui.cardBg} rounded-lg p-4 space-y-4`}>
+          <div className="rounded-lg p-4 space-y-4" style={{ backgroundColor: theme.ui.cardBg }}>
             <div>
-              <label className={`text-sm ${theme.ui.textMuted} mb-2 block`}>언어</label>
+              <label className="text-sm mb-2 block" style={{ color: theme.ui.textMuted }}>언어</label>
               <select
-                className={`w-full px-3 py-2 ${theme.ui.secondaryBg} ${theme.ui.textPrimary} ${theme.ui.border} rounded-lg focus:outline-none`}
+                className="w-full px-3 py-2 rounded-lg focus:outline-none border"
                 style={{
+                  backgroundColor: theme.ui.secondaryBg,
+                  color: theme.ui.textPrimary,
                   borderColor: theme.ui.gray[500],
                 }}
               >
@@ -293,10 +354,12 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
             </div>
 
             <div>
-              <label className={`text-sm ${theme.ui.textMuted} mb-2 block`}>시간대</label>
+              <label className="text-sm mb-2 block" style={{ color: theme.ui.textMuted }}>시간대</label>
               <select
-                className={`w-full px-3 py-2 ${theme.ui.secondaryBg} ${theme.ui.textPrimary} ${theme.ui.border} rounded-lg focus:outline-none`}
+                className="w-full px-3 py-2 rounded-lg focus:outline-none border"
                 style={{
+                  backgroundColor: theme.ui.secondaryBg,
+                  color: theme.ui.textPrimary,
                   borderColor: theme.ui.gray[500],
                 }}
               >
@@ -313,26 +376,71 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
         <section>
           <div className="flex items-center gap-2 mb-3">
             <Keyboard className="w-5 h-5" style={{ color: theme.ui.iconColors.orange }} />
-            <h3 className={`text-base font-semibold ${theme.ui.textPrimary}`}>키보드 단축키</h3>
+            <h3 className="text-base font-semibold" style={{ color: theme.ui.textPrimary }}>키보드 단축키</h3>
           </div>
-          <div className={`${theme.ui.cardBg} rounded-lg p-4 space-y-2 text-sm`}>
+          <div className="rounded-lg p-4 space-y-2 text-sm" style={{ backgroundColor: theme.ui.cardBg }}>
             <div className="flex items-center justify-between py-1">
-              <span className={theme.ui.textMuted}>새 메모</span>
-              <kbd className={`px-2 py-1 ${theme.ui.secondaryBg} ${theme.ui.textPrimary} rounded ${theme.ui.border}`}>Ctrl+N</kbd>
+              <span style={{ color: theme.ui.textMuted }}>새 메모</span>
+              <kbd
+                className="px-2 py-1 rounded border"
+                style={{
+                  backgroundColor: theme.ui.secondaryBg,
+                  color: theme.ui.textPrimary,
+                  borderColor: theme.ui.border,
+                }}
+              >
+                Ctrl+N
+              </kbd>
             </div>
             <div className="flex items-center justify-between py-1">
-              <span className={theme.ui.textMuted}>검색</span>
-              <kbd className={`px-2 py-1 ${theme.ui.secondaryBg} ${theme.ui.textPrimary} rounded ${theme.ui.border}`}>Ctrl+K</kbd>
+              <span style={{ color: theme.ui.textMuted }}>검색</span>
+              <kbd
+                className="px-2 py-1 rounded border"
+                style={{
+                  backgroundColor: theme.ui.secondaryBg,
+                  color: theme.ui.textPrimary,
+                  borderColor: theme.ui.border,
+                }}
+              >
+                Ctrl+K
+              </kbd>
             </div>
             <div className="flex items-center justify-between py-1">
-              <span className={theme.ui.textMuted}>설정</span>
-              <kbd className={`px-2 py-1 ${theme.ui.secondaryBg} ${theme.ui.textPrimary} rounded ${theme.ui.border}`}>Ctrl+,</kbd>
+              <span style={{ color: theme.ui.textMuted }}>설정</span>
+              <kbd
+                className="px-2 py-1 rounded border"
+                style={{
+                  backgroundColor: theme.ui.secondaryBg,
+                  color: theme.ui.textPrimary,
+                  borderColor: theme.ui.border,
+                }}
+              >
+                Ctrl+,
+              </kbd>
             </div>
             <div className="flex items-center justify-between py-1">
-              <span className={theme.ui.textMuted}>저장</span>
-              <kbd className={`px-2 py-1 ${theme.ui.secondaryBg} ${theme.ui.textPrimary} rounded ${theme.ui.border}`}>Ctrl+Enter</kbd>
+              <span style={{ color: theme.ui.textMuted }}>저장</span>
+              <kbd
+                className="px-2 py-1 rounded border"
+                style={{
+                  backgroundColor: theme.ui.secondaryBg,
+                  color: theme.ui.textPrimary,
+                  borderColor: theme.ui.border,
+                }}
+              >
+                Ctrl+Enter
+              </kbd>
             </div>
-            <button className={`w-full text-left px-3 py-2 ${theme.ui.interactive.primaryText} ${theme.ui.buttonHover} rounded transition-colors mt-2`}>
+            <button
+              className="w-full text-left px-3 py-2 rounded transition-colors mt-2"
+              style={{ color: theme.ui.interactive.primaryText }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.ui.buttonHover
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
               단축키 사용자 정의
             </button>
           </div>

@@ -89,8 +89,11 @@ export default function OnboardingModal({
             {currentStep > 1 ? (
               <button
                 onClick={() => setCurrentStep(currentStep - 1)}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors ${theme.ui.textSecondary}`}
-                style={{ backgroundColor: theme.ui.secondaryBg }}
+                className="px-6 py-3 rounded-lg font-medium transition-colors"
+                style={{
+                  backgroundColor: theme.ui.secondaryBg,
+                  color: theme.ui.textSecondary,
+                }}
               >
                 이전
               </button>

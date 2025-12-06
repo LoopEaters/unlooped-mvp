@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "mcp__serena__list_dir",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(grep:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

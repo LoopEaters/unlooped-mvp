@@ -145,7 +145,7 @@ export default function TimelineCanvas({
         if (!entity) return null
 
         const x = entityXPositions[entity.id]
-        const color = getEntityTypeHexColor(entity.type)
+        const color = getEntityTypeHexColor(entity.type, theme)
         const isHovered = hoveredEntityId === entity.id
 
         return (
@@ -362,7 +362,7 @@ export default function TimelineCanvas({
         if (!entity) return null
 
         const x = entityXPositions[entity.id]
-        const color = getEntityTypeHexColor(entity.type)
+        const color = getEntityTypeHexColor(entity.type, theme)
         const isHovered = hoveredEntityId === entity.id
 
         const typeText = entity.type || 'unknown'

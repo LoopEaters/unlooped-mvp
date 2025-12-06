@@ -23,7 +23,7 @@ export default function EntityTooltip({ entity, x, y, canvasWidth, canvasHeight 
   const padding = 16
 
   // Type 색상
-  const typeColor = getEntityTypeHexColor(entity.type)
+  const typeColor = getEntityTypeHexColor(entity.type, theme)
 
   // Type badge 너비 계산 (Canvas measureText로 정확하게)
   const typeBadgeWidth = useMemo(() => {

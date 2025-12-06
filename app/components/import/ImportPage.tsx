@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { defaultTheme } from '@/app/lib/theme'
 import TextInput from './TextInput'
 import ParsePreview from './ParsePreview'
 import ImportProgress from './ImportProgress'

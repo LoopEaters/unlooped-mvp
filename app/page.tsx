@@ -3,6 +3,7 @@
 import { Suspense, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import Header from './components/common/Header'
 import MainContainer from './components/home/MainContainer'
 import RightSidebar from './components/home/RightSidebar'
@@ -11,6 +12,7 @@ import SearchParamsHandler from './components/home/SearchParamsHandler'
 
 export default function Home() {
   const { session, isLoading } = useAuth()
+  const { theme } = useTheme()
   const router = useRouter()
 
   // 비로그인 사용자는 Landing Page로 리다이렉트 (로딩 완료 후)
@@ -26,7 +28,7 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-bg-primary">
+    <div className="h-screen flex flex-col" style={{ backgroundColor: theme.ui.primaryBg }}>
       {/* URL 파라미터 처리 (Suspense로 감싸기) */}
       <Suspense fallback={null}>
         <SearchParamsHandler />

@@ -13,7 +13,7 @@ import { CustomMention } from './tiptap/CustomMention'
 import { parseMemoContentWithMentions, buildMentionAwareContentNodes } from '@/app/lib/utils/parseMemoContent'
 import { validateEntityNames, normalizeContentWithMentions } from '@/app/lib/utils/entityUtils'
 import { toast } from 'sonner'
-import { defaultTheme } from '@/app/lib/theme'
+import { type ThemeColors } from '@/app/lib/theme'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -33,6 +33,7 @@ interface UseTiptapEditorForEditOptions {
   memo: Memo
   onSuccess?: () => void
   createdAt?: string
+  theme: ThemeColors
 }
 
 /**
@@ -44,7 +45,7 @@ interface UseTiptapEditorForEditOptions {
  * - Entity 관계 동기화
  */
 export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
-  const { memo, onSuccess, createdAt: createdAtProp } = options
+  const { memo, onSuccess, createdAt: createdAtProp, theme } = options
   const { user } = useAuth()
   const { data: entities = [] as Entity[] } = useEntities(user?.id)
   const updateMemo = useUpdateMemo(user?.id || '')
@@ -429,17 +430,17 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
       let textColor = ''
 
       if (type === 'person') {
-        bgColor = hexToRgba(defaultTheme.entityTypes.person.hex, 0.2)
-        textColor = defaultTheme.entityTypes.person.hex
+        bgColor = hexToRgba(theme.entityTypes.person.hex, 0.2)
+        textColor = theme.entityTypes.person.hex
       } else if (type === 'project') {
-        bgColor = hexToRgba(defaultTheme.entityTypes.project.hex, 0.2)
-        textColor = defaultTheme.entityTypes.project.hex
+        bgColor = hexToRgba(theme.entityTypes.project.hex, 0.2)
+        textColor = theme.entityTypes.project.hex
       } else if (type === 'event') {
-        bgColor = hexToRgba(defaultTheme.entityTypes.event.hex, 0.2)
-        textColor = defaultTheme.entityTypes.event.hex
+        bgColor = hexToRgba(theme.entityTypes.event.hex, 0.2)
+        textColor = theme.entityTypes.event.hex
       } else if (type === 'unknown') {
-        bgColor = hexToRgba(defaultTheme.entityTypes.unknown.hex, 0.2)
-        textColor = defaultTheme.entityTypes.unknown.hex
+        bgColor = hexToRgba(theme.entityTypes.unknown.hex, 0.2)
+        textColor = theme.entityTypes.unknown.hex
       }
 
       if (bgColor && textColor) {

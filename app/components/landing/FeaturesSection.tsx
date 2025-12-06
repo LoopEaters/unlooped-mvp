@@ -16,7 +16,7 @@ export default function FeaturesSection() {
       title: 'Entity',
       description: 'Person, Project, Event를 구분하여 관리',
       color: personColor.hex,
-      bgColor: `${personColor.bg}/20`,
+      bgColor: `${personColor.hex}33`, // 20% opacity = 33 in hex
     },
     {
       icon: '📊',
@@ -30,7 +30,7 @@ export default function FeaturesSection() {
       title: 'Mention',
       description: '@로 Entity를 연결하고 추적',
       color: projectColor.hex,
-      bgColor: `${projectColor.bg}/20`,
+      bgColor: `${projectColor.hex}33`, // 20% opacity = 33 in hex
     },
   ]
 
@@ -39,12 +39,14 @@ export default function FeaturesSection() {
       <div className="max-w-6xl mx-auto">
         {/* Section Title */}
         <h2
-          className={`text-3xl md:text-4xl font-bold text-center mb-4 ${theme.ui.textPrimary}`}
+          className="text-3xl md:text-4xl font-bold text-center mb-4"
+          style={{ color: theme.ui.textPrimary }}
         >
           주요 기능
         </h2>
         <p
-          className={`text-center mb-16 max-w-2xl mx-auto ${theme.ui.textSecondary}`}
+          className="text-center mb-16 max-w-2xl mx-auto"
+          style={{ color: theme.ui.textSecondary }}
         >
           Unlooped는 세 가지 핵심 기능으로 당신의 생각을 정리합니다
         </p>
@@ -54,10 +56,10 @@ export default function FeaturesSection() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`p-8 rounded-2xl transition-all hover:scale-105 ${theme.ui.border}`}
+              className="p-8 rounded-2xl transition-all hover:scale-105 border"
               style={{
                 backgroundColor: theme.ui.cardBg,
-                borderWidth: '1px',
+                borderColor: theme.ui.border,
               }}
             >
               {/* Icon */}
@@ -73,13 +75,14 @@ export default function FeaturesSection() {
 
               {/* Title */}
               <h3
-                className={`text-xl font-semibold mb-3 ${theme.ui.textPrimary}`}
+                className="text-xl font-semibold mb-3"
+                style={{ color: theme.ui.textPrimary }}
               >
                 {feature.title}
               </h3>
 
               {/* Description */}
-              <p className={theme.ui.textSecondary}>{feature.description}</p>
+              <p style={{ color: theme.ui.textSecondary }}>{feature.description}</p>
             </div>
           ))}
         </div>
@@ -91,21 +94,21 @@ export default function FeaturesSection() {
               className="w-4 h-4 rounded-full"
               style={{ backgroundColor: personColor.hex }}
             />
-            <span className={theme.ui.textSecondary}>Person</span>
+            <span style={{ color: theme.ui.textSecondary }}>Person</span>
           </div>
           <div className="flex items-center gap-2">
             <div
               className="w-4 h-4 rounded-full"
               style={{ backgroundColor: projectColor.hex }}
             />
-            <span className={theme.ui.textSecondary}>Project</span>
+            <span style={{ color: theme.ui.textSecondary }}>Project</span>
           </div>
           <div className="flex items-center gap-2">
             <div
               className="w-4 h-4 rounded-full"
               style={{ backgroundColor: eventColor.hex }}
             />
-            <span className={theme.ui.textSecondary}>Event</span>
+            <span style={{ color: theme.ui.textSecondary }}>Event</span>
           </div>
         </div>
       </div>

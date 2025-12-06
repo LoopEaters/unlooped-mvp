@@ -39,7 +39,7 @@ export default function EntityDetailDrawer({
 
   if (!entity) return null
 
-  const typeColor = getEntityTypeColor(entity.type)
+  const typeColor = getEntityTypeColor(entity.type, theme)
 
   // Type 변경 핸들러
   const handleTypeChange = (newType: 'person' | 'project' | 'event' | 'unknown') => {

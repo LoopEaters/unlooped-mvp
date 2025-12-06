@@ -95,7 +95,7 @@ export default function SearchResults({
   if (isLoading) {
     return (
       <div className="p-4">
-        <div className={`${theme.ui.textMuted} text-sm`}>검색 중...</div>
+        <div className="text-sm" style={{ color: theme.ui.textMuted }}>검색 중...</div>
       </div>
     )
   }
@@ -104,22 +104,20 @@ export default function SearchResults({
   if (entities.length === 0 && memos.length === 0) {
     return (
       <div className="p-4">
-        <div className={`${theme.ui.textMuted} text-sm`}>
+        <div className="text-sm" style={{ color: theme.ui.textMuted }}>
           &quot;{query}&quot;에 대한 검색 결과가 없습니다
         </div>
       </div>
     )
   }
 
-  // Entity 타입별 색상
-  const getEntityTypeColor = (type: string | null) => {
-    switch (type) {
-      case 'person':
-        return 'bg-mention-person/20 text-mention-person'
-      case 'project':
-        return 'bg-mention-project/20 text-mention-project'
-      default:
-        return 'bg-gray-400/20 text-gray-400'
+  // Entity 타입별 색상 (theme 사용)
+  const getEntityTypeColorStyle = (type: string | null): { backgroundColor: string; color: string } => {
+    const entityType = type === 'person' ? 'person' : type === 'project' ? 'project' : type === 'event' ? 'event' : 'unknown'
+    const hex = theme.entityTypes[entityType].hex
+    return {
+      backgroundColor: `${hex}33`, // 20% opacity
+      color: hex
     }
   }
 
@@ -136,7 +134,14 @@ export default function SearchResults({
       <span>
         {parts.map((part, index) =>
           regex.test(part) ? (
-            <mark key={index} className={`${theme.ui.interactive.warningBg} ${theme.ui.interactive.warningText} px-0.5 rounded`}>
+            <mark
+              key={index}
+              className="px-0.5 rounded"
+              style={{
+                backgroundColor: theme.ui.interactive.warningBg,
+                color: theme.ui.interactive.warningText,
+              }}
+            >
               {part}
             </mark>
           ) : (
@@ -185,28 +190,35 @@ export default function SearchResults({
             return (
               <button
                 key={entity.id}
-                className={cn(
-                  'w-full px-3 py-2 text-left transition-colors',
-                  isSelected
-                    ? `${theme.ui.interactive.primaryBgLight} ${theme.ui.textPrimary}`
-                    : `${theme.ui.textSecondary} hover:bg-bg-card`
-                )}
+                className="w-full px-3 py-2 text-left transition-colors"
+                style={{
+                  backgroundColor: isSelected ? theme.ui.interactive.primaryBgLight : 'transparent',
+                  color: isSelected ? theme.ui.textPrimary : theme.ui.textSecondary,
+                }}
                 onClick={() => onSelectEntity(entity)}
-                onMouseEnter={() => setSelectedIndex(index)}
+                onMouseEnter={(e) => {
+                  setSelectedIndex(index)
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = theme.ui.cardBg
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }
+                }}
               >
                 <div className="flex items-center gap-2">
                   <span
-                    className={cn(
-                      'px-2 py-0.5 rounded text-xs font-medium',
-                      getEntityTypeColor(entity.type)
-                    )}
+                    className="px-2 py-0.5 rounded text-xs font-medium"
+                    style={getEntityTypeColorStyle(entity.type)}
                   >
                     {entity.type || 'unknown'}
                   </span>
                   <span className="font-medium">{highlightText(entity.name, query)}</span>
                 </div>
                 {entity.description && (
-                  <div className={`text-xs ${theme.ui.textMuted} mt-1 line-clamp-1`}>
+                  <div className="text-xs mt-1 line-clamp-1" style={{ color: theme.ui.textMuted }}>
                     {highlightText(entity.description, query)}
                   </div>
                 )}
@@ -229,19 +241,28 @@ export default function SearchResults({
             return (
               <button
                 key={memo.id}
-                className={cn(
-                  'w-full px-3 py-2 text-left transition-colors',
-                  isSelected
-                    ? `${theme.ui.interactive.primaryBgLight} ${theme.ui.textPrimary}`
-                    : `${theme.ui.textSecondary} hover:bg-bg-card`
-                )}
+                className="w-full px-3 py-2 text-left transition-colors"
+                style={{
+                  backgroundColor: isSelected ? theme.ui.interactive.primaryBgLight : 'transparent',
+                  color: isSelected ? theme.ui.textPrimary : theme.ui.textSecondary,
+                }}
                 onClick={() => onSelectMemo(memo)}
-                onMouseEnter={() => setSelectedIndex(index)}
+                onMouseEnter={(e) => {
+                  setSelectedIndex(index)
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = theme.ui.cardBg
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }
+                }}
               >
                 <div className="text-sm line-clamp-2">
                   {highlightText(truncateContent(memo.content), query)}
                 </div>
-                <div className={`text-xs ${theme.ui.textMuted} mt-1`}>
+                <div className="text-xs mt-1" style={{ color: theme.ui.textMuted }}>
                   {formatDate(memo.created_at)}
                 </div>
               </button>

@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Database } from '@/types/supabase'
-import { getMentionHighlightClass } from '@/app/lib/theme'
+import { getMentionHighlightStyle } from '@/app/lib/theme'
 
 type Entity = Database['public']['Tables']['entity']['Row']
 
@@ -42,13 +42,14 @@ export function highlightEntities(
     // Entity 조회 및 강조 여부 판단
     const entity = entityMap.get(entityName)
     const isEmphasized = entity?.id === currentEntityId
-    const highlightClass = getMentionHighlightClass(entity?.type, isEmphasized)
+    const highlightStyle = getMentionHighlightStyle(entity?.type, isEmphasized)
 
     // Entity 하이라이트 추가
     result.push(
       <span
         key={`entity-${matchStart}`}
-        className={highlightClass}
+        className="px-1.5 py-0.5 rounded font-medium"
+        style={highlightStyle}
       >
         @{entityName}
       </span>

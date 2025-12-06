@@ -13,7 +13,7 @@ import { CustomMention } from './tiptap/CustomMention'
 import { validateEntityNames, normalizeContentWithMentions } from '@/app/lib/utils/entityUtils'
 import { buildMentionAwareContentNodes } from '@/app/lib/utils/parseMemoContent'
 import { toast } from 'sonner'
-import { defaultTheme } from '@/app/lib/theme'
+import { type ThemeColors } from '@/app/lib/theme'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -50,6 +50,7 @@ function lightenRgb(hex: string, amount: number = 40): string {
 
 interface UseTiptapEditorOptions {
   onSubmitCallback?: () => void
+  theme: ThemeColors
 }
 
 /**
@@ -58,8 +59,8 @@ interface UseTiptapEditorOptions {
  * - Entity type 자동 분류
  * - Ctrl+Enter 저장
  */
-export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
-  const { onSubmitCallback } = options
+export function useTiptapEditor(options: UseTiptapEditorOptions) {
+  const { onSubmitCallback, theme } = options
   const { user } = useAuth()
   const { data: entities = [] as Entity[] } = useEntities(user?.id)
   const createMemo = useCreateMemo(user?.id || '')
@@ -409,7 +410,7 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
       let animFastName = ''
 
       if (type === 'person') {
-        const hex = defaultTheme.entityTypes.person.hex
+        const hex = theme.entityTypes.person.hex
         bgColor = hexToRgba(hex, 0.2)
         hoverBgColor = hexToRgba(hex, 0.3)
         textColor = hex
@@ -417,7 +418,7 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
         animName = 'pulse-border-person'
         animFastName = 'pulse-border-person-fast'
       } else if (type === 'project') {
-        const hex = defaultTheme.entityTypes.project.hex
+        const hex = theme.entityTypes.project.hex
         bgColor = hexToRgba(hex, 0.2)
         hoverBgColor = hexToRgba(hex, 0.3)
         textColor = hex
@@ -425,7 +426,7 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
         animName = 'pulse-border-project'
         animFastName = 'pulse-border-project-fast'
       } else if (type === 'event') {
-        const hex = defaultTheme.entityTypes.event.hex
+        const hex = theme.entityTypes.event.hex
         bgColor = hexToRgba(hex, 0.2)
         hoverBgColor = hexToRgba(hex, 0.3)
         textColor = hex
@@ -433,7 +434,7 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
         animName = 'pulse-border-event'
         animFastName = 'pulse-border-event-fast'
       } else if (type === 'unknown') {
-        const hex = defaultTheme.entityTypes.unknown.hex
+        const hex = theme.entityTypes.unknown.hex
         bgColor = hexToRgba(hex, 0.2)
         hoverBgColor = hexToRgba(hex, 0.3)
         textColor = hex
@@ -465,10 +466,10 @@ export function useTiptapEditor(options: UseTiptapEditorOptions = {}) {
     })
 
     // 펄스 애니메이션 keyframes 추가 (theme.ts 색상 사용)
-    const personHex = defaultTheme.entityTypes.person.hex
-    const projectHex = defaultTheme.entityTypes.project.hex
-    const eventHex = defaultTheme.entityTypes.event.hex
-    const unknownHex = defaultTheme.entityTypes.unknown.hex
+    const personHex = theme.entityTypes.person.hex
+    const projectHex = theme.entityTypes.project.hex
+    const eventHex = theme.entityTypes.event.hex
+    const unknownHex = theme.entityTypes.unknown.hex
 
     css += `
       @keyframes pulse-opacity {

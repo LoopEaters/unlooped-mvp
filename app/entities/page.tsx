@@ -2,21 +2,22 @@
 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useTimelineData } from '@/app/lib/queries'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import Header from '@/app/components/common/Header'
 import EntityTimeline from '@/app/components/entities/EntityTimeline'
-import { defaultTheme } from '@/app/lib/theme'
 
 export default function EntitiesPage() {
   const { userProfile } = useAuth()
+  const { theme } = useTheme()
   const { data, isLoading, error, status } = useTimelineData(userProfile?.id)
 
   // 로딩 중
   if (status === 'pending') {
     return (
-      <div className="flex flex-col h-screen bg-bg-primary">
+      <div className="flex flex-col h-screen" style={{ backgroundColor: theme.ui.primaryBg }}>
         <Header />
         <div className="flex items-center justify-center flex-1">
-          <div className="text-white">Loading timeline...</div>
+          <div style={{ color: theme.ui.textPrimary }}>Loading timeline...</div>
         </div>
       </div>
     )
@@ -25,10 +26,12 @@ export default function EntitiesPage() {
   // 에러 발생
   if (status === 'error') {
     return (
-      <div className="flex flex-col h-screen bg-bg-primary">
+      <div className="flex flex-col h-screen" style={{ backgroundColor: theme.ui.primaryBg }}>
         <Header />
         <div className="flex items-center justify-center flex-1">
-          <div className={defaultTheme.ui.error.text}>Error loading timeline: {error?.message || 'Unknown error'}</div>
+          <div style={{ color: theme.ui.error.text }}>
+            Error loading timeline: {error?.message || 'Unknown error'}
+          </div>
         </div>
       </div>
     )
@@ -37,10 +40,10 @@ export default function EntitiesPage() {
   // 데이터 없음
   if (!data || data.entities.length === 0) {
     return (
-      <div className="flex flex-col h-screen bg-bg-primary">
+      <div className="flex flex-col h-screen" style={{ backgroundColor: theme.ui.primaryBg }}>
         <Header />
         <div className="flex items-center justify-center flex-1">
-          <div className="text-gray-400 text-center">
+          <div className="text-center" style={{ color: theme.ui.textMuted }}>
             <p className="text-xl mb-4">No entities found</p>
             <p className="text-sm">Create some memos with entities to see them here.</p>
           </div>
@@ -50,14 +53,22 @@ export default function EntitiesPage() {
   }
 
   return (
-    <div className="h-screen bg-bg-primary flex flex-col">
+    <div className="h-screen flex flex-col" style={{ backgroundColor: theme.ui.primaryBg }}>
       <Header />
 
       {/* Timeline Info Bar */}
-      <div className="border-b border-border-main px-6 py-3 bg-bg-secondary">
+      <div
+        className="border-b px-6 py-3"
+        style={{
+          borderColor: theme.ui.border,
+          backgroundColor: theme.ui.secondaryBg,
+        }}
+      >
         <div className="flex items-center justify-between">
-          <h1 className="text-xl text-white font-light">Entity Timeline</h1>
-          <p className="text-gray-400 text-sm">
+          <h1 className="text-xl font-light" style={{ color: theme.ui.textPrimary }}>
+            Entity Timeline
+          </h1>
+          <p className="text-sm" style={{ color: theme.ui.textMuted }}>
             {data?.entities.length ?? 0} entities · {data?.memos.length ?? 0} memos
           </p>
         </div>

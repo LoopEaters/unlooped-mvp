@@ -84,13 +84,33 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
     <div className="flex items-center justify-between p-4">
       <button
         onClick={() => setIsEditing(!isEditing)}
-        className={`px-4 py-2 ${theme.ui.textPrimary} ${theme.ui.cardBg} ${theme.ui.buttonHover} transition-colors rounded-lg`}
+        className="px-4 py-2 transition-colors rounded-lg"
+        style={{
+          color: theme.ui.textPrimary,
+          backgroundColor: theme.ui.cardBg,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = theme.ui.buttonHover
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = theme.ui.cardBg
+        }}
       >
         {isEditing ? '취소' : '편집'}
       </button>
       <button
         onClick={onClose}
-        className={`px-4 py-2 ${theme.ui.textPrimary} ${theme.ui.interactive.primaryBg} ${theme.ui.interactive.primaryBgHover} transition-colors rounded-lg`}
+        className="px-4 py-2 transition-colors rounded-lg"
+        style={{
+          color: theme.ui.textPrimary,
+          backgroundColor: theme.ui.interactive.primaryBg,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = theme.ui.interactive.primaryBgHover
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = theme.ui.interactive.primaryBg
+        }}
       >
         닫기
       </button>
@@ -111,8 +131,11 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
             {/* 아바타 */}
             <div className="relative">
               <div
-                className={`w-24 h-24 rounded-full flex items-center justify-center ${theme.ui.textPrimary} text-3xl font-semibold`}
-                style={{ backgroundColor: theme.ui.iconColors.orange }}
+                className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-semibold"
+                style={{
+                  backgroundColor: theme.ui.iconColors.orange,
+                  color: theme.ui.textPrimary,
+                }}
               >
                 {userProfile?.profile?.avatar_url ? (
                   <img
@@ -126,7 +149,7 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
               </div>
               {isEditing && (
                 <button
-                  className={`absolute bottom-0 right-0 p-2 rounded-full transition-colors`}
+                  className="absolute bottom-0 right-0 p-2 rounded-full transition-colors"
                   style={{
                     backgroundColor: theme.ui.interactive.primary,
                   }}
@@ -137,15 +160,15 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
                     e.currentTarget.style.backgroundColor = theme.ui.interactive.primary
                   }}
                 >
-                  <Camera className={`w-4 h-4 ${theme.ui.textPrimary}`} />
+                  <Camera className="w-4 h-4" style={{ color: theme.ui.textPrimary }} />
                 </button>
               )}
             </div>
 
             {/* 이름 */}
             <div className="text-center">
-              <h2 className={`text-2xl font-semibold ${theme.ui.textPrimary}`}>{getDisplayName()}</h2>
-              <p className={`text-sm ${theme.ui.textMuted} mt-1`}>{userProfile?.email}</p>
+              <h2 className="text-2xl font-semibold" style={{ color: theme.ui.textPrimary }}>{getDisplayName()}</h2>
+              <p className="text-sm mt-1" style={{ color: theme.ui.textMuted }}>{userProfile?.email}</p>
             </div>
           </div>
         </section>
@@ -154,42 +177,44 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
         <section>
           <div className="flex items-center gap-2 mb-3">
             <User className="w-5 h-5" style={{ color: theme.ui.iconColors.blue }} />
-            <h3 className={`text-base font-semibold ${theme.ui.textPrimary}`}>기본 정보</h3>
+            <h3 className="text-base font-semibold" style={{ color: theme.ui.textPrimary }}>기본 정보</h3>
           </div>
-          <div className={`${theme.ui.cardBg} rounded-lg p-4 space-y-4`}>
+          <div className="rounded-lg p-4 space-y-4" style={{ backgroundColor: theme.ui.cardBg }}>
             {/* 사용자 이름 */}
             <div>
-              <label className={`text-sm ${theme.ui.textMuted} mb-2 block`}>사용자 이름</label>
+              <label className="text-sm mb-2 block" style={{ color: theme.ui.textMuted }}>사용자 이름</label>
               {isEditing ? (
                 <input
                   type="text"
                   defaultValue={userProfile?.profile?.username || ''}
-                  className={`w-full px-3 py-2 ${theme.ui.secondaryBg} ${theme.ui.textPrimary} ${theme.ui.border} rounded-lg focus:outline-none`}
+                  className="w-full px-3 py-2 rounded-lg focus:outline-none border"
                   style={{
+                    backgroundColor: theme.ui.secondaryBg,
+                    color: theme.ui.textPrimary,
                     borderColor: theme.ui.gray[500],
                   }}
                   placeholder="이름을 입력하세요"
                 />
               ) : (
-                <p className={theme.ui.textPrimary}>{userProfile?.profile?.username || '설정되지 않음'}</p>
+                <p style={{ color: theme.ui.textPrimary }}>{userProfile?.profile?.username || '설정되지 않음'}</p>
               )}
             </div>
 
             {/* 이메일 */}
             <div>
-              <label className={`text-sm ${theme.ui.textMuted} mb-2 block`}>이메일</label>
+              <label className="text-sm mb-2 block" style={{ color: theme.ui.textMuted }}>이메일</label>
               <div className="flex items-center gap-2">
-                <Mail className={`w-4 h-4 ${theme.ui.textMuted}`} />
-                <p className={theme.ui.textPrimary}>{userProfile?.email}</p>
+                <Mail className="w-4 h-4" style={{ color: theme.ui.textMuted }} />
+                <p style={{ color: theme.ui.textPrimary }}>{userProfile?.email}</p>
               </div>
             </div>
 
             {/* 가입일 */}
             <div>
-              <label className={`text-sm ${theme.ui.textMuted} mb-2 block`}>가입일</label>
+              <label className="text-sm mb-2 block" style={{ color: theme.ui.textMuted }}>가입일</label>
               <div className="flex items-center gap-2">
-                <Calendar className={`w-4 h-4 ${theme.ui.textMuted}`} />
-                <p className={theme.ui.textPrimary}>{getJoinDate()}</p>
+                <Calendar className="w-4 h-4" style={{ color: theme.ui.textMuted }} />
+                <p style={{ color: theme.ui.textPrimary }}>{getJoinDate()}</p>
               </div>
             </div>
           </div>
@@ -199,21 +224,23 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
         <section>
           <div className="flex items-center gap-2 mb-3">
             <FileText className="w-5 h-5" style={{ color: theme.ui.iconColors.green }} />
-            <h3 className={`text-base font-semibold ${theme.ui.textPrimary}`}>자기 소개</h3>
+            <h3 className="text-base font-semibold" style={{ color: theme.ui.textPrimary }}>자기 소개</h3>
           </div>
-          <div className={`${theme.ui.cardBg} rounded-lg p-4`}>
+          <div className="rounded-lg p-4" style={{ backgroundColor: theme.ui.cardBg }}>
             {isEditing ? (
               <textarea
                 defaultValue={''}
-                className={`w-full px-3 py-2 ${theme.ui.secondaryBg} ${theme.ui.textPrimary} ${theme.ui.border} rounded-lg focus:outline-none resize-none`}
+                className="w-full px-3 py-2 rounded-lg focus:outline-none resize-none border"
                 style={{
+                  backgroundColor: theme.ui.secondaryBg,
+                  color: theme.ui.textPrimary,
                   borderColor: theme.ui.gray[500],
                 }}
                 rows={4}
                 placeholder="자기 소개를 입력하세요"
               />
             ) : (
-              <p className={`${theme.ui.textPrimary} whitespace-pre-wrap`}>
+              <p className="whitespace-pre-wrap" style={{ color: theme.ui.textPrimary }}>
                 자기 소개를 추가해보세요.
               </p>
             )}
@@ -224,22 +251,24 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
         <section>
           <div className="flex items-center gap-2 mb-3">
             <Tag className="w-5 h-5" style={{ color: theme.ui.iconColors.purple }} />
-            <h3 className={`text-base font-semibold ${theme.ui.textPrimary}`}>Entity 연결</h3>
+            <h3 className="text-base font-semibold" style={{ color: theme.ui.textPrimary }}>Entity 연결</h3>
           </div>
-          <div className={`${theme.ui.cardBg} rounded-lg p-4 space-y-4`}>
+          <div className="rounded-lg p-4 space-y-4" style={{ backgroundColor: theme.ui.cardBg }}>
             <div>
-              <p className={`text-sm ${theme.ui.textMuted} mb-3`}>
+              <p className="text-sm mb-3" style={{ color: theme.ui.textMuted }}>
                 자신을 나타내는 Entity를 선택하세요. 향후 이 Entity와 관련된 레코드를 자동으로 추적할 수 있습니다.
               </p>
 
               {/* Entity 선택 */}
               <div className="space-y-2">
-                <label className={`text-sm ${theme.ui.textMuted} block`}>내 Entity</label>
+                <label className="text-sm block" style={{ color: theme.ui.textMuted }}>내 Entity</label>
                 <select
                   value={selectedEntityId || ''}
                   onChange={(e) => setSelectedEntityId(e.target.value || null)}
-                  className={`w-full px-3 py-2 ${theme.ui.secondaryBg} ${theme.ui.textPrimary} ${theme.ui.border} rounded-lg focus:outline-none`}
+                  className="w-full px-3 py-2 rounded-lg focus:outline-none border"
                   style={{
+                    backgroundColor: theme.ui.secondaryBg,
+                    color: theme.ui.textPrimary,
                     borderColor: theme.ui.gray[500],
                   }}
                 >
@@ -257,7 +286,7 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
 
               {/* 현재 선택된 Entity 정보 */}
               {selectedEntityId && entities.find(e => e.id === selectedEntityId) && (
-                <div className={`mt-3 p-3 ${theme.ui.secondaryBg} rounded-lg`}>
+                <div className="mt-3 p-3 rounded-lg" style={{ backgroundColor: theme.ui.secondaryBg }}>
                   <div className="flex items-center gap-2">
                     <Link2 className="w-4 h-4" style={{
                       color: getEntityTypeColor(
@@ -265,12 +294,12 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
                         theme
                       ).hex
                     }} />
-                    <span className={`text-sm ${theme.ui.textPrimary}`}>
+                    <span className="text-sm" style={{ color: theme.ui.textPrimary }}>
                       {entities.find(e => e.id === selectedEntityId)?.name}
                     </span>
                   </div>
                   {entities.find(e => e.id === selectedEntityId)?.description && (
-                    <p className={`text-xs ${theme.ui.textMuted} mt-2`}>
+                    <p className="text-xs mt-2" style={{ color: theme.ui.textMuted }}>
                       {entities.find(e => e.id === selectedEntityId)?.description}
                     </p>
                   )}
@@ -281,11 +310,27 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
               <button
                 onClick={handleEntityLink}
                 disabled={updateProfile.isPending || selectedEntityId === userProfile?.profile?.my_entity_id}
-                className={`w-full mt-3 px-4 py-2 ${theme.ui.textPrimary} rounded-lg transition-colors ${
-                  updateProfile.isPending || selectedEntityId === userProfile?.profile?.my_entity_id
-                    ? `${theme.ui.secondaryBg} cursor-not-allowed opacity-50`
-                    : `${theme.ui.interactive.primaryBg} ${theme.ui.interactive.primaryBgHover}`
-                }`}
+                className="w-full mt-3 px-4 py-2 rounded-lg transition-colors"
+                style={{
+                  color: theme.ui.textPrimary,
+                  backgroundColor: updateProfile.isPending || selectedEntityId === userProfile?.profile?.my_entity_id
+                    ? theme.ui.secondaryBg
+                    : theme.ui.interactive.primaryBg,
+                  cursor: updateProfile.isPending || selectedEntityId === userProfile?.profile?.my_entity_id
+                    ? 'not-allowed'
+                    : 'pointer',
+                  opacity: updateProfile.isPending || selectedEntityId === userProfile?.profile?.my_entity_id ? 0.5 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (!(updateProfile.isPending || selectedEntityId === userProfile?.profile?.my_entity_id)) {
+                    e.currentTarget.style.backgroundColor = theme.ui.interactive.primaryBgHover
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!(updateProfile.isPending || selectedEntityId === userProfile?.profile?.my_entity_id)) {
+                    e.currentTarget.style.backgroundColor = theme.ui.interactive.primaryBg
+                  }
+                }}
               >
                 {updateProfile.isPending ? '저장 중...' : selectedEntityId ? 'Entity 연결' : 'Entity 연결 해제'}
               </button>
@@ -297,25 +342,25 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
         <section>
           <div className="flex items-center gap-2 mb-3">
             <FileText className="w-5 h-5" style={{ color: theme.ui.iconColors.yellow }} />
-            <h3 className={`text-base font-semibold ${theme.ui.textPrimary}`}>활동 통계</h3>
+            <h3 className="text-base font-semibold" style={{ color: theme.ui.textPrimary }}>활동 통계</h3>
           </div>
-          <div className={`${theme.ui.cardBg} rounded-lg p-4`}>
+          <div className="rounded-lg p-4" style={{ backgroundColor: theme.ui.cardBg }}>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
-                <p className={`text-2xl font-semibold ${theme.ui.textPrimary}`}>--</p>
-                <p className={`text-xs ${theme.ui.textMuted} mt-1`}>작성한 메모</p>
+                <p className="text-2xl font-semibold" style={{ color: theme.ui.textPrimary }}>--</p>
+                <p className="text-xs mt-1" style={{ color: theme.ui.textMuted }}>작성한 메모</p>
               </div>
               <div className="text-center">
-                <p className={`text-2xl font-semibold ${theme.ui.textPrimary}`}>--</p>
-                <p className={`text-xs ${theme.ui.textMuted} mt-1`}>생성한 Entity</p>
+                <p className="text-2xl font-semibold" style={{ color: theme.ui.textPrimary }}>--</p>
+                <p className="text-xs mt-1" style={{ color: theme.ui.textMuted }}>생성한 Entity</p>
               </div>
               <div className="text-center">
-                <p className={`text-2xl font-semibold ${theme.ui.textPrimary}`}>--</p>
-                <p className={`text-xs ${theme.ui.textMuted} mt-1`}>연결된 링크</p>
+                <p className="text-2xl font-semibold" style={{ color: theme.ui.textPrimary }}>--</p>
+                <p className="text-xs mt-1" style={{ color: theme.ui.textMuted }}>연결된 링크</p>
               </div>
               <div className="text-center">
-                <p className={`text-2xl font-semibold ${theme.ui.textPrimary}`}>--</p>
-                <p className={`text-xs ${theme.ui.textMuted} mt-1`}>총 활동 일수</p>
+                <p className="text-2xl font-semibold" style={{ color: theme.ui.textPrimary }}>--</p>
+                <p className="text-xs mt-1" style={{ color: theme.ui.textMuted }}>총 활동 일수</p>
               </div>
             </div>
           </div>

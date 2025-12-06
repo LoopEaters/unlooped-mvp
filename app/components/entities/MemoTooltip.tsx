@@ -237,7 +237,7 @@ export default function MemoTooltip({ memo, x, y, canvasWidth, canvasHeight = 10
             fontStyle="600"
           />
           {mentionedEntitiesWithWidth.map((mention, i) => {
-            const color = getEntityTypeHexColor(mention.type)
+            const color = getEntityTypeHexColor(mention.type, theme)
             const yPos = padding + dateHeight + dividerMargin * 2 + dividerHeight + contentHeight + spacing + 14 + i * 20
 
             return (

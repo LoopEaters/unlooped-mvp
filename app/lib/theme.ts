@@ -282,23 +282,23 @@ export const defaultTheme: ThemeColors = {
 
   entityTypes: {
     person: {
-      bg: 'bg-mention-person',
-      text: 'text-mention-person',
+      bg: '#22C55E',
+      text: '#22C55E',
       hex: '#22C55E', // green-500
     },
     project: {
-      bg: 'bg-mention-project',
-      text: 'text-mention-project',
+      bg: '#A855F7',
+      text: '#A855F7',
       hex: '#A855F7', // purple-500
     },
     event: {
-      bg: 'bg-mention-event',
-      text: 'text-mention-event',
+      bg: '#F59E0B',
+      text: '#F59E0B',
       hex: '#F59E0B', // amber-500
     },
     unknown: {
-      bg: 'bg-gray-400',
-      text: 'text-gray-400',
+      bg: '#9CA3AF',
+      text: '#9CA3AF',
       hex: '#9CA3AF',
     },
   },
@@ -314,41 +314,41 @@ export const defaultTheme: ThemeColors = {
 
   ui: {
     // 배경
-    primaryBg: 'bg-bg-primary',
-    secondaryBg: 'bg-bg-secondary',
-    tertiaryBg: 'bg-bg-card',
-    elevatedBg: 'bg-bg-card',
-    cardBg: 'bg-bg-card',
-    cardBgHover: 'hover:bg-bg-secondary/50',
-    stickyMetadataBg: 'bg-bg-primary/95',
+    primaryBg: '#1a1f2e',
+    secondaryBg: '#252b3b',
+    tertiaryBg: '#2a2f3e',
+    elevatedBg: '#2a2f3e',
+    cardBg: '#2a2f3e',
+    cardBgHover: '#252b3b80',
+    stickyMetadataBg: 'rgba(26, 31, 46, 0.95)',
 
     // 텍스트
-    textPrimary: 'text-white',
-    textSecondary: 'text-gray-300',
-    textMuted: 'text-text-muted',
-    textPlaceholder: 'text-gray-400',
+    textPrimary: '#ffffff',
+    textSecondary: '#d1d5db',
+    textMuted: '#9ca3af',
+    textPlaceholder: '#9ca3af',
 
     // 테두리
-    border: 'border-border-main',
-    borderSubtle: 'border-border-main/50',
-    borderStrong: 'border-border-main',
+    border: '#374151',
+    borderSubtle: 'rgba(55, 65, 81, 0.5)',
+    borderStrong: '#374151',
 
     // 상태별 색상
     loading: {
-      bg: 'bg-bg-card',
+      bg: '#2a2f3e',
     },
     error: {
-      text: 'text-red-400',
-      bg: 'bg-red-500/10',
+      text: '#f87171',
+      bg: 'rgba(239, 68, 68, 0.1)',
     },
     aiProcessing: {
-      text: 'text-blue-400',
-      bg: 'bg-blue-500/10',
+      text: '#60A5FA',
+      bg: 'rgba(59, 130, 246, 0.1)',
     },
     delete: {
-      text: 'text-red-400',
-      bg: 'bg-red-500/10',
-      bgHover: 'hover:bg-red-500/10',
+      text: '#f87171',
+      bg: 'rgba(239, 68, 68, 0.1)',
+      bgHover: 'rgba(239, 68, 68, 0.1)',
     },
 
     // 검색 하이라이트
@@ -359,28 +359,28 @@ export const defaultTheme: ThemeColors = {
     },
 
     // 버튼 hover
-    buttonHover: 'hover:bg-gray-700',
+    buttonHover: '#374151',
 
     // 인터랙티브 색상
     interactive: {
       primary: '#3B82F6',
-      primaryBg: 'bg-blue-500',
-      primaryBgHover: 'hover:bg-blue-600',
-      primaryBgLight: 'bg-blue-500/20',
-      primaryText: 'text-blue-400',
+      primaryBg: '#3B82F6',
+      primaryBgHover: '#2563EB',
+      primaryBgLight: 'rgba(59, 130, 246, 0.2)',
+      primaryText: '#60A5FA',
 
       success: '#22C55E',
-      successBg: 'bg-green-500',
-      successText: 'text-green-400',
+      successBg: '#22C55E',
+      successText: '#4ADE80',
 
       warning: '#EAB308',
-      warningBg: 'bg-yellow-500/30',
-      warningText: 'text-yellow-200',
+      warningBg: 'rgba(234, 179, 8, 0.3)',
+      warningText: '#FDE047',
 
       danger: '#EF4444',
-      dangerBg: 'bg-red-500/10',
-      dangerText: 'text-red-400',
-      dangerTextHover: 'hover:text-red-300',
+      dangerBg: 'rgba(239, 68, 68, 0.1)',
+      dangerText: '#f87171',
+      dangerTextHover: '#fca5a5',
     },
 
     // Gray 팔레트
@@ -481,29 +481,29 @@ export const claudeTheme: ThemeColors = {
 
   entityTypes: {
     person: {
-      bg: 'bg-mention-person',
-      text: 'text-mention-person',
+      bg: '#10B981',
+      text: '#10B981',
       hex: '#10B981', // emerald-500
       light: '#34D399', // emerald-400
       glow: 'rgba(16, 185, 129, 0.2)',
     },
     project: {
-      bg: 'bg-mention-project',
-      text: 'text-mention-project',
+      bg: '#A78BFA',
+      text: '#A78BFA',
       hex: '#A78BFA', // purple-400
       light: '#C4B5FD', // purple-300
       glow: 'rgba(167, 139, 250, 0.2)',
     },
     event: {
-      bg: 'bg-mention-event',
-      text: 'text-mention-event',
+      bg: '#F59E0B',
+      text: '#F59E0B',
       hex: '#F59E0B', // amber-500
       light: '#FBBF24', // amber-400
       glow: 'rgba(245, 158, 11, 0.2)',
     },
     unknown: {
-      bg: 'bg-gray-400',
-      text: 'text-gray-400',
+      bg: '#9CA3AF',
+      text: '#9CA3AF',
       hex: '#9CA3AF',
       light: '#CBD5E1',
       glow: 'rgba(156, 163, 175, 0.2)',
@@ -526,36 +526,36 @@ export const claudeTheme: ThemeColors = {
     tertiaryBg: '#1C2029',
     elevatedBg: '#242938',
     cardBg: '#141821',
-    cardBgHover: 'hover:bg-[#1C2029]',
-    stickyMetadataBg: 'bg-[#0A0E17]/95',
+    cardBgHover: '#1C2029',
+    stickyMetadataBg: 'rgba(10, 14, 23, 0.95)',
 
     // 텍스트 (Claude 스타일 - 부드러운 흰색)
-    textPrimary: 'text-slate-50',
-    textSecondary: 'text-slate-300',
-    textMuted: 'text-slate-400',
-    textPlaceholder: 'text-slate-500',
+    textPrimary: '#F8FAFC',
+    textSecondary: '#CBD5E1',
+    textMuted: '#94A3B8',
+    textPlaceholder: '#64748B',
 
     // 테두리
-    border: 'border-white/10',
-    borderSubtle: 'border-white/5',
-    borderStrong: 'border-white/15',
+    border: 'rgba(255, 255, 255, 0.1)',
+    borderSubtle: 'rgba(255, 255, 255, 0.05)',
+    borderStrong: 'rgba(255, 255, 255, 0.15)',
 
     // 상태별 색상
     loading: {
-      bg: 'bg-[#141821]',
+      bg: '#141821',
     },
     error: {
-      text: 'text-red-400',
-      bg: 'bg-red-500/10',
+      text: '#f87171',
+      bg: 'rgba(239, 68, 68, 0.1)',
     },
     aiProcessing: {
-      text: 'text-purple-400',
-      bg: 'bg-purple-500/10',
+      text: '#C084FC',
+      bg: 'rgba(168, 85, 247, 0.1)',
     },
     delete: {
-      text: 'text-red-400',
-      bg: 'bg-red-500/10',
-      bgHover: 'hover:bg-red-500/10',
+      text: '#f87171',
+      bg: 'rgba(239, 68, 68, 0.1)',
+      bgHover: 'rgba(239, 68, 68, 0.1)',
     },
 
     // 검색 하이라이트
@@ -566,28 +566,28 @@ export const claudeTheme: ThemeColors = {
     },
 
     // 버튼 hover
-    buttonHover: 'hover:bg-white/5',
+    buttonHover: 'rgba(255, 255, 255, 0.05)',
 
     // 인터랙티브 색상
     interactive: {
       primary: '#A78BFA', // purple-400
-      primaryBg: 'bg-gradient-to-r from-purple-500 to-blue-500',
-      primaryBgHover: 'hover:opacity-90',
-      primaryBgLight: 'bg-purple-500/20',
-      primaryText: 'text-purple-400',
+      primaryBg: 'linear-gradient(to right, #A855F7, #3B82F6)',
+      primaryBgHover: '#8B5CF6',
+      primaryBgLight: 'rgba(168, 85, 247, 0.2)',
+      primaryText: '#C084FC',
 
       success: '#10B981',
-      successBg: 'bg-emerald-500',
-      successText: 'text-emerald-400',
+      successBg: '#10B981',
+      successText: '#34D399',
 
       warning: '#F59E0B',
-      warningBg: 'bg-amber-500/30',
-      warningText: 'text-amber-300',
+      warningBg: 'rgba(245, 158, 11, 0.3)',
+      warningText: '#FCD34D',
 
       danger: '#EF4444',
-      dangerBg: 'bg-red-500/10',
-      dangerText: 'text-red-400',
-      dangerTextHover: 'hover:text-red-300',
+      dangerBg: 'rgba(239, 68, 68, 0.1)',
+      dangerText: '#f87171',
+      dangerTextHover: '#fca5a5',
     },
 
     // Gray 팔레트 (Slate 계열)
@@ -768,7 +768,8 @@ export function getEntityTypeHexColor(
 }
 
 /**
- * Mention highlight용 색상 클래스 생성
+ * Mention highlight용 색상 클래스 생성 (deprecated - 하위 호환성을 위해 유지)
+ * @deprecated getMentionHighlightStyle()을 사용하세요
  */
 export function getMentionHighlightClass(
   type: string | null | undefined,
@@ -781,6 +782,33 @@ export function getMentionHighlightClass(
     : theme.mention.normal.bgOpacity
 
   return `${typeColor.bg}/${opacity} ${typeColor.text} px-1.5 py-0.5 rounded font-medium`
+}
+
+/**
+ * Mention highlight용 style 객체 생성 (hex 기반)
+ */
+export function getMentionHighlightStyle(
+  type: string | null | undefined,
+  isEmphasized: boolean = false,
+  theme: ThemeColors = defaultTheme
+): { backgroundColor: string; color: string } {
+  const typeColor = getEntityTypeColor(type, theme)
+  const opacity = isEmphasized
+    ? parseInt(theme.mention.emphasized.bgOpacity) / 100
+    : parseInt(theme.mention.normal.bgOpacity) / 100
+
+  // hex를 rgba로 변환
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+
+  return {
+    backgroundColor: hexToRgba(typeColor.hex, opacity),
+    color: typeColor.hex,
+  }
 }
 
 /**

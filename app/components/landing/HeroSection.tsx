@@ -23,19 +23,22 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
 
       {/* Headline */}
       <h1
-        className={`text-5xl md:text-6xl font-bold text-center mb-6 ${theme.ui.textPrimary}`}
+        className="text-5xl md:text-6xl font-bold text-center mb-6"
+        style={{ color: theme.ui.textPrimary }}
       >
         Unlooped
       </h1>
 
       {/* Subtext */}
       <p
-        className={`text-xl md:text-2xl text-center mb-4 max-w-2xl ${theme.ui.textSecondary}`}
+        className="text-xl md:text-2xl text-center mb-4 max-w-2xl"
+        style={{ color: theme.ui.textSecondary }}
       >
         모든 생각을 하나로 연결하세요
       </p>
       <p
-        className={`text-base md:text-lg text-center mb-12 max-w-xl ${theme.ui.textMuted}`}
+        className="text-base md:text-lg text-center mb-12 max-w-xl"
+        style={{ color: theme.ui.textMuted }}
       >
         Entity, Timeline, Mention으로 당신의 아이디어를 체계화하세요
       </p>
@@ -60,7 +63,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
       </button>
 
       {/* Hint */}
-      <p className={`mt-6 text-sm ${theme.ui.textMuted}`}>
+      <p className="mt-6 text-sm" style={{ color: theme.ui.textMuted }}>
         무료로 시작하세요 • 설치 불필요
       </p>
     </section>
