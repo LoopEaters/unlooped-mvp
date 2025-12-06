@@ -739,7 +739,7 @@ export const themes: Record<ThemeName, ThemeColors> = {
  */
 export function getEntityTypeColor(
   type: string | null | undefined,
-  theme: ThemeColors = defaultTheme
+  theme: ThemeColors
 ): { bg: string; text: string; hex: string; light?: string; glow?: string } {
   switch (type) {
     case 'person':
@@ -762,7 +762,7 @@ export function getEntityTypeColor(
  */
 export function getEntityTypeHexColor(
   type: string | null | undefined,
-  theme: ThemeColors = defaultTheme
+  theme: ThemeColors
 ): string {
   return getEntityTypeColor(type, theme).hex
 }
@@ -774,7 +774,7 @@ export function getEntityTypeHexColor(
 export function getMentionHighlightClass(
   type: string | null | undefined,
   isEmphasized: boolean = false,
-  theme: ThemeColors = defaultTheme
+  theme: ThemeColors
 ): string {
   const typeColor = getEntityTypeColor(type, theme)
   const opacity = isEmphasized
@@ -790,7 +790,7 @@ export function getMentionHighlightClass(
 export function getMentionHighlightStyle(
   type: string | null | undefined,
   isEmphasized: boolean = false,
-  theme: ThemeColors = defaultTheme
+  theme: ThemeColors
 ): { backgroundColor: string; color: string } {
   const typeColor = getEntityTypeColor(type, theme)
   const opacity = isEmphasized

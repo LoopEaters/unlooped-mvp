@@ -393,7 +393,7 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
     extractConfirmedEntities,
   ])
 
-  // pendingEntityTypes + classifyingEntities 변경 시 동적으로 CSS 스타일 주입
+  // pendingEntityTypes + classifyingEntities + entities 변경 시 동적으로 CSS 스타일 주입
   useEffect(() => {
     if (!editor) return
 
@@ -407,6 +407,19 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
     style.id = 'pending-entity-styles-edit'
     let css = ''
 
+    // Entity name → type 맵 생성 (기존 entity + pending entity)
+    const entityTypeMap = new Map<string, string>()
+
+    // 1. 기존에 저장된 entities
+    entitiesRef.current.forEach((entity) => {
+      entityTypeMap.set(entity.name, entity.type || 'unknown')
+    })
+
+    // 2. 새로 추가된 pending entities (우선순위 높음)
+    Object.entries(pendingEntityTypes).forEach(([name, type]) => {
+      entityTypeMap.set(name, type)
+    })
+
     // 분류 중인 entity: 회색 펄스 애니메이션
     classifyingEntities.forEach((entityName) => {
       const escapedName = entityName.replace(/"/g, '\\"')
@@ -419,9 +432,9 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
       `
     })
 
-    // 분류 완료된 entity: 확정된 색깔 (theme.ts 색상 사용)
-    Object.entries(pendingEntityTypes).forEach(([entityName, type]) => {
-      // 분류 중이 아닌 것만 (분류 중이면 위의 스타일이 우선)
+    // 모든 entity에 대해 색상 적용
+    entityTypeMap.forEach((type, entityName) => {
+      // 분류 중이면 skip (위의 스타일이 우선)
       if (classifyingEntities.has(entityName)) return
 
       const escapedName = entityName.replace(/"/g, '\\"')
@@ -476,7 +489,7 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
         styleToRemove.remove()
       }
     }
-  }, [editor, pendingEntityTypes, classifyingEntities])
+  }, [editor, pendingEntityTypes, classifyingEntities, entities, theme])
 
   // Ctrl+Enter 키 핸들러 설정
   useEffect(() => {

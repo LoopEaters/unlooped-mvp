@@ -50,7 +50,7 @@ export default function MemoCardCompact({ memo, entities = [], userId }: MemoCar
   }
 
   // Entity 하이라이트 처리
-  const highlightedContent = highlightEntities(memo.content, entities)
+  const highlightedContent = highlightEntities(memo.content, entities, undefined, theme)
 
   return (
     <>

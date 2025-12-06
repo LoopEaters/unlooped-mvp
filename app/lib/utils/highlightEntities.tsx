@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Database } from '@/types/supabase'
-import { getMentionHighlightStyle } from '@/app/lib/theme'
+import { getMentionHighlightStyle, type ThemeColors } from '@/app/lib/theme'
 
 type Entity = Database['public']['Tables']['entity']['Row']
 
@@ -9,12 +9,14 @@ type Entity = Database['public']['Tables']['entity']['Row']
  * @param content - 메모 내용
  * @param entities - Entity 배열 (type 정보 포함)
  * @param currentEntityId - 현재 entity section의 entity ID (강조 표시용)
+ * @param theme - 테마 색상 (필수)
  * @returns 하이라이트된 React 요소들의 배열
  */
 export function highlightEntities(
   content: string,
   entities: Entity[] = [],
-  currentEntityId?: string
+  currentEntityId: string | undefined,
+  theme: ThemeColors
 ): React.ReactNode[] {
   // @entity_name 패턴 정규표현식 (공백/줄바꿈을 제외한 모든 문자)
   const entityPattern = /@(\S+)/g
@@ -42,7 +44,7 @@ export function highlightEntities(
     // Entity 조회 및 강조 여부 판단
     const entity = entityMap.get(entityName)
     const isEmphasized = entity?.id === currentEntityId
-    const highlightStyle = getMentionHighlightStyle(entity?.type, isEmphasized)
+    const highlightStyle = getMentionHighlightStyle(entity?.type, isEmphasized, theme)
 
     // Entity 하이라이트 추가
     result.push(

@@ -158,7 +158,7 @@ export default function EntityDetailDrawer({
                     className="text-sm line-clamp-2 mb-2"
                     style={{ color: theme.drawer.section.text }}
                   >
-                    {highlightEntities(memo.content, entities, entity?.id)}
+                    {highlightEntities(memo.content, entities, entity?.id, theme)}
                   </div>
                   <span className="text-xs" style={{ color: theme.drawer.section.textMuted }}>
                     {memo.created_at ? getRelativeTime(memo.created_at) : 'Unknown date'}

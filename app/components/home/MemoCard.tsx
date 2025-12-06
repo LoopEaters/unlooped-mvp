@@ -38,7 +38,7 @@ export default function MemoCard({ memo, entities = [], currentEntityId, userId 
   }
 
   // Entity 하이라이트 처리 (현재 entity 강조)
-  const highlightedContent = highlightEntities(memo.content, entities, currentEntityId)
+  const highlightedContent = highlightEntities(memo.content, entities, currentEntityId, theme)
 
   return (
     <>
