@@ -4,6 +4,7 @@
  */
 
 import type { AIProvider, EntityClassificationResult, AIProviderConfig } from '../types';
+import type { BulkImportParseResult } from '@/types/import';
 import { EntityType } from '../types';
 
 export abstract class BaseAIProvider implements AIProvider {
@@ -33,6 +34,11 @@ export abstract class BaseAIProvider implements AIProvider {
     // 3. 결과 검증
     return this.validateResult(result);
   }
+
+  /**
+   * 대용량 import 텍스트 파싱 (하위 클래스에서 구현)
+   */
+  abstract parseBulkImport(text: string): Promise<BulkImportParseResult>;
 
   /**
    * 실제 API 호출 (하위 클래스에서 구현)

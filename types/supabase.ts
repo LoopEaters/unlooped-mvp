@@ -168,6 +168,8 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
+          my_entity_id: string | null
+          onboarding_completed: boolean | null
           updated_at: string | null
           username: string | null
         }
@@ -176,6 +178,8 @@ export type Database = {
           created_at?: string | null
           email: string
           id?: string
+          my_entity_id?: string | null
+          onboarding_completed?: boolean | null
           updated_at?: string | null
           username?: string | null
         }
@@ -184,10 +188,20 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          my_entity_id?: string | null
+          onboarding_completed?: boolean | null
           updated_at?: string | null
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_my_entity_id_fkey"
+            columns: ["my_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entity"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

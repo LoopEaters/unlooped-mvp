@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/app/lib/util'
-import { defaultTheme } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -30,6 +30,8 @@ export default function EntityDropdown({
   onSelect,
   isOpen,
 }: EntityDropdownProps) {
+  const { theme } = useTheme()
+
   if (!isOpen || !search) return null
 
   // search로 시작하는 entity 필터링
@@ -40,36 +42,57 @@ export default function EntityDropdown({
   const hasMatches = filteredEntities.length > 0
 
   return (
-    <div className="absolute bottom-full left-0 right-0 mb-2 bg-bg-secondary border border-border-main rounded-lg shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+    <div
+      className="absolute bottom-full left-0 right-0 mb-2 rounded-lg shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200 border"
+      style={{
+        backgroundColor: theme.ui.secondaryBg,
+        borderColor: theme.ui.border,
+      }}
+    >
       {hasMatches ? (
         <ul className="py-1">
-          {filteredEntities.map((entity, index) => (
-            <li
-              key={entity.id}
-              className={cn(
-                'px-4 py-2 cursor-pointer transition-colors',
-                index === selectedIndex
-                  ? `${defaultTheme.ui.interactive.primaryBgLight} ${defaultTheme.ui.textPrimary}`
-                  : `${defaultTheme.ui.textSecondary} hover:bg-bg-card`
-              )}
-              onClick={() => onSelect(entity)}
-              onMouseEnter={() => {
-                // 마우스 호버 시 선택 인덱스 업데이트를 위해
-                // 부모에서 처리할 수 있도록 이벤트를 발생시킬 수 있음
-              }}
-            >
-              <span className="font-medium">@{entity.name}</span>
-            </li>
-          ))}
+          {filteredEntities.map((entity, index) => {
+            const isSelected = index === selectedIndex
+            return (
+              <li
+                key={entity.id}
+                className="px-4 py-2 cursor-pointer transition-colors"
+                style={{
+                  backgroundColor: isSelected ? theme.ui.interactive.primaryBgLight : 'transparent',
+                  color: isSelected ? theme.ui.textPrimary : theme.ui.textSecondary,
+                }}
+                onClick={() => onSelect(entity)}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = theme.ui.cardBg
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }
+                }}
+              >
+                <span className="font-medium">@{entity.name}</span>
+              </li>
+            )
+          })}
         </ul>
       ) : (
         <div className="px-4 py-3">
-          <div className={`${defaultTheme.ui.textMuted} text-sm mb-2`}>
+          <div className="text-sm mb-2" style={{ color: theme.ui.textMuted }}>
             일치하는 엔티티가 없습니다
           </div>
           <button
             onClick={() => onSelect(null)}
-            className={`${defaultTheme.ui.interactive.primaryText} text-sm hover:opacity-80 transition-opacity font-medium`}
+            className="text-sm transition-opacity font-medium"
+            style={{ color: theme.ui.interactive.primaryText }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = '0.8'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = '1'
+            }}
           >
             새 엔티티 &apos;{search}&apos; 생성
           </button>

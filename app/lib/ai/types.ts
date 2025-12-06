@@ -3,6 +3,8 @@
  * Entity 타입 자동 분류를 위한 AI 모듈의 핵심 타입들
  */
 
+import type { BulkImportParseResult } from '@/types/import';
+
 /**
  * Entity 타입 enum
  */
@@ -33,6 +35,7 @@ export interface EntityClassificationResult {
  */
 export interface AIProvider {
   classify(entityName: string): Promise<EntityClassificationResult>;
+  parseBulkImport(text: string): Promise<BulkImportParseResult>;
   name: string;
 }
 

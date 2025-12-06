@@ -1,6 +1,8 @@
 'use client'
 
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
+import { useTheme } from '@/app/providers/ThemeProvider'
+import { getEntityTypeColor } from '@/app/lib/theme'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -12,6 +14,7 @@ interface MentionListProps {
 
 export const MentionList = forwardRef<any, MentionListProps>((props, ref) => {
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const { theme } = useTheme()
 
   // 🔧 FIX: items 변경 시에만 selectedIndex 초기화 (무한 렌더링 방지)
   useEffect(() => {
@@ -74,45 +77,66 @@ export const MentionList = forwardRef<any, MentionListProps>((props, ref) => {
 
   if (props.items.length === 0) {
     return (
-      <div className="bg-bg-card border border-border-main rounded-lg shadow-lg p-2 min-w-[200px]">
-        <div className="text-text-muted text-sm px-3 py-2">결과 없음</div>
+      <div
+        className="rounded-lg shadow-lg p-2 min-w-[200px] border"
+        style={{
+          backgroundColor: theme.ui.cardBg,
+          borderColor: theme.ui.border,
+        }}
+      >
+        <div className="text-sm px-3 py-2" style={{ color: theme.ui.textMuted }}>
+          결과 없음
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-bg-card border border-border-main rounded-lg shadow-lg overflow-hidden min-w-[200px]">
+    <div
+      className="rounded-lg shadow-lg overflow-hidden min-w-[200px] border"
+      style={{
+        backgroundColor: theme.ui.cardBg,
+        borderColor: theme.ui.border,
+      }}
+    >
       {props.items.map((item, index) => {
         // 새 entity인지 확인
         const isNewEntity = item.id.startsWith('new-')
 
-        // Entity type별 색상
-        const typeColorMap: Record<string, string> = {
-          project: 'text-color-mention-project',
-          person: 'text-color-mention-person',
-          event: 'text-color-mention-event',
-        }
-        const colorClass = item.type ? typeColorMap[item.type] || 'text-blue-500' : 'text-blue-500'
+        // Entity type별 색상 (테마 시스템 사용)
+        const entityColor = getEntityTypeColor(item.type, theme)
+        const isSelected = index === selectedIndex
 
         return (
           <button
             key={item.id}
-            className={`
-              w-full px-3 py-2 text-left text-sm transition-colors
-              ${
-                index === selectedIndex
-                  ? 'bg-blue-500/20 text-white'
-                  : 'text-text-secondary hover:bg-bg-secondary'
+            className="w-full px-3 py-2 text-left text-sm transition-colors"
+            style={{
+              backgroundColor: isSelected ? theme.ui.interactive.primaryBgLight : 'transparent',
+              color: isSelected ? theme.ui.textPrimary : theme.ui.textSecondary,
+            }}
+            onMouseEnter={(e) => {
+              setSelectedIndex(index)
+              if (!isSelected) {
+                e.currentTarget.style.backgroundColor = theme.ui.buttonHover
               }
-            `}
+            }}
+            onMouseLeave={(e) => {
+              if (!isSelected) {
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }
+            }}
             onClick={() => selectItem(index)}
-            onMouseEnter={() => setSelectedIndex(index)}
           >
-            <span className={colorClass}>@{item.name}</span>
+            <span style={{ color: entityColor.hex }}>@{item.name}</span>
             {isNewEntity ? (
-              <span className="text-text-muted text-xs ml-2">(새로 생성)</span>
+              <span className="text-xs ml-2" style={{ color: theme.ui.textMuted }}>
+                (새로 생성)
+              </span>
             ) : item.type ? (
-              <span className="text-text-muted text-xs ml-2">({item.type})</span>
+              <span className="text-xs ml-2" style={{ color: theme.ui.textMuted }}>
+                ({item.type})
+              </span>
             ) : null}
           </button>
         )

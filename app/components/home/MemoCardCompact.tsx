@@ -5,7 +5,7 @@ import { Edit2, Trash2 } from 'lucide-react'
 import { highlightEntities } from '@/app/lib/utils/highlightEntities'
 import { useDeleteMemoWithOrphanedEntities } from '@/app/lib/queries'
 import { useEntityFilter } from '@/app/providers/EntityFilterProvider'
-import { defaultTheme } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import MemoEditDrawer from './MemoEditDrawer'
 import MemoDeleteModal from './MemoDeleteModal'
 import type { Database } from '@/types/supabase'
@@ -25,6 +25,7 @@ export default function MemoCardCompact({ memo, entities = [], userId }: MemoCar
   const [showEditDrawer, setShowEditDrawer] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const { highlightedMemoId } = useEntityFilter()
+  const { theme } = useTheme()
 
   const deleteMemo = useDeleteMemoWithOrphanedEntities(userId || '')
 
@@ -49,30 +50,46 @@ export default function MemoCardCompact({ memo, entities = [], userId }: MemoCar
   }
 
   // Entity 하이라이트 처리
-  const highlightedContent = highlightEntities(memo.content, entities)
+  const highlightedContent = highlightEntities(memo.content, entities, undefined, theme)
 
   return (
     <>
       <div
         id={`memo-compact-${memo.id}`}
         className={cn(
-          "relative bg-bg-card rounded-md p-2 hover:bg-bg-secondary/50 transition-all duration-300 cursor-pointer group",
+          "relative rounded-md p-2 transition-all duration-300 cursor-pointer group",
           isHighlighted
-            ? "border-2 border-[var(--color-search-highlight-border)] animate-pulse-border"
-            : "border border-border-main"
+            ? "border-2 animate-pulse-border"
+            : "border"
         )}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        style={{
+          backgroundColor: theme.ui.cardBg,
+          borderColor: isHighlighted ? theme.ui.searchHighlight.borderColor : theme.ui.border,
+        }}
+        onMouseEnter={(e) => {
+          setIsHovered(true)
+          e.currentTarget.style.backgroundColor = theme.ui.cardBgHover
+        }}
+        onMouseLeave={(e) => {
+          setIsHovered(false)
+          e.currentTarget.style.backgroundColor = theme.ui.cardBg
+        }}
       >
       {/* Hover 시 액션 버튼 표시 (오버레이) */}
       {isHovered && (
-        <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-bg-card/80 backdrop-blur-sm rounded px-0.5 py-0.5">
+        <div
+          className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm rounded px-0.5 py-0.5"
+          style={{ backgroundColor: `${theme.ui.cardBg}CC` }}
+        >
           <button
             onClick={(e) => {
               e.stopPropagation()
               setShowEditDrawer(true)
             }}
-            className={`p-0.5 text-text-muted ${defaultTheme.ui.interactive.primaryText} transition-colors`}
+            className="p-0.5 transition-colors"
+            style={{ color: theme.ui.textMuted }}
+            onMouseEnter={(e) => e.currentTarget.style.color = theme.ui.interactive.primaryText}
+            onMouseLeave={(e) => e.currentTarget.style.color = theme.ui.textMuted}
             title="편집"
           >
             <Edit2 className="w-3 h-3" />
@@ -82,7 +99,10 @@ export default function MemoCardCompact({ memo, entities = [], userId }: MemoCar
               e.stopPropagation()
               setShowDeleteModal(true)
             }}
-            className={`p-0.5 text-text-muted ${defaultTheme.ui.interactive.dangerTextHover} transition-colors`}
+            className="p-0.5 transition-colors"
+            style={{ color: theme.ui.textMuted }}
+            onMouseEnter={(e) => e.currentTarget.style.color = theme.ui.interactive.dangerTextHover}
+            onMouseLeave={(e) => e.currentTarget.style.color = theme.ui.textMuted}
             title="삭제"
           >
             <Trash2 className="w-3 h-3" />
@@ -91,10 +111,10 @@ export default function MemoCardCompact({ memo, entities = [], userId }: MemoCar
       )}
 
       {/* 시간 */}
-      <div className="text-[10px] text-text-muted mb-1">{formatTime(memo.created_at || '')}</div>
+      <div className="text-[10px] mb-1" style={{ color: theme.ui.textMuted }}>{formatTime(memo.created_at || '')}</div>
 
         {/* 메모 내용 (Entity 하이라이트) */}
-        <div className="text-xs text-white leading-relaxed whitespace-pre-wrap wrap-break-word">
+        <div className="text-xs leading-relaxed whitespace-pre-wrap wrap-break-word" style={{ color: theme.ui.textPrimary }}>
           {highlightedContent}
         </div>
       </div>

@@ -2,7 +2,8 @@
 
 import { Group, Rect, Text } from 'react-konva'
 import type { Database } from '@/types/supabase'
-import { defaultTheme, getEntityTypeHexColor } from '@/app/lib/theme'
+import { getEntityTypeHexColor } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import { useMemo } from 'react'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -17,11 +18,12 @@ interface EntityTooltipProps {
 }
 
 export default function EntityTooltip({ entity, x, y, canvasWidth, canvasHeight = 1000, scale = 1 }: EntityTooltipProps) {
+  const { theme } = useTheme()
   const maxWidth = 280
   const padding = 16
 
   // Type 색상
-  const typeColor = getEntityTypeHexColor(entity.type)
+  const typeColor = getEntityTypeHexColor(entity.type, theme)
 
   // Type badge 너비 계산 (Canvas measureText로 정확하게)
   const typeBadgeWidth = useMemo(() => {
@@ -112,13 +114,13 @@ export default function EntityTooltip({ entity, x, y, canvasWidth, canvasHeight 
       <Rect
         width={maxWidth}
         height={finalHeight}
-        fill={defaultTheme.tooltip.background}
+        fill={theme.tooltip.background}
         cornerRadius={10}
         shadowBlur={16}
-        shadowColor={defaultTheme.tooltip.shadow}
+        shadowColor={theme.tooltip.shadow}
         shadowOpacity={0.5}
         shadowOffsetY={4}
-        stroke={defaultTheme.tooltip.border}
+        stroke={theme.tooltip.border}
         strokeWidth={1}
       />
 
@@ -128,7 +130,7 @@ export default function EntityTooltip({ entity, x, y, canvasWidth, canvasHeight 
         y={padding}
         text="ENTITY"
         fontSize={9}
-        fill={defaultTheme.tooltip.hint}
+        fill={theme.tooltip.hint}
         fontStyle="600"
         letterSpacing={1}
       />
@@ -171,7 +173,7 @@ export default function EntityTooltip({ entity, x, y, canvasWidth, canvasHeight 
         y={padding + labelHeight + labelMargin + nameHeight + spacing + typeHeight + spacing}
         text={previewDescription}
         fontSize={descFontSize}
-        fill={defaultTheme.tooltip.text}
+        fill={theme.tooltip.text}
         width={contentWidth}
         lineHeight={lineHeight}
         wrap="word"
@@ -183,7 +185,7 @@ export default function EntityTooltip({ entity, x, y, canvasWidth, canvasHeight 
         y={finalHeight - padding - hintHeight}
         text="Click to see full details →"
         fontSize={10}
-        fill={defaultTheme.tooltip.hint}
+        fill={theme.tooltip.hint}
         fontStyle="italic"
         width={contentWidth}
       />

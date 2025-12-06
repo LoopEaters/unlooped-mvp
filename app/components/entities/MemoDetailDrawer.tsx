@@ -2,7 +2,7 @@
 
 import type { Database } from '@/types/supabase'
 import BaseDrawer from '@/app/components/common/BaseDrawer'
-import { defaultTheme } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
 import { useState } from 'react'
 import { EditorContent } from '@tiptap/react'
 import { useTiptapEditorForEdit } from '@/app/hooks/useTiptapEditorForEdit'
@@ -27,6 +27,8 @@ export default function MemoDetailDrawer({
   userId = '',
   allEntities = [],
 }: MemoDetailDrawerProps) {
+  const { theme } = useTheme()
+
   // React Hook 규칙: 조건문 전에 early return
   if (!memo) return null
 
@@ -37,6 +39,7 @@ export default function MemoDetailDrawer({
   const { editor, isSubmitting, handleUpdate } = useTiptapEditorForEdit({
     memo,
     onSuccess: onClose,
+    theme,
   })
 
   // Cancel handler
@@ -84,10 +87,10 @@ export default function MemoDetailDrawer({
             className="flex-1 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
             style={{
               backgroundColor: cancelButtonHovered
-                ? defaultTheme.drawer.card.borderHover
-                : defaultTheme.drawer.card.background,
-              color: defaultTheme.drawer.section.text,
-              border: `1px solid ${defaultTheme.drawer.card.border}`,
+                ? theme.drawer.card.borderHover
+                : theme.drawer.card.background,
+              color: theme.drawer.section.text,
+              border: `1px solid ${theme.drawer.card.border}`,
             }}
           >
             Cancel
@@ -100,9 +103,9 @@ export default function MemoDetailDrawer({
             className="flex-1 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
             style={{
               backgroundColor: saveButtonHovered
-                ? defaultTheme.drawer.button.secondary.bgHover
-                : defaultTheme.drawer.button.secondary.bg,
-              color: defaultTheme.drawer.button.secondary.text,
+                ? theme.drawer.button.secondary.bgHover
+                : theme.drawer.button.secondary.bg,
+              color: theme.drawer.button.secondary.text,
             }}
           >
             {isSubmitting ? 'Saving...' : 'Save'}
@@ -115,20 +118,20 @@ export default function MemoDetailDrawer({
         <div>
           <h3
             className="text-xs uppercase tracking-wide mb-2"
-            style={{ color: defaultTheme.drawer.section.title }}
+            style={{ color: theme.drawer.section.title }}
           >
             Created
           </h3>
-          <p style={{ color: defaultTheme.drawer.section.text }}>{dateStr}</p>
+          <p style={{ color: theme.drawer.section.text }}>{dateStr}</p>
           {updatedStr && updatedStr !== dateStr && (
             <>
               <h3
                 className="text-xs uppercase tracking-wide mb-2 mt-3"
-                style={{ color: defaultTheme.drawer.section.title }}
+                style={{ color: theme.drawer.section.title }}
               >
                 Last Updated
               </h3>
-              <p style={{ color: defaultTheme.drawer.section.text }}>{updatedStr}</p>
+              <p style={{ color: theme.drawer.section.text }}>{updatedStr}</p>
             </>
           )}
         </div>
@@ -137,7 +140,7 @@ export default function MemoDetailDrawer({
         <div>
           <h3
             className="text-xs uppercase tracking-wide mb-3"
-            style={{ color: defaultTheme.drawer.section.title }}
+            style={{ color: theme.drawer.section.title }}
           >
             Connected Entities ({entities.length})
           </h3>
@@ -147,14 +150,14 @@ export default function MemoDetailDrawer({
                 key={entity.id}
                 className="px-3 py-1.5 text-sm rounded-full"
                 style={{
-                  backgroundColor: defaultTheme.drawer.card.background,
-                  color: defaultTheme.drawer.section.text,
-                  border: `1px solid ${defaultTheme.drawer.card.border}`,
+                  backgroundColor: theme.drawer.card.background,
+                  color: theme.drawer.section.text,
+                  border: `1px solid ${theme.drawer.card.border}`,
                 }}
               >
                 {entity.name}
                 {entity.type && (
-                  <span className="ml-2 text-xs" style={{ color: defaultTheme.drawer.section.textMuted }}>
+                  <span className="ml-2 text-xs" style={{ color: theme.drawer.section.textMuted }}>
                     ({entity.type})
                   </span>
                 )}
@@ -167,16 +170,16 @@ export default function MemoDetailDrawer({
         <div>
           <h3
             className="text-xs uppercase tracking-wide mb-3"
-            style={{ color: defaultTheme.drawer.section.title }}
+            style={{ color: theme.drawer.section.title }}
           >
             Content
           </h3>
           <div
             className="w-full rounded-lg p-4 focus-within:ring-2 focus-within:ring-orange-500/50 transition-all"
             style={{
-              backgroundColor: defaultTheme.drawer.card.background,
-              border: `1px solid ${defaultTheme.drawer.card.border}`,
-              color: defaultTheme.drawer.section.text,
+              backgroundColor: theme.drawer.card.background,
+              border: `1px solid ${theme.drawer.card.border}`,
+              color: theme.drawer.section.text,
               minHeight: '200px',
             }}
           >

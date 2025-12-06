@@ -13,7 +13,7 @@ import { CustomMention } from './tiptap/CustomMention'
 import { parseMemoContentWithMentions, buildMentionAwareContentNodes } from '@/app/lib/utils/parseMemoContent'
 import { validateEntityNames, normalizeContentWithMentions } from '@/app/lib/utils/entityUtils'
 import { toast } from 'sonner'
-import { defaultTheme } from '@/app/lib/theme'
+import { type ThemeColors } from '@/app/lib/theme'
 import type { Database } from '@/types/supabase'
 
 type Entity = Database['public']['Tables']['entity']['Row']
@@ -33,6 +33,7 @@ interface UseTiptapEditorForEditOptions {
   memo: Memo
   onSuccess?: () => void
   createdAt?: string
+  theme: ThemeColors
 }
 
 /**
@@ -44,7 +45,7 @@ interface UseTiptapEditorForEditOptions {
  * - Entity 관계 동기화
  */
 export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
-  const { memo, onSuccess, createdAt: createdAtProp } = options
+  const { memo, onSuccess, createdAt: createdAtProp, theme } = options
   const { user } = useAuth()
   const { data: entities = [] as Entity[] } = useEntities(user?.id)
   const updateMemo = useUpdateMemo(user?.id || '')
@@ -392,7 +393,7 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
     extractConfirmedEntities,
   ])
 
-  // pendingEntityTypes + classifyingEntities 변경 시 동적으로 CSS 스타일 주입
+  // pendingEntityTypes + classifyingEntities + entities 변경 시 동적으로 CSS 스타일 주입
   useEffect(() => {
     if (!editor) return
 
@@ -406,6 +407,19 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
     style.id = 'pending-entity-styles-edit'
     let css = ''
 
+    // Entity name → type 맵 생성 (기존 entity + pending entity)
+    const entityTypeMap = new Map<string, string>()
+
+    // 1. 기존에 저장된 entities
+    entitiesRef.current.forEach((entity) => {
+      entityTypeMap.set(entity.name, entity.type || 'unknown')
+    })
+
+    // 2. 새로 추가된 pending entities (우선순위 높음)
+    Object.entries(pendingEntityTypes).forEach(([name, type]) => {
+      entityTypeMap.set(name, type)
+    })
+
     // 분류 중인 entity: 회색 펄스 애니메이션
     classifyingEntities.forEach((entityName) => {
       const escapedName = entityName.replace(/"/g, '\\"')
@@ -418,9 +432,9 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
       `
     })
 
-    // 분류 완료된 entity: 확정된 색깔 (theme.ts 색상 사용)
-    Object.entries(pendingEntityTypes).forEach(([entityName, type]) => {
-      // 분류 중이 아닌 것만 (분류 중이면 위의 스타일이 우선)
+    // 모든 entity에 대해 색상 적용
+    entityTypeMap.forEach((type, entityName) => {
+      // 분류 중이면 skip (위의 스타일이 우선)
       if (classifyingEntities.has(entityName)) return
 
       const escapedName = entityName.replace(/"/g, '\\"')
@@ -429,17 +443,17 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
       let textColor = ''
 
       if (type === 'person') {
-        bgColor = hexToRgba(defaultTheme.entityTypes.person.hex, 0.2)
-        textColor = defaultTheme.entityTypes.person.hex
+        bgColor = hexToRgba(theme.entityTypes.person.hex, 0.2)
+        textColor = theme.entityTypes.person.hex
       } else if (type === 'project') {
-        bgColor = hexToRgba(defaultTheme.entityTypes.project.hex, 0.2)
-        textColor = defaultTheme.entityTypes.project.hex
+        bgColor = hexToRgba(theme.entityTypes.project.hex, 0.2)
+        textColor = theme.entityTypes.project.hex
       } else if (type === 'event') {
-        bgColor = hexToRgba(defaultTheme.entityTypes.event.hex, 0.2)
-        textColor = defaultTheme.entityTypes.event.hex
+        bgColor = hexToRgba(theme.entityTypes.event.hex, 0.2)
+        textColor = theme.entityTypes.event.hex
       } else if (type === 'unknown') {
-        bgColor = hexToRgba(defaultTheme.entityTypes.unknown.hex, 0.2)
-        textColor = defaultTheme.entityTypes.unknown.hex
+        bgColor = hexToRgba(theme.entityTypes.unknown.hex, 0.2)
+        textColor = theme.entityTypes.unknown.hex
       }
 
       if (bgColor && textColor) {
@@ -475,7 +489,7 @@ export function useTiptapEditorForEdit(options: UseTiptapEditorForEditOptions) {
         styleToRemove.remove()
       }
     }
-  }, [editor, pendingEntityTypes, classifyingEntities])
+  }, [editor, pendingEntityTypes, classifyingEntities, entities, theme])
 
   // Ctrl+Enter 키 핸들러 설정
   useEffect(() => {

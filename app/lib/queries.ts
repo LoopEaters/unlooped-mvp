@@ -1150,3 +1150,42 @@ export function useSearchMemos(query: string, userId: string) {
     staleTime: 1 * 60 * 1000, // 1분
   });
 }
+
+// ==================== User Profile API ====================
+
+/**
+ * 사용자 프로필 업데이트 (users 테이블)
+ */
+export function useUpdateProfile(userId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    Database['public']['Tables']['users']['Row'],
+    Error,
+    Database['public']['Tables']['users']['Update']
+  >({
+    mutationFn: async (updates) => {
+      if (!userId) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (!data) throw new Error('No data returned from update');
+
+      return data;
+    },
+    onSuccess: (data) => {
+      // 캐시 무효화는 하지 않음 (AuthProvider가 직접 관리)
+      toast.success('프로필이 업데이트되었습니다.');
+    },
+    onError: (error) => {
+      console.error('❌ [useUpdateProfile] 에러 발생', error);
+      toast.error(`프로필 업데이트 실패: ${error.message}`);
+    },
+  });
+}

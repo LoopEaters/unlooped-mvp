@@ -4,7 +4,8 @@ import BaseDrawer from '@/app/components/common/BaseDrawer'
 import { Save, Calendar } from 'lucide-react'
 import { EditorContent } from '@tiptap/react'
 import { useTiptapEditorForEdit } from '@/app/hooks/useTiptapEditorForEdit'
-import { getEntityTypeColor, defaultTheme } from '@/app/lib/theme'
+import { useTheme } from '@/app/providers/ThemeProvider'
+import { getEntityTypeColor } from '@/app/lib/theme'
 import { getRelativeTime } from '@/app/lib/util'
 import { useState, useEffect } from 'react'
 import type { Database } from '@/types/supabase'
@@ -27,6 +28,8 @@ export default function MemoEditDrawer({
   entities,
   userId,
 }: MemoEditDrawerProps) {
+  const { theme } = useTheme()
+
   // 생성일자 상태 관리
   const [createdAt, setCreatedAt] = useState<string>(memo.created_at || '')
 
@@ -39,6 +42,7 @@ export default function MemoEditDrawer({
     memo,
     onSuccess: onClose,
     createdAt,
+    theme,
   })
 
   const handleSave = () => {
@@ -119,7 +123,7 @@ export default function MemoEditDrawer({
       <button
         onClick={handleSave}
         disabled={!editor || !editor.getText().trim() || isSubmitting}
-        className={`px-6 py-2 ${defaultTheme.ui.interactive.primaryBg} text-white font-medium rounded-lg ${defaultTheme.ui.interactive.primaryBgHover} transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
+        className={`px-6 py-2 ${theme.ui.interactive.primaryBg} text-white font-medium rounded-lg ${theme.ui.interactive.primaryBgHover} transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
       >
         {isSubmitting ? (
           <>
@@ -152,7 +156,7 @@ export default function MemoEditDrawer({
             <div className="flex items-center gap-2 mb-2">
               <label
                 className="text-xs uppercase tracking-wide flex items-center gap-1.5"
-                style={{ color: defaultTheme.drawer.section.title }}
+                style={{ color: theme.drawer.section.title }}
               >
                 <Calendar className="w-3.5 h-3.5" />
                 생성일자
@@ -160,7 +164,7 @@ export default function MemoEditDrawer({
               {memo.updated_at && (
                 <span
                   className="text-xs font-light"
-                  style={{ color: defaultTheme.drawer.section.textMuted }}
+                  style={{ color: theme.drawer.section.textMuted }}
                 >
                   · {getRelativeTime(memo.updated_at)} 수정
                 </span>
@@ -172,9 +176,9 @@ export default function MemoEditDrawer({
               onChange={(e) => setCreatedAt(parseDateTimeLocal(e.target.value))}
               className="w-full px-3 py-2 rounded-lg text-sm transition-colors"
               style={{
-                backgroundColor: defaultTheme.drawer.card.background,
-                border: `1px solid ${defaultTheme.drawer.card.border}`,
-                color: defaultTheme.drawer.section.text,
+                backgroundColor: theme.drawer.card.background,
+                border: `1px solid ${theme.drawer.card.border}`,
+                color: theme.drawer.section.text,
               }}
             />
           </div>
@@ -184,7 +188,7 @@ export default function MemoEditDrawer({
         <div>
           <h3
             className="text-xs uppercase tracking-wide mb-2"
-            style={{ color: defaultTheme.drawer.section.title }}
+            style={{ color: theme.drawer.section.title }}
           >
             메모 내용
           </h3>
@@ -211,25 +215,25 @@ export default function MemoEditDrawer({
         <div>
           <h3
             className="text-xs uppercase tracking-wide mb-3"
-            style={{ color: defaultTheme.drawer.section.title }}
+            style={{ color: theme.drawer.section.title }}
           >
             연결된 엔티티 ({connectedEntities.length})
           </h3>
           <div className="space-y-2">
             {connectedEntities.length === 0 ? (
-              <p className="text-sm" style={{ color: defaultTheme.drawer.section.textMuted }}>
+              <p className="text-sm" style={{ color: theme.drawer.section.textMuted }}>
                 연결된 엔티티가 없습니다.
               </p>
             ) : (
               connectedEntities.map((entity) => {
-                const typeColor = getEntityTypeColor(entity.type)
+                const typeColor = getEntityTypeColor(entity.type, theme)
                 return (
                   <div
                     key={entity.id}
                     className="rounded-lg p-3 flex items-center gap-3"
                     style={{
-                      backgroundColor: defaultTheme.drawer.card.background,
-                      border: `1px solid ${defaultTheme.drawer.card.border}`,
+                      backgroundColor: theme.drawer.card.background,
+                      border: `1px solid ${theme.drawer.card.border}`,
                     }}
                   >
                     <div
@@ -239,7 +243,7 @@ export default function MemoEditDrawer({
                     <div className="flex-1 min-w-0">
                       <p
                         className="text-sm font-medium truncate"
-                        style={{ color: defaultTheme.drawer.section.text }}
+                        style={{ color: theme.drawer.section.text }}
                       >
                         {entity.name}
                       </p>
